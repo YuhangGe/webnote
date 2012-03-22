@@ -1,68 +1,131 @@
-
-Daisy._Page = function(editor){
-	this.editor = editor;
-	this.text_array = [];
-	this.style_array = [];
-	this.last_idx = -1;
-	this.hand_array = {
-		index:[],
-		value:[]
-	};
-	
-	
-	this.appendText("good morning,every one.I'm 葛羽航.");
-	
-	this.appendText("很高兴能和大家一起工作。我来自四川眉山，苏东坡的出生地。\nEvery body ");
-	
-	var b1 = ' 00 04 00 12 00 05 00 13 00 0E 00 12 00 14 00 12 00 21 00 12 00 28 00 12 00 2D 00 13 00 2D 00 13';
-	b1 = b1.replace(/\s*00\s*/g,"\\x");
-	 
-	b1 = eval('"'+b1+'"');
-	var b2 = '  00 17 00 05 00 17 00 05 00 17 00 0A 00 17 00 16 00 17 00 20 00 17 00 22';
-	b2 = b2.replace(/\s*00\s*/g,"\\x");
-	 
-	b2 = eval('"'+b2+'"');
-	//$.dprint(this.str);
-	var hw = {
-		height : 24,
-		width : 38,
-		color : 'blue',
-		weight : 1,
-		bihua : []
+/**
+ * 页面逻辑
+ */
+(function(Daisy, $) {
+	Daisy._Element = function(type, value, style) {
+		this.type = type;
+		this.value = value;
+		this.left = 0;
+		this.bottom = 0;
+		this.width = 0;
+		this.height = 0;
+		this.style = style;
+		//该元素是否需要重新计算其宽度。
+		this.need_measure = true;
 	}
-	
-	
-	hw.bihua.push(this.str_to_points(b1),this.str_to_points(b2));
-	
-	this.appendHandWord(hw);
-	this.appendText("is good.\n\nHello");
-	
-
-}
-Daisy._Page.prototype = {
-	str_to_points: function(str){
-		var len = str.length;
-		if(len===0 || (len & 1)!==0)
-			return [];
- 		var points = [];
-		for(var i=0;i<len;i+=2){
-			var x = str.charCodeAt(i),y=str.charCodeAt(i+1);
-			//$.dprint("x:%d,y:%d",x,y);
-			points.push({
-				x:x,y:y
-			});
-		}
-		return points;
-	},
-	appendText : function(text){
-		for(var i=0;i<text.length;i++){
-			this.text_array.push(text[i]);
-			this.style_array.push(0);
-		}
-		this.last_idx+=text.length;
-	},
-	appendHandWord : function(hw){
-		this.hand_array.index.push(this.last_idx);
-		this.hand_array.value.push(hw);
+	Daisy._Element.Type = {
+		CHAR : 0,
+		HANDWORD : 1,
+		NEWLINE : 2
 	}
-}
+	Daisy._Page = function(editor) {
+		this.editor = editor;
+		this.ele_array = [];
+
+		this.para_number = 1;
+		this.para_info = [{
+			index : -1,
+			length : 0,
+			line_start : 0,
+			line_cross : 1
+		}];
+
+	}
+	Daisy._Page.prototype = {
+		_getParaByRow : function(row){
+			
+		},
+		_getCaret_xy : function(x, y) {
+			//$.log(x+","+y);
+			var line_height = this.editor.render.line_height, row = Math.floor(y / line_height);
+			
+			// //$.log(row);
+			// var line = this.line_info[row], left = 0, top = row * line_height, col = -1, idx = line.start;
+			//
+			// //$.log(row);
+			// //$.log(line);
+			// if(line.length > 0) {
+			// var k = line.start + 1, e = k + line.length;
+			// for(; k < e; k++) {
+			// var cw = this.editor.render.getTextWidth_2(this.text_array[k], k);
+			// //this.editor.render.getTextWidth(this.text_array[k]);
+			// if(left + cw / 2 > x)
+			// break;
+			// else
+			// left += cw;
+			// }
+			// idx = k - 1;
+			//
+			// //$.log(left);
+			// col = idx - line.start - 1;
+			// }
+			//
+			return {
+				param : 0,
+				param_at : -1,
+				index : -1,
+				left : x,
+				top : y
+			};
+		},
+		_appendLine : function(){
+		
+			var last_para = this.para_info[this.para_number-1]
+			this.para_info.push({
+				index : this.ele_array.length,
+				length : 0,
+				line_start : last_para.line_start+last_para.line_cross,
+				line_cross : 1
+			})
+			
+			this.ele_array.push(new Daisy._Element(Daisy._Element.Type.NEW_LINE, '\n', null));
+			this.para_number ++;
+		},
+		append : function(ele, style) {
+
+			var new_ele = null;
+			if( typeof ele === 'string') {
+				if(ele==='\n'){
+					this._appendLine();
+					return;
+				}
+				if(style == null)
+					style = {
+						font : this.editor.font,
+						bold : false,
+						color : this.editor.color
+					};
+				//$.log(style);
+				new_ele = new Daisy._Element(Daisy._Element.Type.CHAR, ele, style);
+			} else {
+				new_ele = new Daisy._Element(Daisy._Element.Type.HANDWORD,ele.bihua,{
+					weight : ele.weight,
+					color : ele.color
+				});
+				new_ele.width = ele.width;
+				new_ele.height = ele.height;
+			}
+			this.ele_array.push(new_ele);
+			
+			
+			var last_param = this.para_info[this.para_number-1],
+				pre_line_cross = last_param.line_cross;
+			last_param.length++;
+			
+			var new_line_cross = this.editor.render._measureParagraph(last_param);
+			if(new_line_cross>pre_line_cross){
+				last_param.line_cross=new_line_cross;
+			}
+			// this.text_array.push(text);
+			// this.style_array.push(style);
+			//
+			// if(text==='\n'){
+			//
+			// }else{
+			// last_param.length ++;
+			//
+			// }
+		}
+	}
+
+})(Daisy, Daisy.$);

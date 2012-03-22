@@ -181,7 +181,7 @@
 				console.log(rtn);
 			return rtn;
 		},
-		'dprint' : function(format, arg1, arg2) {
+		'log' : function(format, arg1, arg2) {
 			var rtn = null;
 			if(arguments.length <= 1)
 				rtn = format
