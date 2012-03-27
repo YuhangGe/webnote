@@ -1,0 +1,35 @@
+#wn-canvas {
+	cursor: text;
+	margin: 0px;
+	outline: none;
+	position: relative;
+	left: 0px;
+	top: 0px;
+}
+#wn-caret {
+	position: absolute;
+	display: block;
+	width: 1px;
+	background: transparent;
+	left: 0px;
+	top: 0px;
+	padding: 0px;
+	margin: 0px;
+	outline: none;
+	border: none;
+	resize: none;
+	/*
+	 * important! overflow hidden in chrome
+	 */
+	overflow: hidden;
+}
+#wn-editor {
+	width: 600px;
+	height: 700px;
+	padding: 0px;
+	overflow-x: auto;
+	overflow-y: auto;
+	position: relative;
+	outline: none;
+	background:#FFFFCC;
+}

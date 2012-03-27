@@ -13,27 +13,31 @@
 		},
 		loadToPage : function(editor) {
 			
-			var str= "hello\nworld\n.我是葛羽航。大家好哦。大家好哦大家好哦大家好哦大家好哦大家好哦大家好哦大家好哦大家好哦大家好哦大家好哦\nhello daisy.i love you";
-			for(var i=0;i<str.length;i++)
-				editor.cur_page.append(str[i]);
+/*
+			 var str=  "hellodaisyhellodaisyaaaahello       yhelloadaisya go钁涚窘odboy.\n\ngood";// "hello\nworld\n.鎴戞槸钁涚窘鑸�\n\n\n\n澶у濂藉摝銆傚ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝\nhello daisy.i love you\n";
+			 for(var i=0;i<str.length;i++)
+				 editor.cur_page.append(str[i]);
 			
-			return;
+return;*/
+
 			
-			var len = window.WNItem.text_array.length;
+			var len = window.WNItem.text_array.length,j=0;
 			for(var i = 0; i < len; i++) {
 				var ele = window.WNItem.text_array[i];
 				if( typeof ele === 'string') {
-			/*		editor.cur_page.append(ele, {
+					editor.cur_page.append(ele, {
 						font : this.editor.font_size + "px " + this.editor.font_name,
 						bold : false,
 						color : this.editor.color
-				}); */
+					});
 				} else {
-					editor.cur_page.append(this._loadHandWord(ele))
+					editor.cur_page.append(this._loadHandWord(ele));
+					//break;
+				
 				}
 			}
 			
-			this._loadStyle(editor.cur_page.style_array);
+			//this._loadStyle(editor.cur_page.style_array);
 		},
 		_loadStyle : function(s_arr) {
 			var b_arr = window.WNItem.bold_array, idx = 1;
@@ -91,7 +95,9 @@
 			var bnum = hs.charCodeAt(7), idx = 8;
 			for(var j = 0; j < bnum; j++) {
 				var new_bh = [], pn = hs.charCodeAt(idx++);
-				for(var k = 0; k < pn; k += 2) {
+				//$.log('pn %d',pn)
+				for(var k = 0; k < pn; k ++) {
+					//$.log("nbh")
 					new_bh.push({
 						x : hs.charCodeAt(idx++),
 						y : hs.charCodeAt(idx++)
@@ -99,6 +105,8 @@
 				}
 				hw.bihua.push(new_bh);
 			}
+			if(index===3)
+				window.hw=hw;
 			return hw;
 
 		}

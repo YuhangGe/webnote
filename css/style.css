@@ -1,0 +1,118 @@
+*{
+	margin: 0px;
+	padding: 0px;
+	list-style : none;
+	font-size: 16px;
+	font-family: Arial, Helvetica, sans-serif, "宋体";
+}
+a{
+	color: #1C94C4;
+	text-decoration: none;
+}
+a:hover{
+	color:#F4A100;
+}
+#web-note{
+	height: 500px;
+}
+#col-1{
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	height: 800px;
+	width : 200px;
+	border-right: 1px solid #B3B3B3;
+}
+#col-2{
+	position: absolute;
+	left: 201px;
+	top: 0px;
+	height: 800px;
+	width : 300px;
+	border-right: 1px solid #B3B3B3;
+}
+
+#col-3{
+	position: absolute;
+	left: 502px;
+	top: 0px;
+	width: 800px;
+	height: 800px;
+	
+}
+
+#col-1 .logo, #col-2 .search, #col-3 .edit{
+	color:#F7B850;
+	height: 40px;
+	border-bottom:  1px solid #B3B3B3;
+}
+#col-1 .logo h2{
+	position : relative;
+	
+}
+
+#col-1 .sub-title,#col-2 .sub-title,#col-3 .edit-ctrl{
+	padding:5px;
+	height: 25px;
+	font-size: 12px;
+	font-weight: bold;
+	border-bottom: 1px solid #ebebeb;
+}
+
+.book-list .book-title{
+		
+}
+.book-list .book-type{
+	font-size: 12px;
+	padding-left: 15px;
+}
+.book-list ul{
+	overflow-x : hidden;
+	overflow-y:auto;
+}
+.book-list li{
+	height: 40px;
+	padding: 5px;
+	cursor: pointer;
+	background: transparent;
+}
+.book-list li:hover{
+	background: #EBEBEB;
+}
+
+#note-list{
+	overflow-x : auto;
+	overflow-y: auto;
+	height: 300px;
+}
+.note-list li{
+	cursor: pointer;
+	padding: 5px;
+	height: 140px;
+	border-bottom: 1px solid #e6e6e6;
+}
+.note-list li:last-child{
+	border-bottom: 0px;
+}
+.note-list li:hover{
+	background: #ebebeb;
+}
+.note-list p{
+	text-align:center;
+}
+.note-list img{
+	border:none;
+	display: inline-block;
+	width: 90px;
+	height: 116px;
+}
+#col-3 .edit-left{
+	float: left;
+}
+#col-3 .edit-right{
+	float: right;
+}
+
+#edit-container{
+	position:relative;
+}

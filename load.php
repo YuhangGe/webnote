@@ -41,8 +41,8 @@ function read_tlv($file) {
 				break;
 			case (int)0x91000000 :
 			//short[]
-				$data = unpack("n*", $data);
-				//	print_r($data);
+				$data = _2short_arr($data); //unpack("n*", $data);
+					//print_r($data);
 				break;
 			case (int)0x82000000 :
 			// print_r($data);
@@ -78,13 +78,20 @@ function _2int($data) {
 	return ($tmp[4] & 0x000000ff) | (($tmp[3]<<8) & 0x0000ff00) | (($tmp[2]<<16) & 0x00ff0000) | (($tmp[1]<<24) & 0xff000000);
 	//return (($tmp[1]>>24)&0x000000ff)|(($tmp[2]>>8)&0x00ff0000)|(($tmp[3]<<8)&0x0000ff00)|(($tmp[4]<<24)&0xff000000);
 }
-
+function _2short_arr($data){
+	$tmp = unpack("C*",$data);
+	$rtn = array();
+	for($i=1;$i<=count($tmp);$i+=2){
+		$rtn[] = ($tmp[$i]<<8)&0x0000ff00|($tmp[$i+1]&0x000000ff);
+	}
+	return $rtn;
+}
 function hexEncode($s) {
 	return preg_replace('/(.)/es', "str_pad(dechex(ord('\\1')),2,'0',STR_PAD_LEFT)", $s);
 }
 
 function clr2chr($color) {
-	return int2chr(($color>>24)&0x000000ff).int2chr(($color>>16)&0x000000ff).int2chr(($color>>8)&0x000000ff);
+	return int2chr(($color>>16)&0x000000ff).int2chr(($color>>8)&0x000000ff).int2chr(($color)&0x000000ff);
 }
 
 function err($msg) {
@@ -102,7 +109,7 @@ function int2chr($i) {
 		return "\\u".dechex($i);
 }
 
-$file_name = "items.wn";
+$file_name = "adb\\items4";
 // $_REQUEST['file'];
 if (!file_exists($file_name)) {
 	echo "no file";
@@ -259,7 +266,7 @@ function hw2str($h){
 		$b = $h['bihua'][$i];
 		$out.= int2chr(count($b)/2);
 		
-		for($j=1;$j<=count($b);$j+=2){
+		for($j=0;$j<count($b);$j+=2){
 			$out.= int2chr($b[$j]).int2chr($b[$j+1]);	
 		}
 	}

@@ -9,7 +9,7 @@ if( typeof Daisy === 'undefined')
 
 			this.focused = true;
 			this.caret.focus();
-			$.log('focus');
+			//$.log('focus');
 		},
 		_blur_handler : function(e) {
 			/**
@@ -22,91 +22,120 @@ if( typeof Daisy === 'undefined')
 				//this.caret.style.display = "none";
 			}
 		},
-		_mousedown_handler : function(e) {
-			//this.cur_doc.select(null);
+		_leftmousedown_handler : function(e) {
+			this.cur_page.select(null);
+			this.render.paint();
 			var p = this._getEventPoint(e);
-			$.log("md at %d,%d",p.x,p.y);
+			//$.log("md at %d,%d",p.x,p.y);
 			this._moveCaret_xy(p.x, p.y);
-			this.__mouse_down__ = true;
-			//this.__pre_pos__ = this.caret_position;
-			//this.__down_pos__ = this.caret_position;
 
-			//if(this.canvas.setCapture)
-				//this.canvas.setCapture(true);
+			this.__left_mouse_down__ = true;
+			this.__pre_pos__ = this.caret_pos;
+			this.__down_pos__ = this.caret_pos;
+
+			this.canvas.setCapture(true);
+		},
+		_mousedown_handler : function(e) {
+			//$.log(e.button);
+			if(e.button === 0) {
+				this._leftmousedown_handler(e);
+			} else if(e.button === 2) {
+				this._rightmousedown_handler(e);
+			} else {
+				$.stopEvent(e);
+			}
+
+		},
+		_leftmouseup_handler : function(e) {
+			this.__left_mouse_down__ = false;
+
+			this.render.paint();
+
+			this.canvas.releaseCapture();
 		},
 		_mouseup_handler : function(e) {
-			$.log('mup 1');
-			this.__mouse_down__ = false;
-
-			//this.render.paint();
-
-			//if(this.canvas.releaseCapture)
-				//this.canvas.releaseCapture();
+			//$.log('mup');
+			if(e.button === 0) {
+				this._leftmouseup_handler(e);
+			} else if(e.button === 2) {
+				this._rightmouseup_handler(e);
+			} else {
+				$.stopEvent(e);
+			}
 
 		},
-		_mousemove_handler_deal : function(pos) { out_if:
-			if(pos.line !== this.__pre_pos__.line || pos.colum !== this.__pre_pos__.colum) {
+		_leftmousemove_handler_deal : function(pos) { out_if:
+			if(pos.para !== this.__pre_pos__.para || pos.para_at !== this.__pre_pos__.para_at) {
 				this._setCaret(pos);
-				this.setFocus(true);
+				this.focus();
 				var from = this.__down_pos__, to = pos;
-				if(from.line === to.line && from.colum === to.colum && this.select_mode === true) {
-					this.cur_doc.select(null);
+				if(from.para === to.para && from.para_at === to.para_at && this.select_mode === true) {
+					this.cur_page.select(null);
 					break out_if;
-				} else if(from.line > to.line || (from.line === to.line && from.colum > to.colum)) {
+				} else if(from.para > to.para || (from.para === to.para && from.para_at > to.para_at)) {
 					from = pos;
 					to = this.__down_pos__;
 
 				}
-				//$.log("Select " + from.line + "," + from.colum + " to " + to.line + "," + to.colum);
-				this.cur_doc.select(from, to);
+				//$.log("select from %d,%d,line %d to %d,%d,line %d",from.para,from.para_at,from.line,to.para,to.para_at,to.line);
+				this.cur_page.select(from, to);
 
 				this.render.paint();
 				this.__pre_pos__ = pos;
 			}
 
-			/**
-			 * 如果当前游标的位置不在可见区域（即当前行的末尾没有显示），则滚动使之可见.
-			 * 当前使用的规则是滚动到当前行宽度减去45的位置。
-			 */
-			var cur_line = this.cur_doc.line_info[pos.line];
-			if(cur_line.width < this.scroll_left)
-				this.scrollLeft(cur_line.width - 45);
-			/**
-			 * 调整游标位置使其可见
-			 */
-			this.adjustScroll();
+			// /**
+			// * 如果当前游标的位置不在可见区域（即当前行的末尾没有显示），则滚动使之可见.
+			// * 当前使用的规则是滚动到当前行宽度减去45的位置。
+			// */
+			// var cur_line = this.cur_doc.line_info[pos.line];
+			// if(cur_line.width < this.scroll_left)
+			// this.scrollLeft(cur_line.width - 45);
+			// /**
+			// * 调整游标位置使其可见
+			// */
+			// this.adjustScroll();
 		},
 		_mousemove_handler : function(e) {
-			if(!this.__mouse_down__)
-				return;
-			var p = this._getEventPoint(e), pos = this.cur_doc._getCaret_xy(p.x, p.y);
-			this._mousemove_handler_deal(pos);
+			if(this.__left_mouse_down__) {
+				var p = this._getEventPoint(e), pos = this.cur_page._getCaret_xy(p.x, p.y);
+				this._leftmousemove_handler_deal(pos);
+			} else if(this.__right_mouse_down__) {
+				this._rightmousemove_handler_deal(e);
+			}
 			$.stopEvent(e);
 		},
 		_chrome_mousemove_handler : function(e) {
-			if(!this.__mouse_down__)
-				return;
-			//$.log('mv')
-			var p = this._getEventPoint_chrome(e);
-			//jQuery.dprint("%d,%d",p.x,p.y);
-			var pos = this.cur_doc._getCaret_xy(p.x, p.y);
-			//$.log(pos.line)
-			this._mousemove_handler_deal(pos);
+			if(this.__left_mouse_down__) {
+				var p = this._getEventPoint_chrome(e);
+				var pos = this.cur_page._getCaret_xy(p.x, p.y);
+				this._leftmousemove_handler_deal(pos);
+			} else if(this.__right_mouse_down__) {
+				
+			}
 			$.stopEvent(e);
 		},
 		_chrome_mouseup_handler : function(e) {
+			if(e.button === 0) {
+				this.__left_mouse_down__ = false;
+				this.render.paint();
+			} else if(e.button === 2) {
 
-			this.__mouse_down__ = false;
-
-			this.render.paint();
+			}
 
 			$.delEvent(document.body, 'mousemove', this.__cmv_handler);
 			$.delEvent(document.body, 'mouseup', this.__cmu_handler);
 
 		},
 		_chrome_mousedown_handler : function(e) {
-			this._mousedown_handler(e);
 
+			if(e.button === 0) {
+				this._leftmousedown_handler(e);
+			} else if(e.button === 2) {
+				this._rightmousedown_handler(e);
+			}
+
+			//$.log("%d,%d",e.offsetX,e.offsetY);
 			$.addEvent(document.body, 'mousemove', this.__cmv_handler);
 			$.addEvent(document.body, 'mouseup', this.__cmu_handler);
 		},
@@ -116,7 +145,7 @@ if( typeof Daisy === 'undefined')
 			switch(e.keyCode) {
 				case 13:
 					//回车
-					this.insertText("\n");
+					this.insert("\n");
 					/**
 					 * 在ie下面要stopEvent，让keypress不要触发，否则回车会多一个\r。由于不影响其它浏览器，统一stopEvent.
 					 */
@@ -127,7 +156,8 @@ if( typeof Daisy === 'undefined')
 					this._delOrBack(false);
 					break;
 				case 9:
-					this.insertText("    ");
+					for(var i = 0; i < 4; i++)
+					this.insert(' ');
 					$.stopEvent(e);
 					break;
 				case 46:
@@ -179,7 +209,7 @@ if( typeof Daisy === 'undefined')
 			//var f_t = new Date().getTithis();
 
 			if(this.caret.value !== "") {
-				this.insertText(this.caret.value);
+				this.insert(this.caret.value);
 				this.caret.value = "";
 			}
 
@@ -263,24 +293,25 @@ if( typeof Daisy === 'undefined')
 		},
 		initEvent : function() {
 			var me = this;
-			this.__mouse_down__ = false;
+			this.__left_mouse_down__ = false;
+			this.__right_mouse_down__ = false;
 			this.__pre_pos__ = null;
 
 			if(this.canvas.setCapture) {
-				$.log('fire')
+				//$.log('fire')
 				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
 				$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
-				//$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
+				$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
 			} else {
-				//this.__cmv_handler = $.createDelegate(this, this._chrome_mousemove_handler);
+				this.__cmv_handler = $.createDelegate(this, this._chrome_mousemove_handler);
 				//$.log(this.__cmv_handler)
-				//this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
-				//$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
+				this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
+				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
 			}
 			//$.addEvent(this.canvas, "dblclick", $.createDelegate(this, this._canvas_dblclick_handler));
 			//$.addEvent(this.caret, "dblclick", $.createDelegate(this, this._caret_dblclick_handler));
 			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
-			$.addEvent(this.caret,'mouseup',function(e){
+			$.addEvent(this.caret, 'mouseup', function(e) {
 				$.log(e);
 			});
 			$.addEvent(this.caret, 'blur', $.createDelegate(this, this._blur_handler));
@@ -294,6 +325,10 @@ if( typeof Daisy === 'undefined')
 			//$.addEvent(this.caret, 'paste', $.createDelegate(this, this._paste_handler));
 
 			//$.addWheelEvent(this.canvas, $.createDelegate(this, this._wheel_handler));
+
+			$.addEvent(this.canvas, 'contextmenu', function(e) {
+				$.stopEvent(e);
+			})
 		}
 	});
 })(Daisy, Daisy.$)
