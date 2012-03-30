@@ -39,6 +39,7 @@ var LAYOUT = {
 }
 
 function layout(){
+	//return;
 	var size = $.getSize();
 	//$.log(size);
 	$('#col-1').height(size.height);
@@ -47,10 +48,8 @@ function layout(){
 	$('#note-list').height(size.height-LAYOUT.row_1-LAYOUT.row_2-2);
 	// -2是减去两条边线的宽/高
 	$('#col-3').width(size.width-LAYOUT.col_1-LAYOUT.col_2-2);
-	wn_editor.setSize(size.width-LAYOUT.col_1-LAYOUT.col_2-2,size.height-LAYOUT.row_1-LAYOUT.row_2-2);
-	//wn_editor.canvas.width*=2;
-	//wn_editor.render.scale = 2;
-	//wn_editor.render.paint();
+	SNEditor.setSize(size.width-LAYOUT.col_1-LAYOUT.col_2-2,size.height-LAYOUT.row_1-LAYOUT.row_2-2);
+	
 }
 $(window).resize(layout);
 

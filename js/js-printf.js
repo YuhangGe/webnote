@@ -169,6 +169,7 @@
 		};
 		return format.replace(regex, doFormat);
 	}
+	window.spf = sprintf;
 	$.extend({
 		'aprint' : function(arr) {
 			var rtn = "";

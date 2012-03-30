@@ -13,12 +13,12 @@
 		},
 		loadToPage : function(editor) {
 			
-/*
-			 var str=  "hellodaisyhellodaisyaaaahello       yhelloadaisya go钁涚窘odboy.\n\ngood";// "hello\nworld\n.鎴戞槸钁涚窘鑸�\n\n\n\n澶у濂藉摝銆傚ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝\nhello daisy.i love you\n";
-			 for(var i=0;i<str.length;i++)
-				 editor.cur_page.append(str[i]);
-			
-return;*/
+
+			 // var str=  "good";// "hello\nworld\n.鎴戞槸钁涚窘鑸�\n\n\n\n澶у濂藉摝銆傚ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝﹀ぇ瀹跺ソ鍝\nhello daisy.i love you\n";
+			 // for(var i=0;i<str.length;i++)
+				 // editor.cur_page.append(str[i]);
+// 			
+// return;
 
 			
 			var len = window.WNItem.text_array.length,j=0;

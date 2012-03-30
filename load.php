@@ -109,7 +109,7 @@ function int2chr($i) {
 		return "\\u".dechex($i);
 }
 
-$file_name = "adb\\items4";
+$file_name = "adb\\items";
 // $_REQUEST['file'];
 if (!file_exists($file_name)) {
 	echo "no file";

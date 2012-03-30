@@ -1,3 +1,12 @@
+@font-face { 
+    font-family: 'DroidSansWeb'; 
+    src: url('font/DroidSansFallback.ttf') format('truetype'); 
+    font-weight: normal; 
+    font-style: normal; 
+ 
+} 
+
+
 *{
 	margin: 0px;
 	padding: 0px;
@@ -42,23 +51,40 @@ a:hover{
 }
 
 #col-1 .logo, #col-2 .search, #col-3 .edit{
+	padding : 10px;
 	color:#F7B850;
-	height: 40px;
+	height: 20px;
 	border-bottom:  1px solid #B3B3B3;
+}
+#col-2 .search p{
+	color: black;
+	font-size: 17px;
+}
+#col-2 .search a{
+	float: right;
+	cursor: pointer;
 }
 #col-1 .logo h2{
 	position : relative;
-	
+	left : 15px;
+	top : -5px;
+	font-size: 25px;
 }
 
 #col-1 .sub-title,#col-2 .sub-title,#col-3 .edit-ctrl{
-	padding:5px;
-	height: 25px;
+	padding: 8px;
+	 
+	height: 15px;
 	font-size: 12px;
 	font-weight: bold;
 	border-bottom: 1px solid #ebebeb;
 }
-
+#col-3 .edit-ctrl a{
+	margin: 0px 8px 0px 1px;
+	font-size : 12px;
+	font-weight:bold;
+	display:inline-block;
+}
 .book-list .book-title{
 		
 }
@@ -115,4 +141,19 @@ a:hover{
 
 #edit-container{
 	position:relative;
+}
+
+#colorSelector {
+	position: absolute;
+	top: -18px;
+	width: 28px;
+	height: 28px;
+	overflow:hidden;
+	background : black;
+}
+#colorSelector div {
+	position: absolute;
+	width: 28px;
+	height: 28px;
+	background: url('../images/select2.png') center;
 }

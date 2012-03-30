@@ -18,17 +18,51 @@
 		this.need_measure = true;
 		this.visible = true;
 	}
-	Daisy._Element.prototype.toString = function() {
-		if(this.type === Daisy._Element.Type.CHAR)
-			return this.value;
-		else
-			return "@@";
+	Daisy._Element.prototype = {
+		toString : function() {
+			if(this.type === Daisy._Element.Type.CHAR)
+				return this.value;
+			else
+				return "@@";
+		},
+		copy : function() {
+			var c_value = this.type === Daisy._Element.Type.HANDWORD ? this._copyHandWord() : this.value;
+			var c_ele = new Daisy._Element(this.type, c_value, this._copyStyle(this.style));
+			c_ele.width = this.width;
+			c_ele.height = this.height;
+			return c_ele;
+		},
+		_copyHandWord : function() {
+			var c_hw = [];
+			for(var i = 0; i < this.value.length; i++) {
+				var bihua = this.value[i], c_bihua = [];
+				for(var j = 0; j < bihua.length; j++) {
+					var p = bihua[j];
+					c_bihua.push({
+						x : p.x,
+						y : p.y
+					});
+				}
+				c_hw.push(c_bihua);
+			}
+			return c_hw;
+		},
+		_copyStyle : function(style) {
+			var c_style = {};
+			for(var s in this.style) {
+				c_style[s] = this.style[s];
+			}
+			//$.log(c_style);
+			return c_style;
+		}
 	}
+
 	Daisy._Element.Type = {
 		CHAR : 0,
 		HANDWORD : 1,
 		NEWLINE : 2
 	}
+
 	Daisy._Page = function(editor) {
 		this.editor = editor;
 		this.ele_array = [];
@@ -46,6 +80,10 @@
 			from : null,
 			to : null
 		}
+
+		this.doodle_list = [];
+		this.doodle_width = 0;
+		this.doodle_height = 0;
 	}
 	Daisy._Page.prototype = {
 		select : function(from, to) {
@@ -69,7 +107,7 @@
 		},
 		_getCaret_xy : function(x, y) {
 			//$.log(x+","+y);
-			var rd = this.editor.render,line_height = rd.line_height , row = Math.floor(y / line_height), p_i = this._getParaByRow(row), para = this.para_info[p_i], idx = para.index, left = 0, bottom = (row + 1) * line_height, p_at = -1;
+			var rd = this.editor.render, line_height = rd.line_height, row = Math.floor(y / line_height), p_i = this._getParaByRow(row), para = this.para_info[p_i], idx = para.index, left = 0, bottom = (row + 1) * line_height, p_at = -1;
 			var lp = this.para_info[this.para_info.length - 1], max_bot = (lp.line_start + lp.line_cross) * line_height;
 			if(bottom > max_bot) {
 				bottom = max_bot;
@@ -115,10 +153,10 @@
 		 */
 		_getCaret_p : function(p_idx, p_at) {
 			//$.log("%d,%d",p_idx,p_at);
-			var para = this.para_info[p_idx], e_idx = para.index + ( p_at = (p_at === null ? para.length - 1 : p_at)) + 1, line = para.line_start, left = 0, rd=this.editor.render, bottom = (line + 1) * rd.line_height;
+			var para = this.para_info[p_idx], e_idx = para.index + ( p_at = (p_at === null ? para.length - 1 : p_at)) + 1, line = para.line_start, left = 0, rd = this.editor.render, bottom = (line + 1) * rd.line_height;
 			if(p_at >= 0) {
 				var ele = this.ele_array[e_idx];
-				while(!ele.visible && p_at>=-1){
+				while(!ele.visible && p_at >= -1) {
 					e_idx--;
 					p_at--;
 					ele = this.ele_array[e_idx];
@@ -182,7 +220,7 @@
 			return this._getCaret_p(caret.para + 1, -1);
 		},
 		insert : function(ele, caret, style) {
-			if(this.select_mode){
+			if(this.select_mode) {
 				caret = this._delSelect();
 				this.select_mode = false;
 			}
@@ -191,18 +229,22 @@
 				if(ele === '\n') {
 					return this._insertLine(caret);
 				}
-				if(style == null)
-					style = {
-						font : this.editor.font,
-						bold : false,
-						color : this.editor.color
-					};
-				//$.log(style);
-				new_ele = new Daisy._Element(Daisy._Element.Type.CHAR, ele, style);
+				new_ele = new Daisy._Element(Daisy._Element.Type.CHAR, ele, style == null ? {
+					font : this.editor.font,
+					bold : this.editor.font_bold,
+					color : this.editor.color
+				} : {
+					font : style.font,
+					bold : style.bold,
+					color : style.color
+				});
 			} else {
-				new_ele = new Daisy._Element(Daisy._Element.Type.HANDWORD, ele.bihua, {
+				new_ele = new Daisy._Element(Daisy._Element.Type.HANDWORD, ele.bihua, style == null ? {
 					weight : ele.weight,
 					color : ele.color
+				} : {
+					weight : style.weight,
+					color : style.color
 				});
 				new_ele.width = ele.width;
 				new_ele.height = ele.height;
@@ -252,10 +294,9 @@
 				if(style == null)
 					style = {
 						font : this.editor.font,
-						bold : false,
+						bold : this.editor.font_bold,
 						color : this.editor.color
 					};
-				//$.log(style);
 				new_ele = new Daisy._Element(Daisy._Element.Type.CHAR, ele, style);
 			} else {
 				new_ele = new Daisy._Element(Daisy._Element.Type.HANDWORD, ele.bihua, {
@@ -298,30 +339,30 @@
 			return this._getCaret_p(p_idx, p_at - 1);
 		},
 		_delSelect : function() {
-		 
+
 			var f = this.select_range.from, t = this.select_range.to;
 			var f_p = f.para, t_p = t.para, f_at = f.para_at, t_at = t.para_at;
 			var len = t.index - f.index;
 			this.ele_array.splice(f.index + 1, len);
-		
+
 			for(var i = t_p + 1; i < this.para_number; i++) {
 				this.para_info[i].index -= len;
 			}
-			
+
 			var para = this.para_info[f_p];
 			if(f_p === t_p) {
 				para.length -= len;
 				this._resetParagraph(f_p);
 			} else {
 				var pre_lc = 0;
-				for(var i=f_p;i<=t_p;i++)
-					pre_lc+=this.para_info[i].line_cross;
-				
+				for(var i = f_p; i <= t_p; i++)
+				pre_lc += this.para_info[i].line_cross;
+
 				para.length = f_at + this.para_info[t_p].length - t_at;
 				this.para_info.splice(f_p + 1, t_p - f_p);
 				this.para_number -= t_p - f_p;
 				para.line_cross = this.editor.render._measureParagraph(para);
-				
+
 				if(pre_lc !== para.line_cross) {
 					//$.log('move up:%d',para.line_cross-pre_lc)
 					this._moveLineUpDown(f_p + 1, this.para_number - 1, para.line_cross - pre_lc);
@@ -329,7 +370,7 @@
 			}
 
 			this.select_mode = false;
-			
+
 			return this.select_range.from;
 		},
 		_del : function(caret) {
@@ -352,6 +393,33 @@
 			} else {
 				return caret;
 			}
+		},
+		setSelectColor : function(color) {
+			if(this.select_mode) {
+				var f = this.select_range.from.index + 1, t = this.select_range.to.index;
+				for(var i = f; i <= t; i++) {
+					this.ele_array[i].style.color = color;
+				}
+			}
+		},
+		setSelectBold : function(is_bold) {
+			if(this.select_mode) {
+				var f = this.select_range.from.index + 1, t = this.select_range.to.index;
+				for(var i = f; i <= t; i++) {
+					var ele = this.ele_array[i];
+					if(ele.type === Daisy._Element.Type.CHAR) {
+						ele.style.bold = is_bold;
+						ele.style.font = this.editor.font;
+					}
+				}
+			}
+		},
+		copyElement : function() {
+			var f = this.select_range.from.index + 1, t = this.select_range.to.index, rtn = [];
+			for(var i = f; i <= t; i++) {
+				rtn.push(this.ele_array[i].copy());
+			}
+			return rtn;
 		}
 	}
 

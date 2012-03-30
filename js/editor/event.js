@@ -140,8 +140,11 @@ if( typeof Daisy === 'undefined')
 			$.addEvent(document.body, 'mouseup', this.__cmu_handler);
 		},
 		_keydown_handler : function(e) {
+			
 			//$.log(e.ctrlKey);
-			//$.log(e.keyCode);
+			//$.log(this.read_only);
+			if(this.read_only && (e.keyCode<37||e.keyCode>40))
+				return;
 			switch(e.keyCode) {
 				case 13:
 					//回车
@@ -188,16 +191,21 @@ if( typeof Daisy === 'undefined')
 					}
 					break;
 				case 67:
-					if(e.ctrlKey && ($.ie || $.firefox)) {
+					if(e.ctrlKey /* && ($.ie || $.firefox) */) {
 
 						this.copy();
 						$.stopEvent(e);
 					}
 					break;
 				case 88:
-					if(e.ctrlKey && ($.ie || $.firefox)) {
+					if(e.ctrlKey /* && ($.ie || $.firefox) */) {
 
 						this.cut();
+						$.stopEvent(e);
+					}
+				case 86:
+					if(e.ctrlKey){
+						this.paste();
 						$.stopEvent(e);
 					}
 					break;
@@ -207,9 +215,10 @@ if( typeof Daisy === 'undefined')
 		_input_handler : function(e) {
 			//	$.log(e);
 			//var f_t = new Date().getTithis();
-
+			
 			if(this.caret.value !== "") {
-				this.insert(this.caret.value);
+				if(!this.read_only)
+					this.insert(this.caret.value);
 				this.caret.value = "";
 			}
 
@@ -253,11 +262,11 @@ if( typeof Daisy === 'undefined')
 			}
 		},
 		_copy_handler : function(e) {
-			this.copy(e);
+			//this.copy(e);
 			$.stopEvent(e);
 		},
 		_cut_handler : function(e) {
-			this.cut(e);
+			//this.cut(e);
 			$.stopEvent(e);
 		},
 		_paste_handler : function(e) {
@@ -272,10 +281,10 @@ if( typeof Daisy === 'undefined')
 			 */
 			//$.log("paste");
 
-			if(this.paste(e)) {
-				$.stopEvent(e);
-			}
-
+			//if(this.paste(e)) {
+				//$.stopEvent(e);
+			//}
+			$.stopEvent(e);
 		},
 		_caret_dblclick_handler : function(e) {
 			this.__mouse_down__ = false;
@@ -319,10 +328,10 @@ if( typeof Daisy === 'undefined')
 			$.addEvent(this.caret, 'input', $.createDelegate(this, this._input_handler));
 			//$.addEvent(this.right_scroll, "scroll", $.createDelegate(this, this._right_scroll_handler));
 			//$.addEvent(this.bottom_scroll, "scroll", $.createDelegate(this, this._bottom_scroll_handler));
-			//$.addEvent(this.caret, 'copy', $.createDelegate(this, this._copy_handler));
-			//$.addEvent(this.caret, 'cut', $.createDelegate(this, this._cut_handler));
+			$.addEvent(this.caret, 'copy', $.createDelegate(this, this._copy_handler));
+			$.addEvent(this.caret, 'cut', $.createDelegate(this, this._cut_handler));
 
-			//$.addEvent(this.caret, 'paste', $.createDelegate(this, this._paste_handler));
+			$.addEvent(this.caret, 'paste', $.createDelegate(this, this._paste_handler));
 
 			//$.addWheelEvent(this.canvas, $.createDelegate(this, this._wheel_handler));
 
