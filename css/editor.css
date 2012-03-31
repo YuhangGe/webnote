@@ -1,4 +1,4 @@
-#wn-canvas {
+#sn-canvas {
 	cursor: text;
 	margin: 0px;
 	outline: none;
@@ -6,7 +6,7 @@
 	left: 0px;
 	top: 0px;
 }
-#wn-caret {
+#sn-caret {
 	position: absolute;
 	display: block;
 	width: 1px;
@@ -23,7 +23,7 @@
 	 */
 	overflow: hidden;
 }
-#wn-editor {
+#sn-editor {
 	width: 600px;
 	height: 700px;
 	padding: 0px;

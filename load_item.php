@@ -1,5 +1,5 @@
 <?php
-header("Content-Type: text/plain;charset=utf8");
+header("Content-Type: text/plain;charset=utf-8");
 
 function uchr($codes) {
 	if(is_scalar($codes)) {

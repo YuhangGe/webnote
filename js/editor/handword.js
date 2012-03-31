@@ -27,18 +27,19 @@
 				}
 			}
 			var w = x2 - x1, h = y2 - y1;
-			var bili = this.line_height / h;
+			var b_h = this.font_height * 0.75;
+			var bili = b_h / h;
 			for(var i = 0; i < bihuas.length; i++) {
 				var bh = bihuas[i];
 				for(var j = 0; j < bh.length; j++) {
 					var p = bh[j];
-					p.x = Math.floor((p.x - x1) * bili);
+					p.x = Math.floor((p.x - x1) * bili) + this.font_height * 0.1;
 					p.y = Math.floor((p.y - y1) * bili);
 				}
 				hw.bihua.push(bh);
 			}
-			hw.width = (w / h * this.line_height);
-			hw.height = this.line_height;
+			hw.width = (w / h * b_h) + this.font_height*0.2;
+			hw.height = b_h;
 			return hw;
 		},
 		_timeout_handler : function() {
@@ -54,8 +55,10 @@
 			if(this.read_only)
 				return;
 			this.__right_mouse_down__ = true;
+			this.canvas.style.cursor = 'crosshair';
 			this.hand_mode = true;
 			var p = this._getEventPoint(e, true);
+			$.log(p);
 			this.__tmp_new_bihua = [];
 			this.__tmp_new_length = 0;
 			//$.log(p);
@@ -63,8 +66,8 @@
 				window.clearTimeout(this.__hand_timeout);
 				this.__hand_timeout = null;
 			}
-
-			this.canvas.setCapture();
+			if(this.canvas.setCapture)
+				this.canvas.setCapture();
 
 			$.stopEvent(e);
 		},
@@ -77,10 +80,13 @@
 					//$.log("add new bihua");
 					this.hand_bihua.push(this.__tmp_new_bihua);
 				}
-				this.__hand_timeout = window.setTimeout($.createDelegate(this, this._timeout_handler), 1000);
-
-				this.canvas.releaseCapture();
-
+				this.__hand_timeout = window.setTimeout($.createDelegate(this, this._timeout_handler), 600);
+				
+				if(this.canvas.releaseCapture)
+					this.canvas.releaseCapture();
+				
+				this.canvas.style.cursor = 'text';
+				
 				$.stopEvent(e);
 			}
 		},

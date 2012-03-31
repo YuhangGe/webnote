@@ -114,8 +114,9 @@ a:hover{
 .note-list li{
 	cursor: pointer;
 	padding: 5px;
-	height: 140px;
+	height: 170px;
 	border-bottom: 1px solid #e6e6e6;
+	position:relative;
 }
 .note-list li:last-child{
 	border-bottom: 0px;
@@ -126,11 +127,29 @@ a:hover{
 .note-list p{
 	text-align:center;
 }
-.note-list img{
+.note-list .thumb-phone{
 	border:none;
 	display: inline-block;
 	width: 90px;
 	height: 116px;
+}
+.note-list .thumb-pad{
+	border:none;
+	display:inline-block;
+	width : 110px;
+	height : 142px;
+}
+.note-list .new-tip{
+	position: absolute;
+	left : 120px;
+	top: 55px;
+	font-size : 21px;
+}
+.note-list .new-tip-2{
+	position :absolute;
+	left : 120px;
+	top: 80px;
+	font-size: 13px;
 }
 #col-3 .edit-left{
 	float: left;

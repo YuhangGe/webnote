@@ -23,7 +23,6 @@
 		<script type="text/javascript" src="js/editor/filter/blur3.js"></script>
 		<script type="text/javascript" src="js/editor/filter/emboss.js"></script>
 		
-		<script type="text/javascript" src="js/layout.js"></script>
 		<script type="text/javascript" src="js/index.js"></script>
 		<script type="text/javascript" src="js/ctrl.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/editor.css" />
@@ -233,12 +232,7 @@
 						</a>
 					</div>
 					<div id="edit-container">
-						<!-- web note editor -->
-						<div id="wn-editor">
-							<canvas width="400" height="350" id="wn-canvas"></canvas>
-							<textarea id="wn-caret" spellcheck="false" cols='0' rows='0'  ></textarea>
-						</div>
-						<!-- -->
+						
 					</div>
 				</div>
 			</div>

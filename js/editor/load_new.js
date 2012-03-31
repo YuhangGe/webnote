@@ -71,14 +71,14 @@
 					});
 				}
 			}
-		//	this._loadStyle();
+			this._loadStyle();
 			
 			//this._loadStyle(editor.cur_page.style_array);
 		},
 		_loadStyle : function() {
 			var len = this.read();
 			for(var i = 0; i < len; i++) {
-
+				//$.log("bold s:%d,e:%d",s,e);
 				for(var j = this.read(); j < this.read(); j++) {
 					var ele = this.editor.cur_page.ele_array[j];
 					if(ele.type === Daisy._Element.Type.CHAR) {
@@ -88,16 +88,16 @@
 				}
 			}
 			len = this.read();
-			var s,e;
 			for(var i = 0; i < len; i++) {
-				s=this.read();
-				e=this.read();
-				//$.log("s:%d,e:%d",s,e);
+				var s=this.read(),
+					e=this.read(),
+					c = this._getColorStr(this.read(),this.read(),this.read());
+				//$.log("color s:%d,e:%d c:%s",s,e,c);
 				for(var j = s; j < e; j++) {
 					
 					var ele = this.editor.cur_page.ele_array[j];
 					if(ele.type === Daisy._Element.Type.CHAR) {
-						ele.style.color = this._getColorStr(this.read(),this.read(),this.read());
+						ele.style.color = c;
 					}
 				}
 			}

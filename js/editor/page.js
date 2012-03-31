@@ -66,26 +66,33 @@
 	Daisy._Page = function(editor) {
 		this.editor = editor;
 		this.ele_array = [];
-
-		this.para_number = 1;
-		this.para_info = [{
-			index : -1,
-			length : 0,
-			line_start : 0,
-			line_cross : 1
-		}];
-
-		this.select_mode = false;
-		this.select_range = {
-			from : null,
-			to : null
-		}
-
 		this.doodle_list = [];
 		this.doodle_width = 0;
 		this.doodle_height = 0;
+		this._init();
+		
 	}
 	Daisy._Page.prototype = {
+		_init : function(){
+			this.para_number = 1;
+			this.para_info = [{
+				index : -1,
+				length : 0,
+				line_start : 0,
+				line_cross : 1
+			}];
+			this.select_mode = false;
+			this.select_range = {
+				from : null,
+				to : null
+			}
+	
+			this.doodle_list.length = 0;
+			this.ele_array.length = 0;
+		},
+		reset : function(){
+			this._init();
+		},
 		select : function(from, to) {
 			if(from == null || to == null) {
 				this.select_mode = false;
@@ -143,7 +150,7 @@
 				line : row,
 				index : idx,
 				left : left,
-				top : bottom - this.editor.caret_height
+				top : bottom - this.editor.font_height	
 			};
 		},
 		/**
@@ -162,15 +169,18 @@
 					ele = this.ele_array[e_idx];
 				}
 				left = ele.left + ele.width;
-				bottom = ele.bottom;
+				//$.log(ele.line_at);
+				line = ele.line_at;
+				bottom = (ele.line_at +1) * this.editor.line_height;
 			}
+			 
 			return {
 				para : p_idx,
 				para_at : p_at,
 				line : line,
 				index : e_idx,
 				left : left,
-				top : bottom - this.editor.caret_height
+				top : bottom - this.editor.font_height
 			}
 		},
 		_resetParagraph : function(p_idx, index_step) {

@@ -7,8 +7,10 @@ if( typeof Daisy === 'undefined')
 Daisy.$ = function(id) {
 	return document.getElementById(id);
 }; (function($) {
+
 	var ua = navigator.userAgent.toLowerCase();
-	var s; ( s = ua.match(/msie ([\d.]+)/)) ? $.ie = s[1] : ( s = ua.match(/firefox\/([\d.]+)/)) ? $.firefox = s[1] : ( s = ua.match(/chrome\/([\d.]+)/)) ? $.chrome = s[1] : ( s = ua.match(/opera.([\d.]+)/)) ? $.opera = s[1] : ( s = ua.match(/version\/([\d.]+).*safari/)) ? $.safari = s[1] : 0;
+	var s;
+	( s = ua.match(/msie ([\d.]+)/)) ? $.ie = s[1] : ( s = ua.match(/firefox\/([\d.]+)/)) ? $.firefox = s[1] : ( s = ua.match(/chrome\/([\d.]+)/)) ? $.chrome = s[1] : ( s = ua.match(/opera.([\d.]+)/)) ? $.opera = s[1] : ( s = ua.match(/version\/([\d.]+).*safari/)) ? $.safari = s[1] : 0;
 
 	$.log = function(format, arg1, arg2) {
 		jQuery.log.apply(this, arguments);
@@ -116,5 +118,47 @@ Daisy.$ = function(id) {
 		ctx.quadraticCurveTo(ctrl.x, ctrl.y, dest.x, dest.y);
 		ctx.stroke();
 		ctx.closePath();
+	}
+	$.hasFont = function(font_name) {
+		/*
+		 * test if there is font in system . 
+		 * inspired by http://remysharp.com/2008/07/08/how-to-detect-if-a-font-is-installed-only-using-javascript/
+		 */
+		var test_str = "abcdefghigklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ~!@#$%^&*()_+`1234567890-=爱小扬";
+		if($.COMIC_WIDTH == null) {
+			var comic_ele = document.createElement('span');
+			comic_ele.style.font = "50px Comic Sans MS";
+			comic_ele.innerHTML = test_str;
+			comic_ele.style.visibility = "hidden";
+			document.body.appendChild(comic_ele);
+			$.COMIC_WIDTH = comic_ele.offsetWidth;
+			document.body.removeChild(comic_ele);
+			//$.log("comic width:" + $.COMIC_WIDTH)
+		}
+		var f_ele = document.createElement("span");
+		f_ele.style.font = "50px " + font_name +",Comic Sans MS";
+		f_ele.style.visibility = "hidden";
+		f_ele.innerHTML = test_str;
+		document.body.appendChild(f_ele);
+		var f_width = f_ele.offsetWidth;
+		document.body.removeChild(f_ele);
+		
+		//$.log("font width:"+f_width);
+		
+		return f_width!==$.COMIC_WIDTH;
+	}
+	/*
+	 * 35px Droid Sans Fallback
+	 */
+	$.CHAR_WIDTH_TABLE = "";
+	$.HAS_DROID_FONT = null;
+	$.loadCharWidthTable = function(){
+		jQuery.ajax({
+			async:false,
+			url : 'char_width_table.txt'
+		}).done(function(table){
+			window.tb= $.CHAR_WIDTH_TABLE = table;
+		}).fail(function(table){
+		});
 	}
 })(Daisy.$);

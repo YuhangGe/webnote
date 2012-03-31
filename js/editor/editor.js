@@ -2,12 +2,42 @@
  * 程序主逻辑
  */
 (function(Daisy, $) {
+	Daisy.createEditor = function(parent){
+		if(typeof parent === 'string')
+			parent = $(parent);
+		if(document.createElement('canvas').getContext('2d')==null){
+			parent.innerHTML = "SuperNote 编辑器只支持Firefox、Chrome和IE9及以上浏览器。<br/>请使用新版浏览器获得最佳体验。"
+			return null;
+		}
+		if($.HAS_DROID_FONT === null){
+			$.HAS_DROID_FONT =   $.hasFont("Droid Sans Fallback");
+		}
+		if(!$.HAS_DROID_FONT && $.CHAR_WIDTH_TABLE===""){
+			parent.innerHTML = "由于系统没有Droid字体，正在加载字符宽度集...";
+			$.loadCharWidthTable();
+		}
+		parent.innerHTML = '<!-- supernote web editor -->'
+			+ '<div id="sn-editor">'
+			+ '<canvas width="400" height="350" id="sn-canvas"></canvas>'
+			+ '<textarea id="sn-caret" spellcheck="false" cols="0" rows="0"></textarea>'
+			+ '</div><!-- supernote web editor -->';
+		var config = {
+			line_width : 1164,
+			line_count : 32,
+			line_height : 48,
+			font_name :  "Droid Sans Fallback, Microsoft Yahei",
+			font_size : 35,
+			width : 1170,
+			height : 800
+		};
+		return new Daisy.WebNote(config);
+	}
 	Daisy.WebNote = function(config) {
 
-		this.canvas = $('wn-canvas');
-		this.client = $('wn-client');
-		this.container = $('wn-editor');
-		this.caret = $('wn-caret');
+		this.canvas = $('sn-canvas');
+		this.client = $('sn-client');
+		this.container = $('sn-editor');
+		this.caret = $('sn-caret');
 
 		this.clipboard = Daisy.Clipboard.getInstance();
 
@@ -17,40 +47,37 @@
 		this.font_name = config.font_name == null ? '宋体' : config.font_name;
 		this.font_size = config.font_size == null ? 18 : config.font_size;
 		this.font_bold = config.font_bold == null ? false : config.font_bold;
-
+		this.padding_top = config.padding_top == null? 22 : config.padding_top;
+		this.font_height = config.font_height == null? 40 : config.font_height;
+		this.baseline_offset = 2; //为了让底线和caret与文字底端对齐而设置的两个offset像素
 		this.font = (this.font_bold ? 'bold ' : '') + this.font_size + "px " + this.font_name;
 
-		this.bg_color = config.background == null ? 'white' : config.background;
+		this.background = config.background == null ? '#ffffcc' : config.background;
 		this.color = config.foreground == null ? 'black' : config.foreground;
 		this.read_only = config.read_only == null ? false : config.read_only;
 
 		this.def_width = config.line_width;
-		this.def_height = this.line_height * this.line_count;
+		this.def_height = this.line_height * this.line_count + this.padding_top;
 		this.def_bili = this.def_height / this.def_width;
 
 		this.width = config.width == null ? this.def_width : config.width;
 		this.height = config.height == null ? this.def_height : config.height;
 		this.c_width = this.def_width;
 		this.c_height = this.def_height;
-
-		this.caret_height = $.getFontHeight(this.font);
-		//$.log("font height:%d",this.caret_height);
-
+	 
 		this.canvas.width = this.c_width;
 		this.canvas.height = this.c_height;
+		
 		this.container.style.width = (this.width + (this.c_height > this.height ? 20 : 0)) + "px";
 		this.container.style.height = this.height + 'px';
-
+		this.container.style.background = this.background;
+		
 		this.caret.style.font = this.font;
 		this.caret.style.color = this.color;
-		this.caret.style.height = this.caret_height + "px";
-		this.caret.style.top = (this.line_height - this.caret_height) + "px";
-
+		//当前是否在正在手写
 		this.hand_mode = false;
 		this.hand_bihua = [];
-
-		this.render = new Daisy._Render(this);
-
+		
 		this.cur_page = null;
 		this.pages = [];
 
@@ -59,18 +86,26 @@
 			para : 0,
 			para_at : -1,
 			left : 0,
-			top : this.line_height - this.caret_height
+			top : this.line_height - this.font_height
 		}
-
+		
+		this.render = new Daisy._Render(this);
+		this.loader = new Daisy._Load(this);
+		
+		this._resetCaret();
+		/**
+		 * ie 9 下面的一个hack. input必须有过非空值，它的style.height才能生效。
+		 */
+		if($.ie){
+			this.caret.value = "a";
+			this.caret.value = "";
+		}
 		this.createPage();
 		this.setCurPage(0);
-
-		this.loader = new Daisy._Load(this);
-
 		this.initEvent();
-		//$.dprint(this.cur_page);
-		//this.focus();
 		this.render.paint();
+		this.focus();
+	
 	}
 	Daisy.WebNote.prototype = {
 		setColor : function(color) {
@@ -125,11 +160,8 @@
 				}
 				this.canvas.width = this.c_width;
 				this.canvas.height = this.c_height + 10;
-				var scale = this.c_height / this.def_height;
-				this.render.setScale(scale);
-
-				this.caret.style.height = Math.floor(this.caret_height * scale) + 'px';
-				this.caret.style.fontSize = Math.floor(this.font_size * scale) + 'px';
+				this.render.setScale(this.c_height / this.def_height);
+				this.caret.style.height = this.font_height * this.render.scale + 'px';
 				this._resetCaret();
 				//$.log(this.font_size*scale)
 				this.container.style.width = this.width + "px";
@@ -139,7 +171,7 @@
 		_getEventPoint_chrome : function(e) {
 			return {
 				x : e.x - this.container.offsetLeft + document.body.scrollLeft,
-				y : e.y - this.container.offsetTop + document.body.scrollTop
+				y : e.y - this.padding_top - this.container.offsetTop + document.body.scrollTop
 			}
 		},
 		_getEventPoint : function(e, not_scale) {
@@ -147,10 +179,10 @@
 			//$.log(e);
 			if( typeof e.offsetX !== 'undefined') {
 				x = e.offsetX;
-				y = e.offsetY;
+				y = e.offsetY - this.padding_top;
 			} else if( typeof e.layerX !== 'undefined') {
 				x = e.layerX;
-				y = e.layerY;
+				y = e.layerY - this.padding_top;
 			}
 			return {
 				x : not_scale ? x : x / this.render.scale,
@@ -179,9 +211,9 @@
 			this._resetCaret();
 		},
 		_resetCaret : function() {
-			//$.log(this.caret_pos);
+			//$.log(this.caret_pos.top);
 			this.caret.style.left = this.caret_pos.left * this.render.scale + 'px';
-			this.caret.style.top = this.caret_pos.top * this.render.scale + "px";
+			this.caret.style.top = (this.caret_pos.top + this.padding_top + this.baseline_offset) * this.render.scale + "px";
 		},
 		focus : function() {
 			this.focused = true;
@@ -198,6 +230,7 @@
 				n_p = this.cur_page.insert(element, this.caret_pos,style);
 				this._setCaret(n_p);
 			}
+			
 			this.render.paint();
 		},
 		append : function(element) {
@@ -283,6 +316,14 @@
 				this.render.paint();
 			}
 			
+		},
+		getThumb : function(){
+			return this.render.getThumb();
+		},
+		clear : function(){
+			this.cur_page.reset();
+			this.render.paint();
+			this.focus();
 		}
 	}
 

@@ -65,24 +65,29 @@
 
 		this.filter_canvas = document.createElement('canvas');
 		this.filter_ctx = this.filter_canvas.getContext('2d');
-		
+
 		this.thumb_canvas = document.createElement('canvas');
 		this.thumb_ctx = this.thumb_canvas.getContext('2d');
-		
+
 		this.width = editor.def_width;
 		this.height = editor.def_height;
+
 		this.doodle_canvas.width = this.width;
 		this.doodle_canvas.height = this.height;
 		this.filter_canvas.width = this.width;
 		this.filter_canvas.height = this.height;
-		this.thumb_scale = 1/5;
+		this.thumb_scale = 1 / 5;
 		this.thumb_width = this.width * this.thumb_scale;
 		this.thumb_height = this.height * this.thumb_scale;
 		this.thumb_canvas.width = this.thumb_width;
 		this.thumb_canvas.height = this.thumb_height;
-		
+
 		this.line_height = editor.line_height;
 		this.line_count = editor.line_count;
+		this.padding_top = editor.padding_top;
+		this.baseline_offset = editor.baseline_offset;
+		this.font_height = editor.font_height;
+
 		this.scale = 1;
 
 		this.ctx.lineCap = "round";
@@ -92,7 +97,9 @@
 		this.filter_ctx.lineCap = "round";
 		this.filter_ctx.lineJoin = "round";
 
-		this.doodle_change = false;
+		this.ctx.font = this.editor.font;		
+ 		
+ 		this.space_width = $.CHAR_WIDTH_TABLE.charCodeAt[32];
 	}
 	Daisy._Render.prototype = {
 		setScale : function(scale) {
@@ -106,7 +113,7 @@
 			if(para.length === 0)
 				return 1;
 			var idx = para.index + 1, e_idx = idx + para.length;
-			var left = 0, bottom = (para.line_start + 1) * this.line_height, lc = 1, l_at = para.line_start;
+			var left = 0, bottom = this.padding_top + (para.line_start + 1) * this.line_height, lc = 1, l_at = para.line_start;
 			var e_arr = this.page.ele_array;
 			while(idx < e_idx) {
 				var e = idx + 1, s_t = Daisy._MType.getType(e_arr[idx]), t_p = {
@@ -131,7 +138,8 @@
 
 					ele.visible = true;
 
-					if(left + ele.width > this.width) {
+					var _right = left + ele.width + (t_p.t2 === Daisy._MType.SPACE ? this.space_width : 0);
+					if(_right > this.width) {
 						if(s_t === Daisy._MType.SPACE) {
 							ele.visible = false;
 						} else {
@@ -159,8 +167,13 @@
 		},
 		_measureElement : function(ele) {
 			if(ele.type === Daisy._Element.Type.CHAR) {
-				this.ctx.font = ele.style.font;
-				ele.width = this.ctx.measureText(ele.value).width;
+				//$.log($.HAS_DROID_FONT)
+				if($.HAS_DROID_FONT){
+					this.ctx.font = ele.style.font;
+					ele.width = this.ctx.measureText(ele.value).width;
+				}else{
+					ele.width = $.CHAR_WIDTH_TABLE.charCodeAt(ele.value.charCodeAt(0));
+				}
 				//$.log("w:%d",ele.width);
 			}
 			ele.need_measure = false;
@@ -176,13 +189,13 @@
 			this.ctx.save();
 			this.ctx.scale(this.scale, this.scale);
 
-			this.ctx.fillStyle = "#FFFFCC";
+			this.ctx.fillStyle = this.editor.background;
 			this.ctx.fillRect(0, 0, this.width, this.height);
 
 			this.ctx.strokeStyle = "#C0C0C0";
-			this.ctx.lineWidth = 1;
+			this.ctx.lineWidth = 2;
 
-			var top = 0;
+			var top = this.padding_top + this.baseline_offset;
 			for(var i = 0; i < this.line_count; i++) {
 				top += this.line_height;
 				this._drawLine(this.ctx, 0, top, this.width, top);
@@ -199,25 +212,25 @@
 		_paintSelect : function(from, to) {
 			this.ctx.fillStyle = "rgba(0,255,0,0.2)";
 			var e_arr = this.page.ele_array, s_e = e_arr[from.index + 1], e_e = e_arr[to.index], s_l = from.line, e_l = to.line;
-			var c_h = this.editor.caret_height, c_w = this.width;
+			var c_h = this.font_height, c_w = this.width;
 			//$.log("%d,%d",s_l,e_l);
 			if(s_l === e_l) {
 				//$.log(s_e);$.log(e_e);
-				this.ctx.fillRect(s_e.left, s_e.bottom - c_h, e_e.left - s_e.left + e_e.width, c_h);
+				this.ctx.fillRect(s_e.left, s_e.bottom - c_h + this.baseline_offset, e_e.left - s_e.left + e_e.width, c_h);
 			} else {
 				//$.log(s_e);
 				var i = 0;
 				if(s_e.type === Daisy._Element.Type.NEWLINE)
 					i = s_l;
 				else {
-					this.ctx.fillRect(s_e.left, s_e.bottom - c_h, c_w - s_e.left, c_h);
+					this.ctx.fillRect(s_e.left, s_e.bottom - c_h + this.baseline_offset, c_w - s_e.left, c_h);
 					i = s_l + 1;
 				}
 
 				for(; i < e_l; i++) {
-					this.ctx.fillRect(0, (i + 1) * this.line_height - c_h, c_w, c_h);
+					this.ctx.fillRect(0, this.padding_top + (i + 1) * this.line_height - c_h + this.baseline_offset, c_w, c_h);
 				}
-				this.ctx.fillRect(0, e_e.bottom - c_h, e_e.left + e_e.width, c_h);
+				this.ctx.fillRect(0, e_e.bottom - c_h + this.baseline_offset, e_e.left + e_e.width, c_h);
 			}
 
 		},
@@ -246,7 +259,8 @@
 			//$.log("paint");
 
 			this.ctx.textAlign = "start";
-			this.ctx.textBaseline = 'bottom';
+			this.ctx.textBaseline = 'ideographic';
+			//'bottom';
 
 			this._paintBackground();
 
@@ -264,7 +278,7 @@
 
 			var hb = this.editor.hand_bihua;
 			if(hb.length > 0) {
-				this.ctx.strokeStyle = "blue";
+				this.ctx.strokeStyle = this.editor.color;
 				this.ctx.lineWidth = 2;
 				for(var i = 0; i < hb.length; i++) {
 					$.drawBesier(this.ctx, hb[i]);
@@ -304,14 +318,14 @@
 						doo.draw(this.doodle_ctx);
 						break;
 					default:
-						
+
 						this.filter_ctx.clearRect(0, 0, this.width, this.height);
 						doo.draw(this.filter_ctx, this.width, this.height);
 						this.doodle_ctx.drawImage(this.filter_canvas, 0, 0);
 						break;
 
 				}
-		
+
 				//break;
 			}
 
@@ -320,23 +334,18 @@
 
 			this.ctx.drawImage(this.doodle_canvas, 0, 0);
 		},
-		
-		getThumb : function(){
+		getThumb : function() {
 			var pre_scale = this.scale;
 			this.scale = this.thumb_scale;
 			var pre_ctx = this.ctx;
 			this.ctx = this.thumb_ctx;
-			
+
 			this.paint();
-			
+
 			this.ctx = pre_ctx;
-			this.scale=pre_scale;
-			
-			var img = new Image();
-			img.onload = function(){
-				document.body.appendChild(img);
-			}
-			img.src = this.thumb_canvas.toDataURL("image/png");
+			this.scale = pre_scale;
+
+			return this.thumb_canvas.toDataURL("image/png");
 		}
 	}
 

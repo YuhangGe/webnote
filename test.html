@@ -8,14 +8,18 @@
 		
 		<script type="text/javascript">
 			$(function(){
-				$.get("test.php",function(data){
-					//Item = data;
-					$.log(data);
-				},'text');
+				var c = document.createElement("canvas"),ctx = c.getContext('2d');
+				ctx.font = "35px Droid Sans Fallback";
+				var out = [];
+				for(var i=0;i<0xffff;i++){
+					var w = Math.round(ctx.measureText(String.fromCharCode(i)).width);
+					out.push(String.fromCharCode(w));
+				}
+				$('#text').val(out.join(""));
 			})
 		</script>
 	</head>
 	<body>
-		
+		<textarea cols="30" rows="30" id="text"></textarea>
 	</body>
 </html>

@@ -26,13 +26,10 @@ if( typeof Daisy === 'undefined')
 			this.cur_page.select(null);
 			this.render.paint();
 			var p = this._getEventPoint(e);
-			//$.log("md at %d,%d",p.x,p.y);
 			this._moveCaret_xy(p.x, p.y);
-
 			this.__left_mouse_down__ = true;
 			this.__pre_pos__ = this.caret_pos;
 			this.__down_pos__ = this.caret_pos;
-
 			this.canvas.setCapture(true);
 		},
 		_mousedown_handler : function(e) {
@@ -84,17 +81,7 @@ if( typeof Daisy === 'undefined')
 				this.__pre_pos__ = pos;
 			}
 
-			// /**
-			// * 如果当前游标的位置不在可见区域（即当前行的末尾没有显示），则滚动使之可见.
-			// * 当前使用的规则是滚动到当前行宽度减去45的位置。
-			// */
-			// var cur_line = this.cur_doc.line_info[pos.line];
-			// if(cur_line.width < this.scroll_left)
-			// this.scrollLeft(cur_line.width - 45);
-			// /**
-			// * 调整游标位置使其可见
-			// */
-			// this.adjustScroll();
+		
 		},
 		_mousemove_handler : function(e) {
 			if(this.__left_mouse_down__) {
@@ -104,40 +91,6 @@ if( typeof Daisy === 'undefined')
 				this._rightmousemove_handler_deal(e);
 			}
 			$.stopEvent(e);
-		},
-		_chrome_mousemove_handler : function(e) {
-			if(this.__left_mouse_down__) {
-				var p = this._getEventPoint_chrome(e);
-				var pos = this.cur_page._getCaret_xy(p.x, p.y);
-				this._leftmousemove_handler_deal(pos);
-			} else if(this.__right_mouse_down__) {
-				
-			}
-			$.stopEvent(e);
-		},
-		_chrome_mouseup_handler : function(e) {
-			if(e.button === 0) {
-				this.__left_mouse_down__ = false;
-				this.render.paint();
-			} else if(e.button === 2) {
-
-			}
-
-			$.delEvent(document.body, 'mousemove', this.__cmv_handler);
-			$.delEvent(document.body, 'mouseup', this.__cmu_handler);
-
-		},
-		_chrome_mousedown_handler : function(e) {
-
-			if(e.button === 0) {
-				this._leftmousedown_handler(e);
-			} else if(e.button === 2) {
-				this._rightmousedown_handler(e);
-			}
-
-			//$.log("%d,%d",e.offsetX,e.offsetY);
-			$.addEvent(document.body, 'mousemove', this.__cmv_handler);
-			$.addEvent(document.body, 'mouseup', this.__cmu_handler);
 		},
 		_keydown_handler : function(e) {
 			
@@ -225,42 +178,6 @@ if( typeof Daisy === 'undefined')
 			$.stopEvent(e);
 
 		},
-		_wheel_handler : function(e) {
-			//e=window.event|e;
-
-			var delta = 0;
-			if(e.wheelDelta) {
-				delta = e.wheelDelta / 120;
-			} else if(e.detail) {
-				delta = -e.detail;
-			}
-			/*
-			 * 滚动到底或者顶时，不需要 event.preventDefault()。这样可以使用户可以继续在浏览器中滚动。
-			 */
-			if(delta > 0 && this.scroll_top === 0 || delta < 0 && this.scroll_top === this.render.max_scroll_top)
-				return;
-
-			this.scrollTop(this.scroll_top - delta * 10);
-			$.stopEvent(e);
-
-		},
-		_right_scroll_handler : function(e) {
-
-			//$.log('rs');
-			//jQuery.dprint("%d,%d",this.right_scroll.scrollTop,this.scroll_top)
-			if(this.right_scroll.scrollTop !== this.scroll_top) {
-				//$.log('rrs')
-				this._doScrollTop(this.right_scroll.scrollTop);
-			}
-		},
-		_bottom_scroll_handler : function(e) {
-
-			if(this.bottom_scroll.scrollLeft !== this.scroll_left) {
-
-				this._doScrollLeft(this.bottom_scroll.scrollLeft);
-
-			}
-		},
 		_copy_handler : function(e) {
 			//this.copy(e);
 			$.stopEvent(e);
@@ -306,19 +223,10 @@ if( typeof Daisy === 'undefined')
 			this.__right_mouse_down__ = false;
 			this.__pre_pos__ = null;
 
-			if(this.canvas.setCapture) {
-				//$.log('fire')
-				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
-				$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
-				$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
-			} else {
-				this.__cmv_handler = $.createDelegate(this, this._chrome_mousemove_handler);
-				//$.log(this.__cmv_handler)
-				this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
-				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
-			}
-			//$.addEvent(this.canvas, "dblclick", $.createDelegate(this, this._canvas_dblclick_handler));
-			//$.addEvent(this.caret, "dblclick", $.createDelegate(this, this._caret_dblclick_handler));
+			$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
+			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
+			$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
+			
 			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
 			$.addEvent(this.caret, 'mouseup', function(e) {
 				$.log(e);
