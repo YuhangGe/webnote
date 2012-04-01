@@ -12,7 +12,10 @@
 		if($.HAS_DROID_FONT === null){
 			$.HAS_DROID_FONT =   $.hasFont("Droid Sans Fallback");
 		}
-		if(!$.HAS_DROID_FONT && $.CHAR_WIDTH_TABLE===""){
+        //$.HAS_DROID_FONT = false;
+        
+		if((!$.HAS_DROID_FONT) && $.CHAR_WIDTH_TABLE===""){
+			//$.log($.HAS_DROID_FONT)
 			parent.innerHTML = "由于系统没有Droid字体，正在加载字符宽度集...";
 			$.loadCharWidthTable();
 		}

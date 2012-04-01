@@ -97,9 +97,9 @@
 		this.filter_ctx.lineCap = "round";
 		this.filter_ctx.lineJoin = "round";
 
-		this.ctx.font = this.editor.font;		
- 		
- 		this.space_width = $.CHAR_WIDTH_TABLE.charCodeAt[32];
+		this.ctx.font = this.editor.font;
+
+		this.space_width = $.HAS_DROID_FONT ? this.ctx.measureText(' ').width : $.CHAR_WIDTH_TABLE[32];
 	}
 	Daisy._Render.prototype = {
 		setScale : function(scale) {
@@ -168,11 +168,11 @@
 		_measureElement : function(ele) {
 			if(ele.type === Daisy._Element.Type.CHAR) {
 				//$.log($.HAS_DROID_FONT)
-				if($.HAS_DROID_FONT){
+				if($.HAS_DROID_FONT) {
 					this.ctx.font = ele.style.font;
 					ele.width = this.ctx.measureText(ele.value).width;
-				}else{
-					ele.width = $.CHAR_WIDTH_TABLE.charCodeAt(ele.value.charCodeAt(0));
+				} else {
+					ele.width = $.CHAR_WIDTH_TABLE[ele.value.charCodeAt(0)];
 				}
 				//$.log("w:%d",ele.width);
 			}
@@ -264,18 +264,57 @@
 
 			this._paintBackground();
 
-			var e_arr = this.page.ele_array, s_arr = this.page.style_array;
+			var e_arr = this.page.ele_array;
+			/*
+			 for(var i = 0; i < e_arr.length; i++) {
+			 var ele = e_arr[i];
+			 if(ele.type === Daisy._Element.Type.HANDWORD) {
+			 this._paintHandWord(ele);
 
-			for(var i = 0; i < e_arr.length; i++) {
-				var ele = e_arr[i];
-				if(ele.type === Daisy._Element.Type.HANDWORD) {
-					this._paintHandWord(ele);
+			 } else if(ele.type === Daisy._Element.Type.CHAR) {
+			 this._paintChar(ele);
+			 }
+			 }*/
 
-				} else if(ele.type === Daisy._Element.Type.CHAR) {
-					this._paintChar(ele);
+			this.ctx.save();
+			this.ctx.scale(this.scale, this.scale);
+			if(e_arr.length > 1) {
+				var pre_ele = e_arr[0], cur_ele = null, range_str = pre_ele.type === Daisy._Element.Type.CHAR ? pre_ele.value : "";
+				for(var i = 1; i < e_arr.length; i++) {
+					cur_ele = e_arr[i];
+					if(pre_ele.type === Daisy._Element.Type.HANDWORD || pre_ele.type === Daisy._Element.Type.NEWLINE) {
+						pre_ele.draw(this.ctx);
+						pre_ele = cur_ele;
+						range_str = cur_ele.type === Daisy._Element.Type.CHAR ? pre_ele.value : "";
+						continue;
+					}
+					if(cur_ele.type === Daisy._Element.Type.HANDWORD || cur_ele.line_at !== pre_ele.line_at || !$.jsonEqual(cur_ele.style, pre_ele.style)) {
+						
+						
+						this.ctx.font = pre_ele.style.font;
+						this.ctx.fillStyle = pre_ele.style.color;
+						//$.log(pre_ele.left);
+						this.ctx.fillText(range_str, pre_ele.left, pre_ele.bottom);
+						pre_ele = cur_ele;
+						range_str = cur_ele.type === Daisy._Element.Type.CHAR ? pre_ele.value : "";
+					} else {
+						range_str += cur_ele.value;
+					}
+					if(cur_ele.line_at > 32)
+						break;
 				}
-			}
+				if(cur_ele.type === Daisy._Element.Type.HANDWORD || cur_ele.type === Daisy._Element.Type.NEWLINE) {
+					cur_ele.draw(this.ctx);
+				} else {
+					this.ctx.font = pre_ele.style.font;
+					this.ctx.fillStyle = pre_ele.style.color;
+					this.ctx.fillText(range_str, pre_ele.left, pre_ele.bottom);
+				}
 
+			} else if(e_arr.length === 1) {
+				e_arr[0].draw(this.ctx);
+			}
+			this.ctx.restore();
 			var hb = this.editor.hand_bihua;
 			if(hb.length > 0) {
 				this.ctx.strokeStyle = this.editor.color;

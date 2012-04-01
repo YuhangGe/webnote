@@ -9,70 +9,69 @@
 		this.idx = 0;
 	}
 	Daisy._Load.prototype = {
-		_findHW : function(hw_arr,idx){
-			for(var i=0;i<hw_arr.length;i++){
-				if(hw_arr[i].index===idx)
+		_findHW : function(hw_arr, idx) {
+			for(var i = 0; i < hw_arr.length; i++) {
+				if(hw_arr[i].index === idx)
 					return hw_arr[i];
 			}
 			throw "not found?!";
 		},
-		loadPage : function(data,from){
-			if(from==null)
+		loadPage : function(data, from) {
+			if(from == null)
 				this.idx = 0;
 			else
 				this.idx = from;
-			
+
 			this.data = data;
 			this.page = this.editor.cur_page;
 
-			this.loadItem()
-			this.loadDoodle();
+			this.loadItem(data)
+			this.loadDoodle(data);
 		},
-		loadItem : function(data,from) {
-			if(from!=null)
+		loadItem : function(data, from) {
+			if(from != null)
 				this.idx = from;
-			if(data!=null)
+			if(data != null)
 				this.data = data;
 			this.page = this.editor.cur_page;
 
-			 // var str= "aaaaaaaaaa",ts = [];
-			 // for(var i=0;i<6;i++){
-			 	// ts.push(str);
-			 // }
-			 // ts.push("a");
-			 // str=ts.join("");
-			 // $.log("len%d",str.length)
-			  // for(var i=0;i<str.length;i++)
-				// this.editor.cur_page.append(str[i]);
-// 			
-// return;
+			// var str= "aaaaaaaaaa",ts = [];
+			// for(var i=0;i<6;i++){
+			// ts.push(str);
+			// }
+			// ts.push("a");
+			// str=ts.join("");
+			// $.log("len%d",str.length)
+			// for(var i=0;i<str.length;i++)
+			// this.editor.cur_page.append(str[i]);
+			//
+			// return;
 
-			var len = this.read(),text = this.data.substr(this.idx,len);
-			this.idx+=len;
+			var len = this.read(), text = this.data.substr(this.idx, len);
+			//$.log(text);
+			this.idx += len;
 			len = this.read();
-			$.log("hand len:%d",len);
+			//$.log("hand len:%d", len);
 			var hw_arr = [];
-			for(var i=0;i<len;i++){
+			for(var i = 0; i < len; i++) {
 				var hw = this._loadHandWord();
-				//$.log(this.idx)
+				//$.log(hw.width)
 				//$.log(hw);
-				hw_arr.push(hw); 
+				hw_arr.push(hw);
 			}
-		 
-			for(var i=0;i<text.length;i++){
+
+			for(var i = 0; i < text.length; i++) {
 				var t = text[i];
-				if(t==='\ufffc'){
-					this.editor.cur_page.append(this._findHW(hw_arr,i));
-				}else{
-					this.editor.cur_page.append(t, {
-						font : this.editor.font_size + "px " + this.editor.font_name,
-						bold : false,
-						color : this.editor.color
-					});
+				//$.log("t:%d %s",i,t);
+				if(t === '\ufffc') {
+					this.editor.cur_page.append(this._findHW(hw_arr, i));
+				} else {
+
+					this.editor.cur_page.append(t);
 				}
 			}
 			this._loadStyle();
-			
+
 			//this._loadStyle(editor.cur_page.style_array);
 		},
 		_loadStyle : function() {
@@ -89,12 +88,10 @@
 			}
 			len = this.read();
 			for(var i = 0; i < len; i++) {
-				var s=this.read(),
-					e=this.read(),
-					c = this._getColorStr(this.read(),this.read(),this.read());
+				var s = this.read(), e = this.read(), c = this._getColorStr(this.read(), this.read(), this.read());
 				//$.log("color s:%d,e:%d c:%s",s,e,c);
 				for(var j = s; j < e; j++) {
-					
+
 					var ele = this.editor.cur_page.ele_array[j];
 					if(ele.type === Daisy._Element.Type.CHAR) {
 						ele.style.color = c;
@@ -117,13 +114,13 @@
 			//$.dprint("r:%s,g:%s,b:%s",r,g,b);
 			return '#' + r + g + b;
 		},
-		read : function(){
+		read : function() {
 			var v = this.data.charCodeAt(this.idx++);
 			return v;
 		},
-		read_str : function(len){
-			var v = this.data.substr(this.idx,len);
-			this.idx+=len;
+		read_str : function(len) {
+			var v = this.data.substr(this.idx, len);
+			this.idx += len;
 			return v;
 		},
 		_loadHandWord : function() {
@@ -132,7 +129,7 @@
 				index : this.read(),
 				width : this.read(),
 				height : this.read(),
-				weight : this.read(),
+				weight : this.read_float(),
 				color : '',
 				bihua : []
 			};
@@ -140,20 +137,47 @@
 			var bnum = this.read();
 			for(var j = 0; j < bnum; j++) {
 				var new_bh = [], pn = this.read();
-				for(var n = 0; n <pn ; n ++) {
+				for(var n = 0; n < pn; n++) {
 					//$.log("nbh")
-					var x= this.read(),y=this.read();
+					var x = this.read(), y = this.read();
 					new_bh.push({
 						x : x,
 						y : y
 					});
-					
+
 				}
 				hw.bihua.push(new_bh);
 			}
-		
+
+			if(hw.width === 0) {
+				hw.width = this._calcHandWidth(hw.bihua,hw.height);
+					//$.log("do calc width:"+hw.width);
+			}
+			//$.log(hw.width)
 			return hw;
 
+		},
+		_calcHandWidth : function(bihuas, height) {
+			
+			var p0 = bihuas[0][0], x1 = p0.x, y1 = p0.y, x2 = p0.x, y2 = p0.y;
+			for(var i = 0; i < bihuas.length; i++) {
+				var bh = bihuas[i];
+				for(var j = 0; j < bh.length; j++) {
+					var p = bh[j];
+					if(p.x < x1)
+						x1 = p.x;
+					if(p.x > x2)
+						x2 = p.x;
+					if(p.y < y1)
+						y1 = p.y;
+					if(p.y > y2)
+						y2 = p.y;
+				}
+			}
+			var w = x2 - x1, h = y2 - y1;
+			if(h===0)
+				h=1;
+			return _w = (w / h * height);// + this.editor.font_height * 0.3;
 		}
 	}
 

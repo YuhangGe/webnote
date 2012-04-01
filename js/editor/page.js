@@ -2,66 +2,6 @@
  * 页面逻辑
  */
 (function(Daisy, $) {
-	Daisy._Element = function(type, value, style) {
-		if(type == null)
-			console.trace();
-		this.type = type;
-		this.value = value;
-		this.left = 0;
-		this.bottom = 0;
-		this.width = 0;
-		this.height = 0;
-		this.style = style;
-		//元素所在行
-		this.line_at = -1;
-		//该元素是否需要重新计算其宽度。
-		this.need_measure = true;
-		this.visible = true;
-	}
-	Daisy._Element.prototype = {
-		toString : function() {
-			if(this.type === Daisy._Element.Type.CHAR)
-				return this.value;
-			else
-				return "@@";
-		},
-		copy : function() {
-			var c_value = this.type === Daisy._Element.Type.HANDWORD ? this._copyHandWord() : this.value;
-			var c_ele = new Daisy._Element(this.type, c_value, this._copyStyle(this.style));
-			c_ele.width = this.width;
-			c_ele.height = this.height;
-			return c_ele;
-		},
-		_copyHandWord : function() {
-			var c_hw = [];
-			for(var i = 0; i < this.value.length; i++) {
-				var bihua = this.value[i], c_bihua = [];
-				for(var j = 0; j < bihua.length; j++) {
-					var p = bihua[j];
-					c_bihua.push({
-						x : p.x,
-						y : p.y
-					});
-				}
-				c_hw.push(c_bihua);
-			}
-			return c_hw;
-		},
-		_copyStyle : function(style) {
-			var c_style = {};
-			for(var s in this.style) {
-				c_style[s] = this.style[s];
-			}
-			//$.log(c_style);
-			return c_style;
-		}
-	}
-
-	Daisy._Element.Type = {
-		CHAR : 0,
-		HANDWORD : 1,
-		NEWLINE : 2
-	}
 
 	Daisy._Page = function(editor) {
 		this.editor = editor;
@@ -70,10 +10,10 @@
 		this.doodle_width = 0;
 		this.doodle_height = 0;
 		this._init();
-		
+
 	}
 	Daisy._Page.prototype = {
-		_init : function(){
+		_init : function() {
 			this.para_number = 1;
 			this.para_info = [{
 				index : -1,
@@ -86,11 +26,11 @@
 				from : null,
 				to : null
 			}
-	
+
 			this.doodle_list.length = 0;
 			this.ele_array.length = 0;
 		},
-		reset : function(){
+		reset : function() {
 			this._init();
 		},
 		select : function(from, to) {
@@ -150,7 +90,7 @@
 				line : row,
 				index : idx,
 				left : left,
-				top : bottom - this.editor.font_height	
+				top : bottom - this.editor.font_height
 			};
 		},
 		/**
@@ -171,9 +111,9 @@
 				left = ele.left + ele.width;
 				//$.log(ele.line_at);
 				line = ele.line_at;
-				bottom = (ele.line_at +1) * this.editor.line_height;
+				bottom = (ele.line_at + 1) * this.editor.line_height;
 			}
-			 
+
 			return {
 				para : p_idx,
 				para_at : p_at,
@@ -202,7 +142,7 @@
 
 		},
 		_insertLine : function(caret) {
-			this.ele_array.splice(caret.index + 1, 0, new Daisy._Element(Daisy._Element.Type.NEWLINE, '\n', null));
+			this.ele_array.splice(caret.index + 1, 0, new Daisy._NewLineElement());
 
 			var para = this.para_info[caret.para], l_len = caret.para_at + 1, r_len = para.length - l_len;
 			para.length = l_len;
@@ -239,25 +179,16 @@
 				if(ele === '\n') {
 					return this._insertLine(caret);
 				}
-				new_ele = new Daisy._Element(Daisy._Element.Type.CHAR, ele, style == null ? {
+				new_ele = new Daisy._CharElement(ele, style == null ? {
 					font : this.editor.font,
 					bold : this.editor.font_bold,
 					color : this.editor.color
-				} : {
-					font : style.font,
-					bold : style.bold,
-					color : style.color
-				});
+				} : $.copyJson(style));
 			} else {
-				new_ele = new Daisy._Element(Daisy._Element.Type.HANDWORD, ele.bihua, style == null ? {
+				new_ele = new Daisy._HandElement(ele.bihua, style == null ? {
 					weight : ele.weight,
 					color : ele.color
-				} : {
-					weight : style.weight,
-					color : style.color
-				});
-				new_ele.width = ele.width;
-				new_ele.height = ele.height;
+				} : $.copyJson(style), ele.width, ele.height);
 			}
 			this.ele_array.splice(caret.index + 1, 0, new_ele);
 
@@ -290,10 +221,10 @@
 				line_cross : 1
 			})
 
-			this.ele_array.push(new Daisy._Element(Daisy._Element.Type.NEWLINE, '\n', null));
+			this.ele_array.push(new Daisy._NewLineElement());
 			this.para_number++;
 		},
-		append : function(ele, style) {
+		append : function(ele) {
 
 			var new_ele = null;
 			if( typeof ele === 'string') {
@@ -301,20 +232,16 @@
 					this._appendLine();
 					return;
 				}
-				if(style == null)
-					style = {
-						font : this.editor.font,
-						bold : this.editor.font_bold,
-						color : this.editor.color
-					};
-				new_ele = new Daisy._Element(Daisy._Element.Type.CHAR, ele, style);
+				new_ele = new Daisy._CharElement(ele, {
+					font : this.editor.font,
+					bold : this.editor.font_bold,
+					color : this.editor.color
+				});
 			} else {
-				new_ele = new Daisy._Element(Daisy._Element.Type.HANDWORD, ele.bihua, {
+				new_ele = new Daisy._HandElement(ele.bihua, {
 					weight : ele.weight,
 					color : ele.color
-				});
-				new_ele.width = ele.width;
-				new_ele.height = ele.height;
+				}, ele.width, ele.height);
 			}
 			this.ele_array.push(new_ele);
 

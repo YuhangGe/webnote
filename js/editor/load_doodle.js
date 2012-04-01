@@ -20,13 +20,15 @@
 			for(var i = 0; i < d_num; i++) {
 				var doo = this.readDoodle();
 				//$.log(doo)
-				this.page.doodle_list.push(doo);
+				if(doo!==null)
+					this.page.doodle_list.push(doo);
 			}
 			//$.log(this.page.doodle_list);
 			//img = this.page.doodle_list[0];
 		},
 		read_float : function() {
 			var f_len = this.read(), f_str = this.read_str(f_len);
+			//$.log("f_len:%d, %s",f_len,f_str);
 			return Number(f_str);
 		},
 		readDoodle : function() {
@@ -40,7 +42,15 @@
 			//$.log(eraser_list);
 			//$.log("doodle type:%d", type);
 			var value = null, tag = null;
-			if(type === Daisy._Doodle.Type.ERASER) {
+			if(type === Daisy._Doodle.Type.GROUP){
+				//$.log('group')
+				var g_len = this.read();
+				var g_list = [];
+				for(var i=0;i<g_len;i++){
+					g_list.push(this.readDoodle());
+				}
+				value = g_list;
+			}else if(type === Daisy._Doodle.Type.ERASER) {
 				throw "eraser doodle? must be attached to other doodle.";
 			} else if(type === Daisy._Doodle.Type.IMAGE) {
 				var h = this.read(),l=this.read(),d_len = h<<16|l;

@@ -12,9 +12,18 @@ $text = file_get_contents("char_width.txt");
 $t_arr = explode("\n", $text);
 echo count($t_arr);
 $text_out = "";
-foreach($t_arr as $t){
-	$text_out.= uchr((int)$t);
+$pre_t = (int)$t_arr[0];
+$c = 1;
+for($i=1;$i<count($t_arr);$i++){
+	$t=(int)$t_arr[$i];
+	if($t!=$pre_t){
+		$text_out.= uchr($c).uchr($pre_t);
+		$pre_t = $t;
+		$c = 1;
+	}else{
+		$c++;
+	}
 }
-
+$text_out.= uchr($c).uchr($pre_t);
 file_put_contents("char_width_table.txt", $text_out);
 ?>

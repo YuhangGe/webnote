@@ -106,7 +106,7 @@ a:hover{
 	background: #EBEBEB;
 }
 
-#note-list{
+#page-list{
 	overflow-x : auto;
 	overflow-y: auto;
 	height: 300px;

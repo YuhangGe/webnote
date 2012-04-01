@@ -32,16 +32,16 @@
 			case T.LINE:
 				//$.log("line:");
 				//$.log(value);
-				d = new Daisy._LineDoodle(value);
+				d = new Daisy._LineDoodle(value, pen_width);
 				break;
 			case T.SQUARE:
-				d = new Daisy._RectDoodle(value);
+				d = new Daisy._RectDoodle(value, pen_width);
 				break;
 			case T.CIRCLE:
-				d = new Daisy._CircleDoodle(value);
+				d = new Daisy._CircleDoodle(value, pen_width);
 				break;
 			case T.LIGHT :
-				d = new Daisy._LightDoodle(value);
+				d = new Daisy._LightDoodle(value, pen_width);
 				break;
 			case T.NORMAL :
 			case T.EMBOSS :
@@ -49,11 +49,14 @@
 			case T.NEON :
 			case T.SCRIBBLE :
 			case T.SKETCH :
-				d = new Daisy._PointDoodle(value);
+				d = new Daisy._PointDoodle(value, pen_width);
+				break;
+			case T.GROUP : 
+				d = new Daisy._GroupDoodle(value);
 				break;
 			default:
-				$.log("unknow type:%d", type);
-				throw "unkown type of doodle";
+				$.log("unkown type of doodle:%d", type);
+				return null;
 				break;
 		}
 		d.type = type;
@@ -83,6 +86,9 @@
 
 	Daisy._ImageDoodle = function(image, matrix, eraser_list) {
 		this.image = image;
+		this.image.onload = function() {
+			SNEditor.render.paint();
+		}
 		this.matrix = matrix;
 	}
 	Daisy._ImageDoodle.prototype = {
@@ -101,14 +107,21 @@
 		this.pen_width = pen_width;
 	}
 
-	Daisy._PointDoodle = function(points) {
+	Daisy._PointDoodle = function(points, pen_width) {
 		this.points = points;
-		this._calc(this.points);
+		this._calc(pen_width);
 		this.img_data = null;
 		this.change = true;
 	}
 	Daisy._PointDoodle.prototype = {
-		_calc : function() {
+		_calc : function(pen_width) {
+			if(this.points.length === 0) {
+				this.width = 0;
+				this.height = 0;
+				this.left = 0;
+				this.top = 0;
+				return;
+			}
 			var p0 = this.points[0], x1 = p0.x, y1 = p0.y, x2 = p0.x, y2 = p0.y;
 			for(var j = 0; j < this.points.length; j++) {
 				var p = this.points[j];
@@ -121,13 +134,20 @@
 				if(p.y > y2)
 					y2 = p.y;
 			}
-			this.width = x2 - x1 + 20;
-			this.height = y2 - y1 + 20;
-			this.left = x1 - 10;
-			this.top = y1 - 10;
+			//$.log("pw:"+pen_width);
+			var off = Math.floor(pen_width);
+
+			this.width = x2 - x1 + off * 2;
+			this.height = y2 - y1 + off * 2;
+			this.left = x1 - off;
+			this.top = y1 - off;
 		},
 		draw : function(ctx, width, height) {
+			if(this.points.length === 0) {
+				return;
+			}
 			if(this.change) {
+				this.change = false;
 				ctx.strokeStyle = this.color;
 				ctx.lineWidth = this.pen_width;
 				$.drawBesier(ctx, this.points);
@@ -139,44 +159,42 @@
 					//$.boxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height);
 					$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height)
 					$.log("blur time:%d", new Date().getTime() - t_f);
-					
-				}else if(this.type === Daisy._Doodle.Type.EMBOSS){
+
+				} else if(this.type === Daisy._Doodle.Type.EMBOSS) {
 					var t_f = new Date().getTime();
 					//$.boxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height,1);
-					$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height,1);
-					$.processEmboss(ctx, this.left, this.top, this.width, this.height,2.7);
-					$.log("emboss time:%d", new Date().getTime()-t_f);
-				}else if(this.type === Daisy._Doodle.Type.NEON){
+					$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height, 1);
+					$.processEmboss(ctx, this.left, this.top, this.width, this.height, 2.7);
+					$.log("emboss time:%d", new Date().getTime() - t_f);
+				} else if(this.type === Daisy._Doodle.Type.NEON) {
 					var t_f = new Date().getTime();
 					$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height);
 					ctx.strokeStyle = 'white';
 					ctx.lineWidth = this.pen_width / 2;
-					$.drawBesier(ctx,this.points);
+					$.drawBesier(ctx, this.points);
 					var t_f = new Date().getTime();
-					$.log("neon time:%d", new Date().getTime()-t_f);
+					$.log("neon time:%d", new Date().getTime() - t_f);
 				}
 				this.parent.drawEraser(ctx);
 				this.data = ctx.getImageData(this.left, this.top, this.width, this.height);
-
-				this.change = false;
-			}else{
+			} else {
 				//$.log('not change');
-				ctx.putImageData(this.data,this.left,this.top);
+				ctx.putImageData(this.data, this.left, this.top);
 			}
 
 		}
 	}
-	
-	Daisy._LightDoodle = function(points){
+
+	Daisy._LightDoodle = function(points) {
 		this.points = points;
 	}
 	Daisy._LightDoodle.prototype = {
-		draw : function(ctx){
+		draw : function(ctx) {
 			ctx.save();
 			ctx.globalAlpha = 0.3;
 			ctx.strokeStyle = this.color;
 			ctx.lineWidth = this.pen_width;
-			$.drawBesier(ctx,this.points);
+			$.drawBesier(ctx, this.points);
 			ctx.restore();
 		}
 	}
@@ -222,6 +240,20 @@
 			ctx.closePath();
 
 			this.parent.drawEraser(ctx);
+		}
+	}
+	
+	Daisy._GroupDoodle = function(d_list){
+		this.list = d_list;
+	}
+	Daisy._GroupDoodle.prototype = {
+		draw : function(ctx){
+			//$.log("group draw");
+			for(var i=0;i<this.list.length;i++){
+				ctx.save();
+				this.list[i].draw(ctx);
+				ctx.restore();
+			}
 		}
 	}
 })(Daisy, Daisy.$);

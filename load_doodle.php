@@ -86,7 +86,7 @@ function read_tlv($file) {
 				break;
 			case (int)0x92000000:
 				//int[]
-				
+				$data = _2int_arr($data);
 				break;
 			default :
 				//echo 'no';
@@ -101,6 +101,7 @@ function read_tlv($file) {
 
 	return array('type' => $type, 'length' => $size, 'value' => $data);
 }
+
 function _2float_arr($data){
 	$arr=array();
 	//printf("fa:%d\n",strlen($data));
@@ -131,15 +132,12 @@ function _2int($data) {
 	//return (($tmp[1]>>24)&0x000000ff)|(($tmp[2]>>8)&0x00ff0000)|(($tmp[3]<<8)&0x0000ff00)|(($tmp[4]<<24)&0xff000000);
 }
 function _2int_arr($data){
-	$tmp = unpack("C*", $data);
-	$rtn = array();
-	for($i=1;$i<=count($tmp);$i+=4){
-		$n = (($tmp[$i]<<8)&0x0000ff00)|($tmp[$i+1]&0x000000ff);
-		$rtn[] = $n;
-		//printf("%02X,",$n);
+	$arr = array();
+	for($i=0;$i<strlen($data)/4;$i++){
+		$tmp = substr($data,$i*4,4);
+		$arr[] = _2int($tmp);
 	}
-	
-	return $rtn;
+	return $arr;
 }
 function _2long($data){
 	//echo strlen($data);
@@ -171,7 +169,7 @@ function err($msg) {
 
 
 if(empty($_REQUEST['file']))
-	$file_name = "adb\\data2\\";
+	$file_name = "adb/";
 else
 	$file_name = $_REQUEST['file'];
 
@@ -212,10 +210,12 @@ function read_doodle_list($file,$end){
 			read_tlv($file);//pic end;
 			$doodle_list[] = array('type'=>'image','base'=>$p_base,'file_name'=>$p_name['value'],'matrix'=>$p_matrix['value']);
 	
-		} elseif ($tlv['type'] == (int)0x04050000) {//bold
+		} elseif ($tlv['type'] == (int)0x04050000) {
 			//群组doodle
 			read_tlv($file);//base begin
 			$q_base = read_base_tlv($file);
+		//	printf("type %d\n",$q_base['type']);
+			$q_base['type'] = 11;
 			$q_zorder = read_tlv($file);
 			read_tlv($file);//list begin
 			$q_list = read_doodle_list($file, (int)0x0406FFFF);
@@ -319,6 +319,7 @@ function encode_point($p){
 }
 function encode_image_file($fn){
 	global $file_name;
+	//echo $file_name.$fn;
 	if(!file_exists($file_name.$fn)){
 		echo "not find file!";
 		return uchr(0);
@@ -331,16 +332,11 @@ function encode_image_file($fn){
 	//printf("len:%d,h:%d,l:%d\n\n",$len,$h,$l);
 	return uchr($h,$l).$dr;
 }
-$doodle_list = read_doodle_list($file, (int)0x0401FFFF);
-fclose($file);
 
-$output = "";
 
-$output.= uchr($panel_width['value'],$panel_height['value'],$page_id['value'],count($doodle_list));
-
-foreach($doodle_list as $d){
+function encode_doodle($d){
 	$b = $d['base'];
-	$output.= encode_base($b);
+	$output= encode_base($b);
 	if($d['type']=='point'){
 		//点类
 		$ps = $d['point_arr'];
@@ -356,9 +352,26 @@ foreach($doodle_list as $d){
 			$output.=encode_float($m[$i]);
 		}
 	}elseif($d['type']=='group'){
-		echo 'not implement';
+		$output.= uchr(count($d['list']));
+		foreach($d['list'] as $l_d){
+			$output.=encode_doodle($l_d);
+		}
 	}
+	return $output;
 }
+
+$doodle_list = read_doodle_list($file, (int)0x0401FFFF);
+fclose($file);
+
+$output = "";
+
+$output.= uchr($panel_width['value'],$panel_height['value'],$page_id['value'],count($doodle_list));
+
+
+foreach($doodle_list as $d){
+	$output.= encode_doodle($d);
+}
+print_r($doodle_list);
 
 echo $output;
 ?>

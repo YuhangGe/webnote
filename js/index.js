@@ -35,7 +35,7 @@ function layout(){
 	$('#col-1').height(size.height);
 	$('#col-2').height(size.height);
 	$('#col-3').height(size.height);
-	$('#note-list').height(size.height-LAYOUT.row_1-LAYOUT.row_2-2);
+	$('#page-list').height(size.height-LAYOUT.row_1-LAYOUT.row_2-2);
 	// -2是减去两条边线的宽/高
 	$('#col-3').width(size.width-LAYOUT.col_1-LAYOUT.col_2-2);
 	
@@ -72,34 +72,27 @@ $(function() {
 		return;
 	}
 	
-	SNEditor.append("Vingt mille lieues sous les mers  est la première livre de Jules Verne que j’ai lue. Personnellement, je p");
+	///SNEditor.append("Vingt mille lieues sous les mers  est la première livre de Jules Verne que j’ai lue. Personnellement, je p");
+ 	//SNEditor.append("hello world\nlove daisy.\n");
  
-	// $.ajax({
-		// url : "load_item.php?file=adb\\data2\\items",
-		// dataType : 'text'
-	// }).done(function(data){
-		// SNEditor.loadItem(data, 0);
-	// }).fail(function(req, textStatus, errorThrown){
-		// $.log('error')
-		// $.log(textStatus);
-		// $.log(errorThrown)
-	// });
-	//$.get("load_doodle.php?file=adb\\data2\\", function(data) {
-		//i = data;
-		//SNEditor.loadDoodle(data, 0);
-		//img.draw(wn_editor.render.ctx);
-	//}, 'text');
-
-	//$.get("other_lang.txt",function(data){
-		//SNEditor.append(data);
-	//})
-
+	 // $.get("load_item.php?file=adb\\data2\\", function(data) {
+		 // SNEditor.loadItem(data, 0);
+	 // }, 'text');
+	 // $.get("load_doodle.php?file=adb\\data2\\", function(data) {
+		 // SNEditor.loadDoodle(data, 0);
+	 // }, 'text');
+// 
+	$.get("other_lang.txt",function(data){
+		SNEditor.append(data);
+	})
+	
+	loadAllBook();
 });
 /**
  * 加载笔记本
  */
 function loadAllBook() {
-	$.getJSON("getallbook", function(data) {
+	$.getJSON("data/getallbook.php", function(data) {
 		if(data.status != 0) {
 			alert('网络错误或未登录！请重试。');
 			return;
@@ -112,15 +105,16 @@ function loadAllBook() {
 		}
 		for(var i = 0; i < books.length; i++) {
 			var b = books[i];
-			bl_dom.append($('<li id=book_"' + b.bookid + '">').html('<p class="book-title">' + b.name + '</p></p><p class="book-type">(For ' + (b.type == 'phone' ? 'Phone' : 'Pad') + ') ' + b.pagenum + '页</p>').click(function() {
-				loadBook(b.bookdid, b.type);
-			}));
+			bl_dom.append($('<li id="book_' + b.bookid + '" onclick="loadBook(\''+b.bookid+'\');">').html('<p class="book-title">' + b.name + '</p></p><p class="book-type">(For ' + (b.type == 'phone' ? 'Phone' : 'Pad') + ') ' + b.pagenum + '页</p>')
+			);
+		
 		}
 	});
 }
 
-function loadBook(id, type) {
-	$.getJSON("getbook", function(data) {
+function loadBook(id) {
+	CUR_PAGE.bookid = id;
+	$.getJSON("data/getbook.php?bookid="+id, function(data) {
 		if(data.status != 0) {
 			alert('网络错误或未登录！请重试。');
 			return;
@@ -133,9 +127,7 @@ function loadBook(id, type) {
 		}
 		for(var i = 0; i < pages.length; i++) {
 			var p = pages[i];
-			pl_dom.append($('<li id="page_' + p.pageid + '">').html('<p><img src="' + p.thumb + '" /></p><p>' + p.date + '</p>').click(function() {
-				loadPage(p.pageid);
-			}))
+			pl_dom.append($('<li id="page_' + p.pageid + '" onclick="loadPage(\''+p.pageid+'\');">').html('<p><img class="thumb-pad" src="' + p.thumb + '" /></p><p>' + p.date + '</p>'));
 		}
 	});
 }
@@ -143,12 +135,12 @@ function loadBook(id, type) {
 function loadPage(id) {
 	SNEditor.clear();
 	SNEditor.append("正在加载笔记...");
-	$.get("openpage", {
-		pageid : id
-	}, function(data) {
+	CUR_PAGE.pageid=id;
+	$.get("data/openpage.php?bookid="+CUR_PAGE.bookid+"&pageid="+id, function(data) {
 		if(data.charCodeAt(0) != 0) {
-
+			
 		} else {
+			SNEditor.clear();
 			SNEditor.loadPage(data, 1);
 		}
 

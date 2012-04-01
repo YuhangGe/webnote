@@ -38,7 +38,7 @@
 				}
 				hw.bihua.push(bh);
 			}
-			hw.width = (w / h * b_h) + this.font_height*0.2;
+			hw.width = (w / h * b_h) + this.font_height*0.3;
 			hw.height = b_h;
 			return hw;
 		},

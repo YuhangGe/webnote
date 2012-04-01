@@ -157,8 +157,35 @@ Daisy.$ = function(id) {
 			async:false,
 			url : 'char_width_table.txt'
 		}).done(function(table){
-			window.tb= $.CHAR_WIDTH_TABLE = table;
+			window.tb= $.CHAR_WIDTH_TABLE = (function decode(t){
+				var _tbl = (window.Int8Array?new Int8Array(0xffff):new Array(0xffff));
+				var idx = 0;
+				for(var i=0;i<t.length;i+=2){
+					var len = t.charCodeAt(i), v= t.charCodeAt(i+1);
+					for(var j=0;j<len;j++){
+						_tbl[idx] = v;
+						idx++;
+					}
+				}
+				//$.log("idx:%X",idx);
+				return _tbl;
+			})(table);
 		}).fail(function(table){
 		});
+	};
+	
+	$.copyJson = function(json){
+		var rtn = {}
+		for(var j in json){
+			rtn[j] = json[j]
+		}
+		return rtn;
+	}
+	$.jsonEqual = function(json1,json2){
+		for(var j1 in json1){
+			if(json2[j1]!==json1[j1])
+				return false;
+		}
+		return true;
 	}
 })(Daisy.$);

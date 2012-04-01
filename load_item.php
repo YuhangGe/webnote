@@ -116,11 +116,11 @@ function err($msg) {
 
 
 if(empty($_REQUEST['file']))
-	$file_name = "adb\\data2\\items";
+	$file_name = "adb\\data2\\";
 else
 	$file_name = $_REQUEST['file'];
 
-if (!file_exists($file_name)) {
+if (!file_exists($file_name."items")) {
 	echo "no file";
 	exit(-1);
 }
@@ -132,7 +132,7 @@ $style_color = array();
 
 //echo reverce_int(0x12345678);
 //	exit();
-$file = fopen($file_name, "rb");
+$file = fopen($file_name."items", "rb");
 read_tlv($file);
 read_tlv($file);
 

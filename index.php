@@ -11,6 +11,7 @@
 		<script type="text/javascript" src="js/editor/editor.js"></script>
 		<script type="text/javascript" src="js/editor/render.js"></script>
 		<script type = "text/javascript" src="js/editor/page.js"></script>
+		<script type ="text/javascript" src="js/editor/element.js"></script>
 		<script type="text/javascript" src="js/editor/event.js"></script>
 		<script type="text/javascript" src="js/editor/handword.js"></script>
 		<script type="text/javascript" src="js/editor/doodle.js"></script>
