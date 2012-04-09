@@ -73,7 +73,7 @@ $(function() {
 	}
 	
 	///SNEditor.append("Vingt mille lieues sous les mers  est la première livre de Jules Verne que j’ai lue. Personnellement, je p");
- 	//SNEditor.append("hello world\nlove daisy.\n");
+ 	SNEditor.append("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
  
 	 // $.get("load_item.php?file=adb\\data2\\", function(data) {
 		 // SNEditor.loadItem(data, 0);
@@ -82,9 +82,9 @@ $(function() {
 		 // SNEditor.loadDoodle(data, 0);
 	 // }, 'text');
 // 
-	$.get("other_lang.txt",function(data){
-		SNEditor.append(data);
-	})
+	//$.get("other_lang.txt",function(data){
+		//SNEditor.append(data);
+	//})
 	
 	loadAllBook();
 });
@@ -137,6 +137,7 @@ function loadPage(id) {
 	SNEditor.append("正在加载笔记...");
 	CUR_PAGE.pageid=id;
 	$.get("data/openpage.php?bookid="+CUR_PAGE.bookid+"&pageid="+id, function(data) {
+		//alert(data.length);
 		if(data.charCodeAt(0) != 0) {
 			
 		} else {
@@ -146,3 +147,4 @@ function loadPage(id) {
 
 	}, "text")
 }
+

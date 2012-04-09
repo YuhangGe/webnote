@@ -189,4 +189,3 @@ if (!file_exists($d_fname)) {
 
 	echo $output;
 }
-?>

@@ -10,9 +10,9 @@
 			return null;
 		}
 		if($.HAS_DROID_FONT === null){
-			$.HAS_DROID_FONT =   $.hasFont("Droid Sans Fallback");
+			$.HAS_DROID_FONT =   $.hasFont("Droid Sans Fallback") | $.hasFont("Microsoft Yahei");
 		}
-        //$.HAS_DROID_FONT = false;
+        //$.HAS_DROID_FONT = true;
         
 		if((!$.HAS_DROID_FONT) && $.CHAR_WIDTH_TABLE===""){
 			//$.log($.HAS_DROID_FONT)

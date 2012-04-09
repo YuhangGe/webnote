@@ -171,24 +171,14 @@
 	}
 	window.spf = sprintf;
 	$.extend({
-		'aprint' : function(arr) {
-			var rtn = "";
-			if(arr && ( arr instanceof Array || (arr.buffer && arr.length))) {
-				for(var i = 0; i < arr.length; i++) {
-					rtn += sprintf("%d ", arr[i]);
-				}
-			}
-			if(console)
-				console.log(rtn);
-			return rtn;
-		},
 		'log' : function(format, arg1, arg2) {
+			
 			var rtn = null;
 			if(arguments.length <= 1)
 				rtn = format
 			else
 				rtn = sprintf.apply(this, arguments);
-			if(console)
+			if(typeof console !== 'undefined')
 				console.log(rtn);
 			return rtn;
 		}

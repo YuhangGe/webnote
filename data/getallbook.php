@@ -1,5 +1,13 @@
 <?php
 header("Content-Type: text/plain;charset=utf-8");
+if (!function_exists('json_encode')) {
+	function json_encode($content) {
+		require_once 'JSON.php';
+		$json = new Services_JSON;
+		return $json -> encode($content);
+	}
+
+}
 
 $path = "books";
 

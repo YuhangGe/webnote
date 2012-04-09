@@ -6,11 +6,11 @@ if( typeof Daisy === 'undefined')
 
 Daisy.$ = function(id) {
 	return document.getElementById(id);
-}; (function($) {
+};
+(function($) {
 
 	var ua = navigator.userAgent.toLowerCase();
-	var s;
-	( s = ua.match(/msie ([\d.]+)/)) ? $.ie = s[1] : ( s = ua.match(/firefox\/([\d.]+)/)) ? $.firefox = s[1] : ( s = ua.match(/chrome\/([\d.]+)/)) ? $.chrome = s[1] : ( s = ua.match(/opera.([\d.]+)/)) ? $.opera = s[1] : ( s = ua.match(/version\/([\d.]+).*safari/)) ? $.safari = s[1] : 0;
+	var s; ( s = ua.match(/msie ([\d.]+)/)) ? $.ie = s[1] : ( s = ua.match(/firefox\/([\d.]+)/)) ? $.firefox = s[1] : ( s = ua.match(/chrome\/([\d.]+)/)) ? $.chrome = s[1] : ( s = ua.match(/opera.([\d.]+)/)) ? $.opera = s[1] : ( s = ua.match(/version\/([\d.]+).*safari/)) ? $.safari = s[1] : 0;
 
 	$.log = function(format, arg1, arg2) {
 		jQuery.log.apply(this, arguments);
@@ -121,7 +121,7 @@ Daisy.$ = function(id) {
 	}
 	$.hasFont = function(font_name) {
 		/*
-		 * test if there is font in system . 
+		 * test if there is font in system .
 		 * inspired by http://remysharp.com/2008/07/08/how-to-detect-if-a-font-is-installed-only-using-javascript/
 		 */
 		var test_str = "abcdefghigklmnopqrstuvwxyzABCDEFGHIGKLMNOPQRSTUVWXYZ~!@#$%^&*()_+`1234567890-=爱小扬";
@@ -136,33 +136,50 @@ Daisy.$ = function(id) {
 			//$.log("comic width:" + $.COMIC_WIDTH)
 		}
 		var f_ele = document.createElement("span");
-		f_ele.style.font = "50px " + font_name +",Comic Sans MS";
+		f_ele.style.font = "50px " + font_name + ",Comic Sans MS";
 		f_ele.style.visibility = "hidden";
 		f_ele.innerHTML = test_str;
 		document.body.appendChild(f_ele);
 		var f_width = f_ele.offsetWidth;
 		document.body.removeChild(f_ele);
-		
+
 		//$.log("font width:"+f_width);
+
+		return f_width !== $.COMIC_WIDTH;
+	}
+	$.FONTFACE_DROID = "@font-face {\nfont-family: 'Droid Sans';\n\tsrc: url('css/font/DroidSans.ttf') format('truetype');\n}\n@font-face {\nfont-family: 'Droid Sans';\n\tsrc: url('css/font/DroidSans-Bold.ttf') format('truetype');\nfont-weight: bold;\n}";
+
+	$.loadDroidSans = function() {
+		var se = document.createElement("style");
+		se.type = "text/css";
+		if($.ie) {
+			se.styleSheet.cssText = $.FONTFACE_DROID;
+		} else {
+			var frag = document.createDocumentFragment();
+			frag.appendChild(document.createTextNode($.FONTFACE_DROID));
+			se.appendChild(frag);
+		}
+		jQuery(function(){
+			document.getElementsByTagName('head')[0].appendChild(se);
+		});
 		
-		return f_width!==$.COMIC_WIDTH;
 	}
 	/*
 	 * 35px Droid Sans Fallback
 	 */
 	$.CHAR_WIDTH_TABLE = "";
 	$.HAS_DROID_FONT = null;
-	$.loadCharWidthTable = function(){
+	$.loadCharWidthTable = function() {
 		jQuery.ajax({
-			async:false,
+			async : false,
 			url : 'char_width_table.txt'
-		}).done(function(table){
-			window.tb= $.CHAR_WIDTH_TABLE = (function decode(t){
-				var _tbl = (window.Int8Array?new Int8Array(0xffff):new Array(0xffff));
+		}).done(function(table) {
+			window.tb = $.CHAR_WIDTH_TABLE = (function decode(t) {
+				var _tbl = (window.Int8Array ? new Int8Array(0xffff) : new Array(0xffff));
 				var idx = 0;
-				for(var i=0;i<t.length;i+=2){
-					var len = t.charCodeAt(i), v= t.charCodeAt(i+1);
-					for(var j=0;j<len;j++){
+				for(var i = 0; i < t.length; i += 2) {
+					var len = t.charCodeAt(i), v = t.charCodeAt(i + 1);
+					for(var j = 0; j < len; j++) {
 						_tbl[idx] = v;
 						idx++;
 					}
@@ -170,20 +187,20 @@ Daisy.$ = function(id) {
 				//$.log("idx:%X",idx);
 				return _tbl;
 			})(table);
-		}).fail(function(table){
+		}).fail(function(table) {
 		});
 	};
-	
-	$.copyJson = function(json){
+
+	$.copyJson = function(json) {
 		var rtn = {}
-		for(var j in json){
+		for(var j in json) {
 			rtn[j] = json[j]
 		}
 		return rtn;
 	}
-	$.jsonEqual = function(json1,json2){
-		for(var j1 in json1){
-			if(json2[j1]!==json1[j1])
+	$.jsonEqual = function(json1, json2) {
+		for(var j1 in json1) {
+			if(json2[j1] !== json1[j1])
 				return false;
 		}
 		return true;
