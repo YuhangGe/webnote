@@ -1,4 +1,4 @@
-#sn-canvas {
+.sn-canvas {
 	cursor: text;
 	margin: 0px;
 	outline: none;
@@ -6,7 +6,7 @@
 	left: 0px;
 	top: 0px;
 }
-#sn-caret {
+.sn-caret {
 	position: absolute;
 	display: block;
 	width: 1px;
@@ -16,14 +16,31 @@
 	padding: 0px;
 	margin: 0px;
 	outline: none;
-	border: none;
+	border: 1px dashed green;
 	resize: none;
 	/*
 	 * important! overflow hidden in chrome
 	 */
 	overflow: hidden;
 }
-#sn-editor {
+.sn-caret-new {
+	position: absolute;
+	display: block;
+	width: 1px;
+	background: transparent;
+	left: 0px;
+	top: 0px;
+	padding: 0px;
+	margin: 0px;
+	outline: none;
+	resize: none;
+	border: none;
+	/*
+	 * important! overflow hidden in chrome
+	 */
+	 overflow: hidden;
+}
+.sn-editor {
 	width: 600px;
 	height: 700px;
 	padding: 0px;

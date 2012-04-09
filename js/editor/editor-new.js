@@ -10,7 +10,7 @@
 			return null;
 		}
 		if($.HAS_DROID_FONT === null){
-			$.HAS_DROID_FONT =   $.hasFont("Droid Sans Fallback") | $.hasFont("Microsoft Yahei");
+			$.HAS_DROID_FONT =   $.hasFont("Droid Sans Fallback") | $.hasFont("Microsoft Yahei") | $.hasFont("微软雅黑");
 		}
         //$.HAS_DROID_FONT = true;
         
@@ -22,13 +22,13 @@
 		parent.innerHTML = '<!-- supernote web editor -->'
 			+ '<div id="sn-editor" class="sn-editor">'
 			+ '<canvas width="400" height="350" id="sn-canvas" class="sn-canvas"></canvas>'
-			+ '<textarea id="sn-caret" spellcheck="false" cols="0" rows="0" class="sn-caret"></textarea>'
+			+ '<textarea id="sn-caret" spellcheck="false" cols="0" rows="0" class="sn-caret-new" wrap="wrap"></textarea>'
 			+ '</div><!-- supernote web editor -->';
 		var config = {
 			line_width : 1164,
 			line_count : 32,
 			line_height : 48,
-			font_name :  "Droid Sans Fallback, Microsoft Yahei",
+			font_name :  "Droid Sans Fallback, Microsoft Yahei, 微软雅黑",
 			font_size : 35,
 			width : 1170,
 			height : 800
@@ -52,6 +52,16 @@
 		this.padding_top = config.padding_top == null? 22 : config.padding_top;
 		this.font_height = config.font_height == null? 40 : config.font_height;
 		this.baseline_offset = 2; //为了让底线和caret与文字底端对齐而设置的两个offset像素
+		this.caret_offset_1 = 0;
+		this.caret_offset_2 = 0;
+		if($.chrome){
+			this.caret_offset_1 = 8;
+			this.caret_offset_2 = 8;
+		}else if($.ie){
+			this.caret_offset_1 = 2;
+			this.caret_offset_2 = 0;
+		}
+			
 		this.font = (this.font_bold ? 'bold ' : '') + this.font_size + "px " + this.font_name;
 
 		this.background = config.background == null ? '#ffffcc' : config.background;
@@ -163,7 +173,9 @@
 				this.canvas.width = this.c_width;
 				this.canvas.height = this.c_height + 10;
 				this.render.setScale(this.c_height / this.def_height);
-				this.caret.style.height = this.font_height * this.render.scale + 'px';
+				this.caret.style.height = ((this.font_height+this.caret_offset_1) * this.render.scale) + 'px';
+				this.caret.style.fontSize = Math.floor(this.font_size*this.render.scale) + "px";
+				//$.log("font:%d", Math.floor(this.font_size*this.render.scale) )
 				this._resetCaret();
 				//$.log(this.font_size*scale)
 				this.container.style.width = this.width + "px";
@@ -215,7 +227,7 @@
 		_resetCaret : function() {
 			//$.log(this.caret_pos.top);
 			this.caret.style.left = this.caret_pos.left * this.render.scale + 'px';
-			this.caret.style.top = (this.caret_pos.top + this.padding_top + this.baseline_offset) * this.render.scale + "px";
+			this.caret.style.top = (this.caret_pos.top + this.padding_top + this.baseline_offset - this.caret_offset_2) * this.render.scale + "px";
 		},
 		focus : function() {
 			this.focused = true;

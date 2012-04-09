@@ -8,16 +8,16 @@
 		<script type="text/javascript" src="js/jquery-1.5.1.js"></script>
 		<script type="text/javascript" src="js/js-printf.js"></script>
 		<script type="text/javascript" src="js/editor/utility.js"></script>
-		<script type="text/javascript" src="js/editor/editor.js"></script>
+		<script type="text/javascript" src="js/editor/editor-new.js"></script>
 		<script type="text/javascript" src="js/editor/render.js"></script>
 		<script type = "text/javascript" src="js/editor/page.js"></script>
 		<script type ="text/javascript" src="js/editor/element.js"></script>
-		<script type="text/javascript" src="js/editor/event.js"></script>
+		<script type="text/javascript" src="js/editor/event-new.js"></script>
 		<script type="text/javascript" src="js/editor/handword.js"></script>
 		<script type="text/javascript" src="js/editor/doodle.js"></script>
 		<script type="text/javascript" src="js/editor/clipboard.js"></script>
 		<script type="text/javascript" src="js/editor/load_new.js"></script>
-		<script type="text/javascript" src="js/editor/load_doodle.js"></script>
+		<script type="text/javascript" src="js/editor/load_doodle.js" ></script>
 		
 		<script type="text/javascript" src="js/editor/filter/blur.js"></script>
 		<script type="text/javascript" src="js/editor/filter/blur2.js"></script>
