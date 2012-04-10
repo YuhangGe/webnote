@@ -23,7 +23,7 @@
 			+ '<div id="sn-editor" class="sn-editor">'
 			+ '<canvas width="400" height="350" id="sn-canvas" class="sn-canvas"></canvas>'
 			+ '<textarea id="sn-caret" spellcheck="false" cols="0" rows="0" class="sn-caret-new" wrap="wrap"></textarea>'
-			+ '</div><!-- supernote web editor -->';
+			+ '</div><!--<textarea style="position:absolute;left:500px;top:100px;font:35px Microsoft Yahei;width:400px;height:200px;overflow:hidden;"></textarea>--><!-- supernote web editor -->';
 		var config = {
 			line_width : 1164,
 			line_count : 32,
@@ -47,19 +47,25 @@
 		this.line_count = config.line_count;
 
 		this.font_name = config.font_name == null ? '宋体' : config.font_name;
-		this.font_size = config.font_size == null ? 18 : config.font_size;
+		this.font_size = config.font_size == null ? 35 : config.font_size;
 		this.font_bold = config.font_bold == null ? false : config.font_bold;
 		this.padding_top = config.padding_top == null? 22 : config.padding_top;
 		this.font_height = config.font_height == null? 40 : config.font_height;
 		this.baseline_offset = 2; //为了让底线和caret与文字底端对齐而设置的两个offset像素
 		this.caret_offset_1 = 0;
 		this.caret_offset_2 = 0;
-		if($.chrome){
+		if($.chrome || $.safari){
 			this.caret_offset_1 = 8;
 			this.caret_offset_2 = 8;
 		}else if($.ie){
-			this.caret_offset_1 = 2;
+			this.caret_offset_1 = 5;
 			this.caret_offset_2 = 0;
+		}else if($.firefox){
+			this.caret_offset_1 = 6;
+			this.caret_offset_2 = 1;
+		}else if($.opera){
+			this.caret_offset_1 = 6;
+			this.caret_offset_2 = -2;
 		}
 			
 		this.font = (this.font_bold ? 'bold ' : '') + this.font_size + "px " + this.font_name;
@@ -174,7 +180,7 @@
 				this.canvas.height = this.c_height + 10;
 				this.render.setScale(this.c_height / this.def_height);
 				this.caret.style.height = ((this.font_height+this.caret_offset_1) * this.render.scale) + 'px';
-				this.caret.style.fontSize = Math.floor(this.font_size*this.render.scale) + "px";
+				this.caret.style.font = Math.floor(this.font_size*this.render.scale) + "px " + this.font_name;
 				//$.log("font:%d", Math.floor(this.font_size*this.render.scale) )
 				this._resetCaret();
 				//$.log(this.font_size*scale)
@@ -182,10 +188,14 @@
 			}
 
 		},
-		_getEventPoint_chrome : function(e) {
+		_getEventPoint_chrome : function(e,not_scale) {
+			var off = $.getOffset(this.container);
+			var x = e.x - off.left , y=e.y - this.padding_top - off.top;
+			if(y<0)
+				y = 0;
 			return {
-				x : e.x - this.container.offsetLeft + document.body.scrollLeft,
-				y : e.y - this.padding_top - this.container.offsetTop + document.body.scrollTop
+				x : not_scale? x : x / this.render.scale,
+				y : not_scale ? y : y / this.render.scale
 			}
 		},
 		_getEventPoint : function(e, not_scale) {
@@ -198,6 +208,8 @@
 				x = e.layerX;
 				y = e.layerY - this.padding_top;
 			}
+			if(y<0)
+				y = 0;
 			return {
 				x : not_scale ? x : x / this.render.scale,
 				y : not_scale ? y : y / this.render.scale

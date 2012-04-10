@@ -6,15 +6,16 @@ if( typeof Daisy === 'undefined')
 
 Daisy.$ = function(id) {
 	return document.getElementById(id);
-};
-(function($) {
+}; (function($) {
 
 	var ua = navigator.userAgent.toLowerCase();
-	var s; ( s = ua.match(/msie ([\d.]+)/)) ? $.ie = s[1] : ( s = ua.match(/firefox\/([\d.]+)/)) ? $.firefox = s[1] : ( s = ua.match(/chrome\/([\d.]+)/)) ? $.chrome = s[1] : ( s = ua.match(/opera.([\d.]+)/)) ? $.opera = s[1] : ( s = ua.match(/version\/([\d.]+).*safari/)) ? $.safari = s[1] : 0;
+	var s;
+	( s = ua.match(/msie ([\d.]+)/)) ? $.ie = s[1] : ( s = ua.match(/firefox\/([\d.]+)/)) ? $.firefox = s[1] : ( s = ua.match(/chrome\/([\d.]+)/)) ? $.chrome = s[1] : ( s = ua.match(/opera.([\d.]+)/)) ? $.opera = s[1] : ( s = ua.match(/version\/([\d.]+).*safari/)) ? $.safari = s[1] : 0;
 
 	$.log = function(format, arg1, arg2) {
 		jQuery.log.apply(this, arguments);
 	}
+	$.IME_KEY = $.opera ? 197 : 229;
 	$.addEvent = function(ele, event, handler) {
 		if( typeof ele === 'string')
 			ele = $(ele);
@@ -159,10 +160,9 @@ Daisy.$ = function(id) {
 			frag.appendChild(document.createTextNode($.FONTFACE_DROID));
 			se.appendChild(frag);
 		}
-		jQuery(function(){
+		jQuery(function() {
 			document.getElementsByTagName('head')[0].appendChild(se);
 		});
-		
 	}
 	/*
 	 * 35px Droid Sans Fallback
@@ -204,5 +204,18 @@ Daisy.$ = function(id) {
 				return false;
 		}
 		return true;
+	}
+	
+	$.getOffset = function(ele){
+		var left = ele.offsetLeft, top = ele.offsetTop;
+		if(ele.offsetParent!==null){
+			var ot = $.getOffset(ele.offsetParent);
+			left += ot.left;
+			top += ot.top;
+		}
+		return {
+			left : left,
+			top : top
+		}
 	}
 })(Daisy.$);

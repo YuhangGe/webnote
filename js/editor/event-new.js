@@ -22,16 +22,19 @@ if( typeof Daisy === 'undefined')
 				//this.caret.style.display = "none";
 			}
 		},
-		_leftmousedown_handler : function(e) {
+		_deal_leftmouse_down : function(point){
 			this.cur_page.select(null);
 			this.render.paint();
-			var p = this._getEventPoint(e);
-			this._moveCaret_xy(p.x, p.y);
+			this._moveCaret_xy(point.x, point.y);
 			this.__left_mouse_down__ = true;
 			this.__pre_pos__ = this.caret_pos;
 			this.__down_pos__ = this.caret_pos;
-			if(typeof this.canvas.setCapture==='function')
-				this.canvas.setCapture(true);
+		},
+		_leftmousedown_handler : function(e) {
+			
+			var p = this._getEventPoint(e);
+			this._deal_leftmouse_down(p);
+			this.canvas.setCapture(true);
 		},
 		_mousedown_handler : function(e) {
 			//$.log(e.button);
@@ -46,10 +49,8 @@ if( typeof Daisy === 'undefined')
 		},
 		_leftmouseup_handler : function(e) {
 			this.__left_mouse_down__ = false;
-
 			this.render.paint();
-			if(typeof this.canvas.releaseCapture==='function')
-				this.canvas.releaseCapture();
+			this.canvas.releaseCapture();
 		},
 		_mouseup_handler : function(e) {
 			//$.log('mup');
@@ -62,7 +63,8 @@ if( typeof Daisy === 'undefined')
 			}
 
 		},
-		_leftmousemove_handler_deal : function(pos) { out_if:
+		_deal_leftmouse_move : function(pos) { 
+			out_if:
 			if(pos.para !== this.__pre_pos__.para || pos.para_at !== this.__pre_pos__.para_at) {
 				this._setCaret(pos);
 				this.focus();
@@ -86,19 +88,66 @@ if( typeof Daisy === 'undefined')
 		_mousemove_handler : function(e) {
 			if(this.__left_mouse_down__) {
 				var p = this._getEventPoint(e), pos = this.cur_page._getCaret_xy(p.x, p.y);
-				this._leftmousemove_handler_deal(pos);
+				this._deal_leftmouse_move(pos);
 			} else if(this.__right_mouse_down__) {
-				this._rightmousemove_handler_deal(e);
+				this._rightmousemove_handler(e);
 			}
 			$.stopEvent(e);
+		},
+		_chrome_mousemove_handler : function(e) {
+			if(this.__left_mouse_down__) {
+				var p = this._getEventPoint_chrome(e), pos = this.cur_page._getCaret_xy(p.x, p.y);
+				this._deal_leftmouse_move(pos);
+			} else if(this.__right_mouse_down__) {
+				this._chrome_rightmousemove_handler(e);
+			}
+			$.stopEvent(e);
+		},
+		_chrome_leftmouseup_handler : function(e){
+			this.__left_mouse_down__ = false;
+			this.render.paint();
+		
+		},
+		_chrome_mouseup_handler : function(e) {
+
+			if(e.button === 0) {
+				this._chrome_leftmouseup_handler(e);
+			} else if(e.button === 2) {
+				this._chrome_rightmouseup_handler(e);
+			} else {
+				$.stopEvent(e);
+			}
+		
+			$.delEvent(document.body, 'mousemove', this.__cmv_handler);
+			$.delEvent(document.body, 'mouseup', this.__cmu_handler);
+
+		},
+		_chrome_leftmousedown_handler : function(e){
+			var p = this._getEventPoint_chrome(e);
+			
+			this._deal_leftmouse_down(p);
+			
+		},
+		_chrome_mousedown_handler : function(e) {
+			//$.log(e)
+			if(e.button === 0) {
+				this._chrome_leftmousedown_handler(e);
+			} else if(e.button === 2) {
+				this._chrome_rightmousedown_handler(e);
+			} else {
+				$.stopEvent(e);
+			}
+			$.addEvent(document.body, 'mousemove', this.__cmv_handler);
+			$.addEvent(document.body, 'mouseup', this.__cmu_handler);
 		},
 		_keydown_handler : function(e) {
 
 			//$.log(e);
 			//$.log(this.read_only);
-			//if(this.read_only && (e.keyCode<37||e.keyCode>40))
-			//return;
-
+			if(this.read_only && (e.keyCode<37||e.keyCode>40)){
+				$.stopEvent(e);
+				return;
+			}
 			switch(e.keyCode) {
 				case 13:
 					//回车
@@ -134,17 +183,21 @@ if( typeof Daisy === 'undefined')
 				case 38:
 					//向上
 					this.moveCaret("up");
-					return;
+					break;
 				case 40:
 					//向下
 					this.moveCaret("down");
-					return;
-				case 229:
+					break;
+				case $.IME_KEY:
 					if(!this.__ime_on__) {
 						this.__ime_on__ = true;
-						$.log("ime on");
+
+						if($.firefox || $.opera) {
+							this.__ime_check__ = window.setInterval($.createDelegate(this, this._firefox_input_handler), 10);
+						}
+						//$.log("ime on");
 					}
-					return;
+					break;
 				case 65:
 					if(e.ctrlKey) {
 						this._setCaret(this.cur_doc.selectAll());
@@ -173,55 +226,69 @@ if( typeof Daisy === 'undefined')
 					}
 					break;
 
-			}
-			this.__ime_on__ = false;
-			$.log("ime off");
-		},
-		_input_handler : function(e) {
-			$.log(e);
-			//var f_t = new Date().getTithis();
 
-			if(this.caret.value !== "") {
-				if(!this.read_only)
-					this.insert(this.caret.value);
+			}
+		},
+		_textinput_handler : function(e) {
+			//$.log("ti")
+			if( typeof e.data === 'string') {
+				this.insert(e.data);
+			} else {
+				this.insert(this.caret.value);
+			}
+
+			this.__ime_on__ = false;
+			if(this.__ime_check__ !== null) {
+				window.clearInterval(this.__ime_check__);
+				this.__ime_check__ = null;
+			}
+			if($.chrome || $.safari) {
+				this.__bug_tag__ = true;
+			} else {
 				this.caret.value = "";
+				this._adjust_caret("");
 			}
-			$.stopEvent(e);
-
 		},
-		_chrome_textinput_handler : function(e) {
-			this.insert(e.data);
-			this.caret.value = "";
-			//$.log('ti %s',this.caret.value);
-			this.caret.style.width = "1px";
-			this.caret.style.background = "transparent";
-			this.caret.style.height = ((this.font_height+this.caret_offset_1) * this.render.scale) + 'px';
-			this.__ime_on__ = false;
-			$.stopEvent(e);
-		},
-		_chrome_input_handler : function(e) {
+		_firefox_input_handler : function(e) {
 			var s = this.caret.value;
-			$.stopEvent(e);
-			//$.log(s);
+			if(s === this.__ime_preval__)
+				return;
+			this.__ime_preval__ = s;
+			this._adjust_caret(s);
+		},
+		_adjust_caret : function(s) {
 			if(s === "") {
-				this.caret.style.height = ((this.font_height+this.caret_offset_1) * this.render.scale) + 'px';
+				this.__ime_on__ = false;
+				this.caret.style.height = ((this.font_height + this.caret_offset_1) * this.render.scale) + 'px';
 				this.caret.style.width = "1px";
 				this.caret.style.background = "transparent";
 				this.caret.style.border = "0px"
 				return;
 			}
 			this.render.ctx.font = this.caret.style.font;
-			var w = this.render.ctx.measureText(s).width,dw = this.c_width-this.caret_pos.left * this.render.scale;
-			if(w>dw){
-				this.caret.style.height = (this.font_height+this.caret_offset_1) * this.render.scale * Math.ceil((w+10)/dw) + "px";
-			}else{
-				this.caret.style.width = w + "px";
+			var w = this.render.ctx.measureText(s).width, dw = this.c_width - this.caret_pos.left * this.render.scale;
+			if(w > this.c_width) {
+				this.caret.style.height = (this.font_height + this.caret_offset_1) * this.render.scale * Math.ceil(w / this.c_width) + "px";
+			} else {
+				this.caret.style.width = (w + 2 * this.render.scale) + "px";
+				if(w > dw)
+					this.caret.style.left = (this.c_width - w) + "px";
 			}
+
 			this.caret.style.border = "1px dashed green";
 			this.caret.style.borderColor = "rgba(28,148,164,0.3)";
 			this.caret.style.background = "#FFFFCC";
-			//"rgba(0,0,255,0.2)";
-
+		},
+		_chrome_input_handler : function(e) {
+			//$.log('ci');
+			var s = this.caret.value;
+			if(this.__bug_tag__) {
+				this.caret.value = "";
+				s = "";
+				this.__bug_tag__ = false;
+			}
+			this._adjust_caret(s);
+			$.stopEvent(e);
 		},
 		_copy_handler : function(e) {
 			//this.copy(e);
@@ -268,34 +335,53 @@ if( typeof Daisy === 'undefined')
 			this.__right_mouse_down__ = false;
 			this.__pre_pos__ = null;
 			this.__ime_on__ = false;
-			$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
-			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
-			$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
+			this.__ime_check__ = null;
+			this.__ime_preval__ = "";
 
-			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
-			$.addEvent(this.caret, 'mouseup', function(e) {
-				$.log(e);
-			});
-			$.addEvent(this.caret, 'blur', $.createDelegate(this, this._blur_handler));
-			$.addEvent(this.caret, "keydown", $.createDelegate(this, this._keydown_handler));
-			if($.chrome || $.safari) {
-				$.addEvent(this.caret, 'textInput', $.createDelegate(this, this._chrome_textinput_handler));
-				$.addEvent(this.caret, 'input', $.createDelegate(this, this._chrome_input_handler));
-			} else if($.ie) {
-				$.addEvent(this.caret, 'textinput', $.createDelegate(this, this._chrome_textinput_handler));
-				$.addEvent(this.caret, 'input', $.createDelegate(this, this._chrome_input_handler));
-			} else {
-				$.addEvent(this.caret, 'input', $.createDelegate(this, this._input_handler));
+			if( typeof this.canvas.setCapture === 'function') {
+				$.log('sc')
+				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
+				$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
+				$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
+			}else{
+				this.__cmv_handler = $.createDelegate(this, this._chrome_mousemove_handler);
+				//$.log(this.__cmv_handler)
+				this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
+				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
 			}
 
-			//$.addEvent(this.right_scroll, "scroll", $.createDelegate(this, this._right_scroll_handler));
-			//$.addEvent(this.bottom_scroll, "scroll", $.createDelegate(this, this._bottom_scroll_handler));
+			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
+			$.addEvent(this.caret, 'mouseup', $.createDelegate(this, this._mouseup_handler));
+
+			$.addEvent(this.caret, 'blur', $.createDelegate(this, this._blur_handler));
+			$.addEvent(this.caret, "keydown", $.createDelegate(this, this._keydown_handler));
+
+			/**
+			 * chrome 和 safari下面貌似有bug.当输入空格时在textInput事件中 stopEvent会引发神奇bug。
+			 * 但如果不stopEvent会紧接着触发 input事件导致输入框宽度设置错误。
+			 * __bug_tag__，进行特处理。
+			 */
+			this.__bug_tag__ = false;
+			/**
+			 * chrome safari下面为textInput
+			 * ie 为 textinput
+			 * firefox 和opera 为 input
+			 */
+			var textinput_event_name = "textInput";
+			if($.ie) {
+				textinput_event_name = "textinput";
+				$.addEvent(this.caret, 'input', $.createDelegate(this, this._chrome_input_handler));
+			} else if($.firefox || $.opera) {
+				textinput_event_name = "input";
+			} else if($.chrome || $.safari) {
+				$.addEvent(this.caret, 'input', $.createDelegate(this, this._chrome_input_handler));
+			}
+			$.addEvent(this.caret, textinput_event_name, $.createDelegate(this, this._textinput_handler));
+
 			$.addEvent(this.caret, 'copy', $.createDelegate(this, this._copy_handler));
 			$.addEvent(this.caret, 'cut', $.createDelegate(this, this._cut_handler));
 
 			$.addEvent(this.caret, 'paste', $.createDelegate(this, this._paste_handler));
-
-			//$.addWheelEvent(this.canvas, $.createDelegate(this, this._wheel_handler));
 
 			$.addEvent(this.canvas, 'contextmenu', function(e) {
 				$.stopEvent(e);

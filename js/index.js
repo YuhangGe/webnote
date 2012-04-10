@@ -73,7 +73,7 @@ $(function() {
 	}
 	
 	///SNEditor.append("Vingt mille lieues sous les mers  est la première livre de Jules Verne que j’ai lue. Personnellement, je p");
- 	SNEditor.append("hello world");
+ 	SNEditor.append("hello world goooooooooooooooooooooooooooooooooooooooogle\nlove daisy");
  
 	 // $.get("load_item.php?file=adb\\data2\\", function(data) {
 		 // SNEditor.loadItem(data, 0);
