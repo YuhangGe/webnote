@@ -22,7 +22,8 @@
 		
 		if(strength==null)
 			strength = _strength;
-			
+		
+		//$.log("es:%d",strength)
 		var imageData = ctx.getImageData(left,top,width,height),
 			buffImageData = ctx.getImageData(left, top, width, height),
 			data = imageData.data,

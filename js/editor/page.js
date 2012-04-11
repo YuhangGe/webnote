@@ -7,8 +7,6 @@
 		this.editor = editor;
 		this.ele_array = [];
 		this.doodle_list = [];
-		this.doodle_width = 0;
-		this.doodle_height = 0;
 		this._init();
 
 	}

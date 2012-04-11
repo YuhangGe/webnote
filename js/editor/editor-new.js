@@ -95,6 +95,9 @@
 		//当前是否在正在手写
 		this.hand_mode = false;
 		this.hand_bihua = [];
+		//当前是否正在涂鸦
+		this.doodle_mode = false;
+		this.tmp_doodle = null;
 		
 		this.cur_page = null;
 		this.pages = [];
@@ -190,12 +193,12 @@
 		},
 		_getEventPoint_chrome : function(e,not_scale) {
 			var off = $.getOffset(this.container);
-			var x = e.x - off.left , y=e.y - this.padding_top - off.top;
+			var x = e.x - off.left , y=e.y - off.top;
 			if(y<0)
 				y = 0;
 			return {
-				x : not_scale? x : x / this.render.scale,
-				y : not_scale ? y : y / this.render.scale
+				x : not_scale? x : Math.round(x / this.render.scale),
+				y : not_scale ? y : Math.round((y-this.padding_top) / this.render.scale)
 			}
 		},
 		_getEventPoint : function(e, not_scale) {
@@ -203,16 +206,16 @@
 			//$.log(e);
 			if( typeof e.offsetX !== 'undefined') {
 				x = e.offsetX;
-				y = e.offsetY - this.padding_top;
+				y = e.offsetY;
 			} else if( typeof e.layerX !== 'undefined') {
 				x = e.layerX;
-				y = e.layerY - this.padding_top;
+				y = e.layerY;
 			}
 			if(y<0)
 				y = 0;
 			return {
-				x : not_scale ? x : x / this.render.scale,
-				y : not_scale ? y : y / this.render.scale
+				x : not_scale ? x : Math.round(x / this.render.scale),
+				y : not_scale ? y : Math.round((y-this.padding_top) / this.render.scale)
 			};
 		},
 		createPage : function() {

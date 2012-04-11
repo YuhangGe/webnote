@@ -50,8 +50,9 @@
 			case T.SCRIBBLE :
 			case T.SKETCH :
 				d = new Daisy._PointDoodle(value, pen_width);
+				d.tmp_mode = tag;
 				break;
-			case T.GROUP : 
+			case T.GROUP :
 				d = new Daisy._GroupDoodle(value);
 				break;
 			default:
@@ -110,7 +111,7 @@
 	Daisy._PointDoodle = function(points, pen_width) {
 		this.points = points;
 		this._calc(pen_width);
-		this.img_data = null;
+		this.data = null;
 		this.change = true;
 	}
 	Daisy._PointDoodle.prototype = {
@@ -147,7 +148,7 @@
 				return;
 			}
 			if(this.change) {
-				this.change = false;
+
 				ctx.strokeStyle = this.color;
 				ctx.lineWidth = this.pen_width;
 				$.drawBesier(ctx, this.points);
@@ -158,14 +159,14 @@
 					var t_f = new Date().getTime();
 					//$.boxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height);
 					$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height)
-					$.log("blur time:%d", new Date().getTime() - t_f);
+					//$.log("blur time:%d", new Date().getTime() - t_f);
 
 				} else if(this.type === Daisy._Doodle.Type.EMBOSS) {
 					var t_f = new Date().getTime();
 					//$.boxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height,1);
-					$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height, 1);
-					$.processEmboss(ctx, this.left, this.top, this.width, this.height, 2.7);
-					$.log("emboss time:%d", new Date().getTime() - t_f);
+					//$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height, 1);
+					$.processEmboss(ctx, this.left, this.top, this.width, this.height, 10);
+					//$.log("emboss time:%d", new Date().getTime() - t_f);
 				} else if(this.type === Daisy._Doodle.Type.NEON) {
 					var t_f = new Date().getTime();
 					$.stackBoxBlurCanvasRGBA(ctx, this.left, this.top, this.width, this.height);
@@ -173,15 +174,22 @@
 					ctx.lineWidth = this.pen_width / 2;
 					$.drawBesier(ctx, this.points);
 					var t_f = new Date().getTime();
-					$.log("neon time:%d", new Date().getTime() - t_f);
+					//$.log("neon time:%d", new Date().getTime() - t_f);
 				}
 				this.parent.drawEraser(ctx);
-				this.data = ctx.getImageData(this.left, this.top, this.width, this.height);
+				if(!this.tmp_mode) {
+					this.data = ctx.getImageData(this.left, this.top, this.width, this.height);
+					this.change = false;
+				}
 			} else {
 				//$.log('not change');
 				ctx.putImageData(this.data, this.left, this.top);
 			}
 
+		},
+		_pushPoint : function(point) {
+			this.points.push(point);
+			this._calc(this.pen_width);
 		}
 	}
 
@@ -191,30 +199,45 @@
 	Daisy._LightDoodle.prototype = {
 		draw : function(ctx) {
 			ctx.save();
-			ctx.globalAlpha = 0.3;
+			ctx.globalAlpha = 0.4;
 			ctx.strokeStyle = this.color;
 			ctx.lineWidth = this.pen_width;
 			$.drawBesier(ctx, this.points);
 			ctx.restore();
+		},
+		_pushPoint : function(point) {
+			this.points.push(point);
 		}
 	}
 	Daisy._RectDoodle = function(points) {
 		this.points = points;
+		this.start = points[0];
+		this.end = points[1] == null ? points[0] : points[1];
 	}
 	Daisy._RectDoodle.prototype = {
 		draw : function(ctx) {
 			ctx.strokeStyle = this.color;
 			ctx.lineWidth = this.pen_width;
-			ctx.strokeRect(this.points[0].x, this.points[0].y, this.points[1].x - this.points[0].x, this.points[1].y - this.points[0].y);
-
+			
+			ctx.strokeRect(Math.min(this.start.x,this.end.x), Math.min(this.start.y,this.end.y), Math.abs(this.end.x - this.start.x), Math.abs(this.end.y - this.start.y));
+		},
+		_pushPoint : function(point){
+			this.end = point;
+			this.points[1] = point;
+		
 		}
 	}
 	Daisy._CircleDoodle = function(points) {
+		this.points = points;
 		this.start = points[0];
-		this.center = $.getMiddlePoint(points[0], points[1]);
-		this.radius = Math.sqrt(Math.pow(points[1].x - points[0].x, 2) + Math.pow(points[1].y - points[0].y, 2)) / 2;
+		this.end = points[1] == null ? this.start : points[1];
+		this._calc();
 	}
 	Daisy._CircleDoodle.prototype = {
+		_calc : function() {
+			this.center = $.getMiddlePoint(this.start, this.end);
+			this.radius = Math.round(Math.sqrt(Math.pow(this.end.x - this.start.x, 2) + Math.pow(this.end.y - this.start.y, 2)) / 2);
+		},
 		draw : function(ctx) {
 			ctx.strokeStyle = this.color;
 			ctx.lineWidth = this.pen_width;
@@ -222,9 +245,15 @@
 			ctx.arc(this.center.x, this.center.y, this.radius, 0, Math.PI * 2);
 			ctx.stroke();
 			ctx.closePath();
+		},
+		_pushPoint : function(point) {
+			this.end = point;
+			this.points[1] = point;
+			this._calc();
 		}
 	}
 	Daisy._LineDoodle = function(points) {
+		this.points = points;
 		this.start = points[0];
 		this.end = points[1];
 	}
@@ -240,16 +269,20 @@
 			ctx.closePath();
 
 			this.parent.drawEraser(ctx);
+		},
+		_pushPoint : function(point) {
+			this.end = point;
+			this.points[1] = point;
 		}
 	}
-	
-	Daisy._GroupDoodle = function(d_list){
+
+	Daisy._GroupDoodle = function(d_list) {
 		this.list = d_list;
 	}
 	Daisy._GroupDoodle.prototype = {
-		draw : function(ctx){
+		draw : function(ctx) {
 			//$.log("group draw");
-			for(var i=0;i<this.list.length;i++){
+			for(var i = 0; i < this.list.length; i++) {
 				ctx.save();
 				this.list[i].draw(ctx);
 				ctx.restore();

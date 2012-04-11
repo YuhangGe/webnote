@@ -7,6 +7,14 @@
 	
 		<script type="text/javascript" src="js/jquery-1.5.1.js"></script>
 		<script type="text/javascript" src="js/js-printf.js"></script>
+		
+		<script type="text/javascript" src="js/jquery.qtip.min.js"></script>
+		<link type="text/css" rel="stylesheet" href="css/jquery.qtip.min.css" />
+		<script type="text/javascript" src="js/fg.menu.js"></script>
+		<link type="text/css" rel="stylesheet" href="css/fg.menu.css" />
+		<script type="text/javascript" src="js/colorpicker.js"></script>
+		<link rel="stylesheet" media="screen" type="text/css" href="css/colorpicker.css" />
+		
 		<script type="text/javascript" src="js/editor/utility.js"></script>
 		<script type="text/javascript" src="js/editor/editor-new.js"></script>
 		<script type="text/javascript" src="js/editor/render.js"></script>
@@ -29,33 +37,6 @@
 		<link rel="stylesheet" type="text/css" href="css/editor.css" />
 		<link type="text/css" rel="stylesheet" href="css/style.css" />
 		
-		
-		<link rel="stylesheet" media="screen" type="text/css" href="css/colorpicker.css" />
-		<script type="text/javascript" src="js/colorpicker.js"></script>
-
-		<script type="text/javascript">
-		$(function(){
-			$('#colorSelector').ColorPicker({
-				color: '#010101',
-				onShow: function (colpkr) {
-					$(colpkr).fadeIn(300);
-					return false;
-				},
-				onHide: function (colpkr) {
-					$(colpkr).fadeOut(300);
-					return false;
-				},
-				onChange: function (hsb, hex, rgb) {
-					$('#colorSelector').css('backgroundColor', '#' + hex);
-				},
-				onSubmit : function(hsb,hex,rgb,colpkr){
-					ctrlSetColor('#'+hex);
-					$('#colorSelector').ColorPickerHide();
-				}
-		});
-			
-});
-		</script>
 	</head>
 	<body>
 		<div id="top-menu"></div>
@@ -66,7 +47,7 @@
 				</div>
 				<div class="book-list">
 					<div class="sub-title">
-						笔记本<a href="#" style="float:right;font-size:12px;">添加</a>
+						笔记本<a href="javascript:void();" style="float:right;font-size:12px;">添加</a>
 					</div>
 					<ul id="book-list">
 						<li>
@@ -223,11 +204,45 @@
 				<div class="editor-panel">
 					<div class="edit-ctrl">
 					 
-						<a href="#">书写/涂鸦</a>
-						<a href="#">复制</a>
-						<a href="#">粘贴</a>
-						<a id="ctrl-setbold" href="javascript:ctrlSetBold();">加粗(已关)</a>
-						<a id='ctrl-readonly' href="javascript:ctrlReadOnly();">只读(已关)</a>
+						<a href="javascript:;" title="复制文本">复制</a>
+						<a href="javascript:;" title="粘贴文本">粘贴</a>
+						<a title="设置文本是否加粗" id="ctrl-setbold" href="javascript:ctrlSetBold();">加粗(已关)</a>
+						<a title="设置编辑区域是否只读" id='ctrl-readonly' href="javascript:ctrlReadOnly();">只读(已关)</a>
+						
+						<a id="ctrl-handword" href="javascript:ctrlSetCurMode();" title="手写模式下您可以使用鼠标右键输入手写文字">手写(已开)</a>
+						<a id="ctrl-doodle" href="javascript:ctrlSetCurMode();" title="涂鸦模式下您可以使用鼠标右键输绘制涂鸦">涂鸦(已关)</a>
+						<span id="ctrl-doodle-option" style="display:none;" >
+								<a href="javascript:;" title="选择画笔类型">画笔：</a>
+								<select id="ctrl-doodle-type" onchange="ctrlSetDoodleType();">
+									<option>普通</option>
+									<option>浮雕</option>
+									<option>模糊</option>
+									<option>空心</option>
+									<option>透明</option>
+									<option>直线</option>
+									<option>矩形</option>
+									<option>圆形</option>
+								</select>
+								<a href="javascript:;" title="选择画笔宽度">宽度：</a>
+								<select id="ctrl-doodle-weight" onchange="ctrlSetDoodleWeight();">
+									<option>4</option>
+									<option>6</option>
+									<option selected>9</option>
+									<option>13</option>
+									<option>18</option>
+								</select>
+								
+							<!--
+								<a href="javascript:void();" title="" id="ctrl-filter"></a> 
+								<div id="ctrl-filter-menu" style="display: none;">
+								<ul>
+									<li><a href="javascript:void();">模糊</a></li>
+									<li>浮雕</li>
+									<li>空心</li>
+									<li>透明</li>
+								</ul>
+							</div> -->
+						</span>
 						<a style="position: relative;">
 							<div  id="colorSelector"><div></div></div>
 						</a>

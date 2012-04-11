@@ -263,18 +263,17 @@
 			//'bottom';
 
 			this._paintBackground();
-
+			
+			if(this.editor.doodle_mode) {
+				this.ctx.save();
+				this.ctx.scale(this.scale, this.scale);
+				this.doodle_ctx.clearRect(0, 0, this.width, this.height);
+				this._paintEachDoodle(this.editor.tmp_doodle);
+				this.ctx.drawImage(this.doodle_canvas, 0, 0);
+				this.ctx.restore();
+			}
+			
 			var e_arr = this.page.ele_array;
-			/*
-			 for(var i = 0; i < e_arr.length; i++) {
-			 var ele = e_arr[i];
-			 if(ele.type === Daisy._Element.Type.HANDWORD) {
-			 this._paintHandWord(ele);
-
-			 } else if(ele.type === Daisy._Element.Type.CHAR) {
-			 this._paintChar(ele);
-			 }
-			 }*/
 
 			this.ctx.save();
 			this.ctx.scale(this.scale, this.scale);
@@ -289,8 +288,7 @@
 						continue;
 					}
 					if(cur_ele.type === Daisy._Element.Type.HANDWORD || cur_ele.line_at !== pre_ele.line_at || !$.jsonEqual(cur_ele.style, pre_ele.style)) {
-						
-						
+
 						this.ctx.font = pre_ele.style.font;
 						this.ctx.fillStyle = pre_ele.style.color;
 						//$.log(pre_ele.left);
@@ -315,62 +313,47 @@
 				e_arr[0].draw(this.ctx);
 			}
 			this.ctx.restore();
-			var hb = this.editor.hand_bihua;
-			if(hb.length > 0) {
-				this.ctx.strokeStyle = this.editor.color;
-				this.ctx.lineWidth = 2;
-				for(var i = 0; i < hb.length; i++) {
-					$.drawBesier(this.ctx, hb[i]);
-				}
-			}
+
 			//$.log(this.editor.hand_mode);
 			if(this.editor.hand_mode) {
-				//$.log("hm")
+				var hb = this.editor.hand_bihua;
+				if(hb.length > 0) {
+					this.ctx.strokeStyle = this.editor.color;
+					this.ctx.lineWidth = Daisy.Global.hand_line_weight;
+					for(var i = 0; i < hb.length; i++) {
+						$.drawBesier(this.ctx, hb[i]);
+					}
+				}
 				this.ctx.strokeStyle = this.editor.color;
-				this.ctx.lineWidth = 2;
+				this.ctx.lineWidth = Daisy.Global.hand_line_weight;
 				$.drawBesier(this.ctx, this.editor.__tmp_new_bihua);
 			}
 
 			//$.processEmboss(this.ctx,400,200,600,600);
 		},
+		_paintEachDoodle : function(doo) {
+			switch(doo.type) {
+				case Daisy._Doodle.Type.LINE:
+				case Daisy._Doodle.Type.RECT:
+				case Daisy._Doodle.Type.CIRCLE:
+				case Daisy._Doodle.Type.IMAGE:
+				case Daisy._Doodle.Type.LIGHT:
+					doo.draw(this.doodle_ctx);
+					break;
+				default:
+					this.filter_ctx.clearRect(0, 0, this.width, this.height);
+					doo.draw(this.filter_ctx, this.width, this.height);
+					this.doodle_ctx.drawImage(this.filter_canvas, 0, 0);
+					break;
+			}
+		},
 		_paintDoodle : function() {
-			//return;
-			//$.log(this.page.doodle_list.length);
 			if(this.page.doodle_list.length === 0)
 				return;
-
-			//if(this.doodle_change) {
-			//this.doodle_canvas.width = this.doodle_canvas.width;
 			this.doodle_ctx.clearRect(0, 0, this.width, this.height);
-
 			for(var i = this.page.doodle_list.length - 1; i >= 0; i--) {
-				//$.log('p d %d',i)
-				//this.mask_canvas.width = this.page.doodle_width*this.scale;
-				//this.mask_canvas.height = this.page.doodle_height*this.scale;
-				var doo = this.page.doodle_list[i];
-				switch(doo.type) {
-					case Daisy._Doodle.Type.LINE:
-					case Daisy._Doodle.Type.RECT:
-					case Daisy._Doodle.Type.CIRCLE:
-					case Daisy._Doodle.Type.IMAGE:
-					case Daisy._Doodle.Type.LIGHT:
-						doo.draw(this.doodle_ctx);
-						break;
-					default:
-
-						this.filter_ctx.clearRect(0, 0, this.width, this.height);
-						doo.draw(this.filter_ctx, this.width, this.height);
-						this.doodle_ctx.drawImage(this.filter_canvas, 0, 0);
-						break;
-
-				}
-
-				//break;
+				this._paintEachDoodle(this.page.doodle_list[i]);
 			}
-
-			//this.doodle_change = false;
-			//}
-
 			this.ctx.drawImage(this.doodle_canvas, 0, 0);
 		},
 		getThumb : function() {

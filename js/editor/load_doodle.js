@@ -41,7 +41,7 @@
 			}
 			//$.log(eraser_list);
 			//$.log("doodle type:%d", type);
-			var value = null, tag = null;
+			var value = null, tag = false;
 			if(type === Daisy._Doodle.Type.GROUP){
 				//$.log('group')
 				var g_len = this.read();

@@ -79,6 +79,9 @@
 		//当前是否在正在手写
 		this.hand_mode = false;
 		this.hand_bihua = [];
+		//当前是否正在涂鸦
+		this.doodle_mode = false;
+		this.tmp_doodle = null;
 		
 		this.cur_page = null;
 		this.pages = [];

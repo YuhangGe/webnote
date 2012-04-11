@@ -4,6 +4,7 @@
 if( typeof Daisy === 'undefined')
 	Daisy = {};
 (function(Daisy, $) {
+	/**MODULE BEGIN**/
 	$.extend(Daisy.WebNote.prototype, {
 		_focus_handler : function(e) {
 
@@ -22,7 +23,7 @@ if( typeof Daisy === 'undefined')
 				//this.caret.style.display = "none";
 			}
 		},
-		_deal_leftmouse_down : function(point){
+		_deal_leftmouse_down : function(point) {
 			this.cur_page.select(null);
 			this.render.paint();
 			this._moveCaret_xy(point.x, point.y);
@@ -31,7 +32,7 @@ if( typeof Daisy === 'undefined')
 			this.__down_pos__ = this.caret_pos;
 		},
 		_leftmousedown_handler : function(e) {
-			
+
 			var p = this._getEventPoint(e);
 			this._deal_leftmouse_down(p);
 			this.canvas.setCapture(true);
@@ -63,8 +64,7 @@ if( typeof Daisy === 'undefined')
 			}
 
 		},
-		_deal_leftmouse_move : function(pos) { 
-			out_if:
+		_deal_leftmouse_move : function(pos) { out_if:
 			if(pos.para !== this.__pre_pos__.para || pos.para_at !== this.__pre_pos__.para_at) {
 				this._setCaret(pos);
 				this.focus();
@@ -103,10 +103,10 @@ if( typeof Daisy === 'undefined')
 			}
 			$.stopEvent(e);
 		},
-		_chrome_leftmouseup_handler : function(e){
+		_chrome_leftmouseup_handler : function(e) {
 			this.__left_mouse_down__ = false;
 			this.render.paint();
-		
+
 		},
 		_chrome_mouseup_handler : function(e) {
 
@@ -117,16 +117,16 @@ if( typeof Daisy === 'undefined')
 			} else {
 				$.stopEvent(e);
 			}
-		
+
 			$.delEvent(document.body, 'mousemove', this.__cmv_handler);
 			$.delEvent(document.body, 'mouseup', this.__cmu_handler);
 
 		},
-		_chrome_leftmousedown_handler : function(e){
+		_chrome_leftmousedown_handler : function(e) {
 			var p = this._getEventPoint_chrome(e);
-			
+
 			this._deal_leftmouse_down(p);
-			
+
 		},
 		_chrome_mousedown_handler : function(e) {
 			//$.log(e)
@@ -144,7 +144,7 @@ if( typeof Daisy === 'undefined')
 
 			//$.log(e);
 			//$.log(this.read_only);
-			if(this.read_only && (e.keyCode<37||e.keyCode>40)){
+			if(this.read_only && (e.keyCode < 37 || e.keyCode > 40)) {
 				$.stopEvent(e);
 				return;
 			}
@@ -225,7 +225,6 @@ if( typeof Daisy === 'undefined')
 						$.stopEvent(e);
 					}
 					break;
-
 
 			}
 		},
@@ -343,7 +342,7 @@ if( typeof Daisy === 'undefined')
 				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
 				$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
 				$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
-			}else{
+			} else {
 				this.__cmv_handler = $.createDelegate(this, this._chrome_mousemove_handler);
 				//$.log(this.__cmv_handler)
 				this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
@@ -388,4 +387,5 @@ if( typeof Daisy === 'undefined')
 			})
 		}
 	});
+	/**MODULE END**/
 })(Daisy, Daisy.$)
