@@ -1,3 +1,7 @@
 .hg/
 adb/
+build/
+data/
+
+build.bat
 .hgignore

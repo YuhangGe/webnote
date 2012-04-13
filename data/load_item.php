@@ -26,16 +26,20 @@ $style_color = array();
 
 //echo reverce_int(0x12345678);
 //	exit();
-$i_fname = 'books/' . $bookid . '/' . $pageid . '/' . "items";
+$i_fname = 'books/' . $bookid . '/' . $pageid . '/' . "Items";
+
 if (!file_exists($i_fname)) {
+	//echo "no file";
 	echo uchr(0,0,0,0);
 } else {
 	$file = fopen($i_fname, "rb");
-	read_tlv($file);
+	//echo 'fileopen';
+	$tmp = read_tlv($file);
+	//print_r($tmp);
 	read_tlv($file);
 
 	$content = read_tlv($file);
-
+	//print_r($content);
 	read_tlv($file);
 	try {
 		while ($tlv = read_tlv($file)) {
@@ -150,7 +154,9 @@ if (!file_exists($i_fname)) {
 	} catch(Exception $e) {
 		echo $e;
 	}
-
+	
+	//print_r($content);
+	
 	fclose($file);
 
 	$output = uchr(mb_strlen($content['value'], 'utf8')) . $content['value'] . uchr(count($hand_word));

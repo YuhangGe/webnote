@@ -156,7 +156,7 @@ function encode_doodle($d) {
 }
 
 $d_fpath = 'books/' . $bookid . '/' . $pageid . '/';
-$d_fname = $d_fpath . "doodle_items";
+$d_fname = $d_fpath . "Doodle_Items";
 if (!file_exists($d_fname)) {
 	echo uchr(0, 0, 0, 0);
 } else {

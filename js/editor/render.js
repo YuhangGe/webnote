@@ -351,6 +351,11 @@
 			if(this.page.doodle_list.length === 0)
 				return;
 			this.doodle_ctx.clearRect(0, 0, this.width, this.height);
+			
+			if(this.select_doodle!=null){
+				this.select_doodle.draw(this.ctx);
+			}
+			
 			for(var i = this.page.doodle_list.length - 1; i >= 0; i--) {
 				this._paintEachDoodle(this.page.doodle_list[i]);
 			}

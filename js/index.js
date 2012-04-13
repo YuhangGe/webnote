@@ -76,7 +76,7 @@ $(function() {
 	}
 
 	///SNEditor.append("Vingt mille lieues sous les mers  est la première livre de Jules Verne que j’ai lue. Personnellement, je p");
-	SNEditor.append("hello world goooooooooooooooooooooooooooooooooooooooogle\nlove daisy");
+	//SNEditor.append("hello world goooooooooooooooooooooooooooooooooooooooogle\nlove daisy");
 
 	// $.get("load_item.php?file=adb\\data2\\", function(data) {
 	// SNEditor.loadItem(data, 0);
@@ -89,6 +89,7 @@ $(function() {
 	//SNEditor.append(data);
 	//})
 
+	SNEditor.append("歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
 	loadAllBook();
 
 	//$('#ctrl-handword').qtip("show")

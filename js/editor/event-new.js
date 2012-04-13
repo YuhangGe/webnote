@@ -1,10 +1,5 @@
-/**
- * 事件处理
- */
-if( typeof Daisy === 'undefined')
-	Daisy = {};
 (function(Daisy, $) {
-	/**MODULE BEGIN**/
+
 	$.extend(Daisy.WebNote.prototype, {
 		_focus_handler : function(e) {
 
@@ -27,14 +22,18 @@ if( typeof Daisy === 'undefined')
 			this.cur_page.select(null);
 			this.render.paint();
 			this._moveCaret_xy(point.x, point.y);
-			this.__left_mouse_down__ = true;
 			this.__pre_pos__ = this.caret_pos;
 			this.__down_pos__ = this.caret_pos;
 		},
 		_leftmousedown_handler : function(e) {
-
+			this.__left_mouse_down__ = true;
 			var p = this._getEventPoint(e);
-			this._deal_leftmouse_down(p);
+			if(Daisy.Global.cur_mode === 'doodle_edit'){
+				this._doodle_edit_down(p);
+			}else{
+				this._deal_leftmouse_down(p);
+			}
+			
 			this.canvas.setCapture(true);
 		},
 		_mousedown_handler : function(e) {
@@ -49,8 +48,12 @@ if( typeof Daisy === 'undefined')
 
 		},
 		_leftmouseup_handler : function(e) {
-			this.__left_mouse_down__ = false;
+			if(Daisy.Global.cur_mode === 'doodle_edit'){
+				var p = this._getEventPoint(e);
+				this._doodle_edit_up(p);
+			}
 			this.render.paint();
+			this.__left_mouse_down__ = false;
 			this.canvas.releaseCapture();
 		},
 		_mouseup_handler : function(e) {
@@ -87,8 +90,13 @@ if( typeof Daisy === 'undefined')
 		},
 		_mousemove_handler : function(e) {
 			if(this.__left_mouse_down__) {
-				var p = this._getEventPoint(e), pos = this.cur_page._getCaret_xy(p.x, p.y);
-				this._deal_leftmouse_move(pos);
+				var p = this._getEventPoint(e);
+				if(Daisy.Global.cur_mode === 'doodle_edit'){
+					this._doodle_edit_move(p);
+				}else{
+					var pos = this.cur_page._getCaret_xy(p.x, p.y);
+					this._deal_leftmouse_move(pos);
+				}
 			} else if(this.__right_mouse_down__) {
 				this._rightmousemove_handler(e);
 			}
