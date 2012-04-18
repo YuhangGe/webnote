@@ -88,8 +88,12 @@ $(function() {
 	//$.get("other_lang.txt",function(data){
 	//SNEditor.append(data);
 	//})
-
-	SNEditor.append("歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
+	
+	//SNEditor.append("\ndjlsdkl jdksljdklsdkj jdskljdlsdj  djslkdjklsd  djskldjklsd djskldjsd djklsdjlsdj djlsd d jsdkl d");
+	//SNEditor.append("Juan WongPodsdsddsdsdssted July 27, 2006 at 8:26 am | Permalinkglad I can help  Adam Ziegler");
+	
+	SNEditor.append("this._text_delegate = $.createDelegate(this, this._textLoad)");
+	//SNEditor.append("歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
 	loadAllBook();
 
 	//$('#ctrl-handword').qtip("show")

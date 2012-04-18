@@ -102,7 +102,15 @@
 	}
 	Daisy._HandElement.prototype = {
 		toString : function(){
-			return "@hand word@";
+			return "@handword@";
+		},
+		toSVG : function(){
+			var svg_str = "<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='"+this.width+"' height='"+this.height+"'><path d='";
+				for(var i=0;i<this.value.length;i++){
+					svg_str += $.besierToSVG(this.value[i]);
+				}
+			svg_str += "' fill='none' stroke='"+this.style.color+"' stroke-width='"+this.style.weight+"' /></svg>";
+			return svg_str;
 		},
 		_copyBihua : function() {
 			var c_hw = [];

@@ -1,8 +1,7 @@
-/**
- * 页面逻辑
- */
 (function(Daisy, $) {
-
+	/**
+	 * 页面逻辑
+	 */
 	Daisy._Page = function(editor) {
 		this.editor = editor;
 		this.ele_array = [];
@@ -291,7 +290,7 @@
 			} else {
 				var pre_lc = 0;
 				for(var i = f_p; i <= t_p; i++)
-				pre_lc += this.para_info[i].line_cross;
+					pre_lc += this.para_info[i].line_cross;
 
 				para.length = f_at + this.para_info[t_p].length - t_at;
 				this.para_info.splice(f_p + 1, t_p - f_p);

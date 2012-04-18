@@ -5,21 +5,151 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 		<script type="text/javascript" src="js/jquery-1.5.1.js"></script>
 		<script type="text/javascript" src="js/js-printf.js"></script>
-		
+
 		<script type="text/javascript">
-			$(function(){
-				var c = document.createElement("canvas"),ctx = c.getContext('2d');
-				ctx.font = "35px Droid Sans Fallback";
-				var out = [];
-				for(var i=0;i<0xffff;i++){
-					var w = Math.round(ctx.measureText(String.fromCharCode(i)).width);
-					out.push(String.fromCharCode(w));
-				}
-				$('#text').val(out.join(""));
-			})
+			$.log = function(msg) {
+				if( typeof console !== 'undefined')
+					console.log(msg);
+			}
+			$(function() {
+				$("#text").bind('paste', function(e) {
+					$.log(e);
+					e = e.originalEvent;
+
+					if(e.clipboardData) {
+						log('event.clipboardData');
+						if(e.clipboardData.types) {
+							log('event.clipboardData.types');
+
+							// Look for a types property that is undefined
+							// This is currently the case for Firefox
+							if(!(e.clipboardData.types instanceof Array)) {
+								log('event.clipboardData.types is undefined');
+							}
+
+							var d_type = e.clipboardData.types[0];
+
+							if(d_type === "text/html") {
+									var val = e.clipboardData.getData("text/html");
+									log('text/html - ' + val);
+							}else if(/image/.test(d_type)) {
+								var file = e.clipboardData.items[0].getAsFile();
+								var reader = new FileReader();
+
+								reader.onload = function(e) {
+									//$.log(file.name);
+									$.log(e.target.result);
+									logImage(e.target.result);
+
+								};
+								reader.readAsDataURL(file);
+							}else {
+								var val = e.clipboardData.getData("text/plain");
+									log( 'text/plain - ' + val);
+							} 
+
+					
+						} else {
+							// Look for access to data if types array is missing
+							// This is currently the case for Chrome
+							var text = e.clipboardData.getData('text/plain');
+							var url = e.clipboardData.getData('text/uri-list');
+							var html = e.clipboardData.getData('text/html');
+							log('text/plain - ' + text);
+							if(url !== undefined) {
+								log('text/uri-list - ' + url);
+							}
+							if(html !== undefined) {
+								log('text/html - ' + html);
+							}
+						}
+					}
+
+					// IE event is attached to the window object
+					if(window.clipboardData) {
+						log('window.clipboardData');
+						// The schema is fixed
+						var text = window.clipboardData.getData('text');
+						
+						log('Text - ' + text);
+						if(url !== null) {
+							log('URL - ' + url);
+						}
+						if(html !== null) {
+							log("Html - " + html)
+						}
+					}
+					
+					// Needs a few msec to excute paste
+					window.setTimeout(function(){
+						$.log(e)
+						log("ftxt - "+ e.target.textContent);
+					}, 50);
+
+				});
+
+				$('#btn').click(function(e) {
+					clearLog();
+				});
+			});
+
+			function logContents() {
+
+			}
+
+			function logImage(dataURL) {
+				$("<img>").attr("src", dataURL).appendTo("#output");
+			}
+
+			// Add log item by creating and appending an li
+			function log(str) {
+				$("#output").append("<p>" + str + "</p>");
+			}
+
+			// Clears the log by removing all the li tags
+			function clearLog() {
+				$("#output").html("");
+			}
+
+			function do_test() {
+				var ns = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+
+				ns.setAttribute("width", 100)
+				ns.setAttribute("height", 100)
+
+				var c = document.createElementNS("http://www.w3.org/2000/svg", "circle")
+				c.setAttribute("cx", 50)
+				c.setAttribute("cy", 50)
+				c.setAttribute("r", 40)
+				c.setAttribute("stroke", "blue")
+				c.setAttribute("fill", "red")
+
+				$("#svg-test").append($(ns).append($(c)))
+			}
 		</script>
 	</head>
 	<body>
-		<textarea cols="30" rows="30" id="text"></textarea>
+		<div id="svg-test">
+			good
+			"
+			<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='85' height='30'>
+				<path d='M14 5 Q14 5 13.5 5 Q13 5 13 5 Q13 5 12.5 5 Q12 5 11.5 5.5 Q11 6 10 8 Q9 10 8.5 11 Q8 12 8 12.5 Q8 13 8 14.5 Q8 16 8 16 Q8 16 8.5 16 Q9 16 9.5 16 Q10 16 11 16 Q12 16 13 16 Q14 16 14 15.5 Q14 15 14.5 15 Q15 15 15.5 14 Q16 13 16 13 Q16 13 16.5 12.5 Q17 12 17 12 Q17 12 17 11.5 Q17 11 17 10.5 Q17 10 17 10 Q17 10 17 10 Q17 10 17 10 Q17 10 17 11 Q17 12 17 13 Q17 14 17.5 15.5 Q18 17 18.5 20.5 Q19 24 19 25 Q19 26 19 26 Q19 26 18.5 26.5 Q18 27 18 27 Q18 27 17.5 27.5 Q17 28 15.5 28.5 Q14 29 13.5 29.5 Q13 30 12 30 Q11 30 10.5 29.5 Q10 29 8.5 28.5 Q7 28 6 27 Q5 26 4.5 25.5 Q4 25 4 24.5 Q4 24 4 24 Q4 24 4 24 Q4 24 4 23.5 Q4 23 4.5 22.5 Q5 22 6.5 21.5 Q8 21 8.5 21 Q9 21 10 21 Q11 21 11 21 Q11 21 11 21 M26 11 Q26 11 26 11.5 Q26 12 26 12 Q26 12 26 12.5 Q26 13 26 13.5 Q26 14 26 14 Q26 14 26 14.5 Q26 15 26.5 15 Q27 15 27.5 15 Q28 15 29.5 15 Q31 15 31.5 15 Q32 15 33.5 15 Q35 15 35.5 15 Q36 15 36 15 Q36 15 36.5 15 Q37 15 37 15 Q37 15 37 15 Q37 15 37 14.5 Q37 14 36.5 13.5 Q36 13 35 11.5 Q34 10 34 9.5 Q34 9 34 9 Q34 9 34 9 Q34 9 34 9 Q34 9 33.5 9 Q33 9 33 9 Q33 9 33 9 Q33 9 32 9.5 Q31 10 29.5 11 Q28 12 27.5 12 Q27 12 27 12 Q27 12 27 12 M51 12 Q51 12 51 12 Q51 12 51 12 Q51 12 51 12 Q51 12 50.5 12 Q50 12 49 12 Q48 12 46.5 14 Q45 16 44.5 16.5 Q44 17 44 17.5 Q44 18 44 18.5 Q44 19 44 19 Q44 19 44 19 Q44 19 44.5 19.5 Q45 20 45 20 Q45 20 45 20 Q45 20 46.5 20 Q48 20 49 20 Q50 20 50.5 20 Q51 20 51.5 19.5 Q52 19 52 19 Q52 19 52.5 18.5 Q53 18 53 18 Q53 18 53 18 Q53 18 53 17.5 Q53 17 53 16 Q53 15 53 15 Q53 15 53 15 Q53 15 53 15 Q53 15 53 15 Q53 15 53 14.5 Q53 14 52.5 14 Q52 14 52 14 M71 15 Q71 15 71 15 Q71 15 70.5 15 Q70 15 70 15 Q70 15 68.5 15.5 Q67 16 66.5 16 Q66 16 65.5 16.5 Q65 17 64.5 17 Q64 17 63 18 Q62 19 62 19.5 Q62 20 62 20.5 Q62 21 62 21 Q62 21 62 21.5 Q62 22 62 22.5 Q62 23 62 23 Q62 23 62 23 Q62 23 62 23 Q62 23 62.5 23 Q63 23 63.5 23 Q64 23 65 22.5 Q66 22 67 21 Q68 20 68 19.5 Q68 19 68.5 18.5 Q69 18 69.5 17.5 Q70 17 70.5 15.5 Q71 14 71 13.5 Q71 13 71.5 12 Q72 11 72 10 Q72 9 72 8 Q72 7 72 6.5 Q72 6 72 4 Q72 2 72 1.5 Q72 1 72 0.5 Q72 0 72 0 Q72 0 72 0 Q72 0 72 0 Q72 0 72 0 Q72 0 72 0.5 Q72 1 71.5 2.5 Q71 4 71 5 Q71 6 70.5 8.5 Q70 11 69.5 13 Q69 15 69 16.5 Q69 18 69 18.5 Q69 19 69 19.5 Q69 20 69 20.5 Q69 21 69 21.5 Q69 22 69.5 22.5 Q70 23 70 23 Q70 23 70 23 Q70 23 70 23 Q70 23 71 23 Q72 23 72 23 Q72 23 72.5 23 Q73 23 73.5 23 Q74 23 74.5 23 Q75 23 75 22.5 Q75 22 75 22 Q75 22 75.5 22 Q76 22 76 22 Q76 22 76 22 Q76 22 76 22 Q76 22 76 21.5 Q76 21 76 21 ' fill='none' stroke='black' stroke-width='1.5' />
+			</svg>"
+			hello
+		</div>
+		<div>
+			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
+		</div>
+		<div>
+			<div id="text" style="width: 200px;height:300px;border:1px solid blue;" contenteditable="true"></div>
+			<!--
+			<textarea cols="40" rows="10" id="text"></textarea>
+			-->
+			<input type="button" value="Clear" id="btn"  />
+		</div>
+		<p>
+			Log Console:
+		</p>
+		<div id="output" style="min-height: 100px;max-width:500px;border:1px dashed blue;"></div>
 	</body>
 </html>

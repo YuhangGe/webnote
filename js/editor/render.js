@@ -98,8 +98,7 @@
 		this.filter_ctx.lineJoin = "round";
 
 		this.ctx.font = this.editor.font;
-
-		this.space_width = $.HAS_DROID_FONT ? this.ctx.measureText(' ').width : $.CHAR_WIDTH_TABLE[32];
+		this.space_width = this.ctx.measureText(" ").width;
 	}
 	Daisy._Render.prototype = {
 		setScale : function(scale) {
@@ -129,6 +128,7 @@
 					}
 					e++;
 				}
+			
 				//$.log("s:%d,e:%d",idx,e-1);
 				var ele = null, do_again = true, visible = true;
 				for(var i = idx; i < e; i++) {
@@ -171,6 +171,7 @@
 				if($.HAS_DROID_FONT) {
 					this.ctx.font = ele.style.font;
 					ele.width = this.ctx.measureText(ele.value).width;
+					//$.log(ele.width)
 				} else {
 					ele.width = $.CHAR_WIDTH_TABLE[ele.value.charCodeAt(0)];
 				}
@@ -200,14 +201,15 @@
 				top += this.line_height;
 				this._drawLine(this.ctx, 0, top, this.width, top);
 			}
-
+	
 			this._paintDoodle();
-
+		
 			if(this.page.select_mode) {
 				this._paintSelect(this.page.select_range.from, this.page.select_range.to);
 			}
 
 			this.ctx.restore();
+		
 		},
 		_paintSelect : function(from, to) {
 			this.ctx.fillStyle = "rgba(0,255,0,0.2)";
@@ -352,13 +354,16 @@
 				return;
 			this.doodle_ctx.clearRect(0, 0, this.width, this.height);
 			
-			if(this.select_doodle!=null){
-				this.select_doodle.draw(this.ctx);
+			for(var i = this.page.doodle_list.length - 1; i >= 0; i--) {
+				if(this.editor.select_doodle!==this.page.doodle_list[i])
+					this._paintEachDoodle(this.page.doodle_list[i]);
+			}
+			if(this.editor.select_doodle!=null){
+				//$.log(this.select_doodle)
+				this._paintEachDoodle(this.editor.select_doodle);
+				this.editor.edit_doodle.draw(this.doodle_ctx);
 			}
 			
-			for(var i = this.page.doodle_list.length - 1; i >= 0; i--) {
-				this._paintEachDoodle(this.page.doodle_list[i]);
-			}
 			this.ctx.drawImage(this.doodle_canvas, 0, 0);
 		},
 		getThumb : function() {

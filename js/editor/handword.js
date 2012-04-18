@@ -8,7 +8,7 @@
 				width : 0,
 				height : 0,
 				color : this.color,
-				weight : Daisy.Global.hand_line_weight,
+				weight : Daisy.Global.hand_weight,
 				bihua : []
 			}
 			var p0 = bihuas[0][0], x1 = p0.x, y1 = p0.y, x2 = p0.x, y2 = p0.y;
@@ -38,7 +38,7 @@
 				}
 				hw.bihua.push(bh);
 			}
-			hw.width = (w / h * b_h) + this.font_height * 0.3;
+			hw.width = Math.round((w / h * b_h) + this.font_height * 0.3);
 			hw.height = b_h;
 			return hw;
 		},
@@ -53,7 +53,7 @@
 
 			this.render.paint();
 		},
-		_handword_rightmouse_down : function(e,is_chrome) {
+		_handword_rightmouse_down : function(e, is_chrome) {
 			this.__right_mouse_down__ = true;
 			this.hand_mode = true;
 			this.__tmp_new_bihua = [];
@@ -64,34 +64,31 @@
 				this.__hand_timeout = null;
 			}
 		},
-		_doodle_rightmouse_down : function(e,is_chrome){
-			var p = is_chrome?this._getEventPoint_chrome(e,false): this._getEventPoint(e, false);
+		_doodle_rightmouse_down : function(e, is_chrome) {
+			var p = is_chrome ? this._getEventPoint_chrome(e, false) : this._getEventPoint(e, false);
 			p.y += Math.round(this.padding_top / this.render.scale);
 			this.__right_mouse_down__ = true;
 			this.doodle_mode = true;
-			this.tmp_doodle = Daisy._Doodle.create(Daisy.Global.doodle_type,Daisy.Global.doodle_weight,Daisy.Global.doodle_color,[],[p],true);
-			
+			this.tmp_doodle = Daisy._Doodle.create(Daisy.Global.doodle_type, Daisy.Global.doodle_weight, Daisy.Global.doodle_color, [], [p], true);
+
 		},
-		_rightmousedown_handler : function(e) {
+		_rightmousedown_handler : function(e, is_chrome) {
 			if(this.read_only)
 				return;
 
-			
-			if(Daisy.Global.cur_mode === 'handword'){
-				this._handword_rightmouse_down(e,false);
-			}else{
-				this._doodle_rightmouse_down(e,false);	
+			if(Daisy.Global.cur_mode === 'handword') {
+				this._handword_rightmouse_down(e, is_chrome);
+			} else {
+				this._doodle_rightmouse_down(e, is_chrome);
 			}
-			
-			this.canvas.style.cursor = 'crosshair';
-			this.canvas.setCapture(true);
 
+			this.canvas.style.cursor = 'crosshair';
+			if( typeof this.canvas.setCapture === 'function')
+				this.canvas.setCapture(true);
 			$.stopEvent(e);
 		},
 		_handword_rightmouse_up : function() {
-			this.__right_mouse_down__ = false;
 			this.hand_mode = false;
-
 			if(this.__tmp_new_length > 0) {
 				//$.log("add new bihua");
 				this.hand_bihua.push(this.__tmp_new_bihua);
@@ -99,84 +96,53 @@
 			this.__hand_timeout = window.setTimeout($.createDelegate(this, this._timeout_handler), 600);
 
 		},
-		_doodle_rightmouse_up : function(){
-			this.__right_mouse_down__ = false;
+		_doodle_rightmouse_up : function() {
+			
 			this.doodle_mode = false;
 			this.tmp_doodle.tmp_mode = false;
-			if(this.tmp_doodle.points.length>1){
+			if(this.tmp_doodle.points.length > 1) {
 				this.cur_page.doodle_list.unshift(this.tmp_doodle);
 				this.render.paint();
 			}
 		},
-		_rightmouseup_handler : function(e) {
-			if(this.__right_mouse_down__) {
-				if(Daisy.Global.cur_mode === 'handword'){
-					this._handword_rightmouse_up();
-				}else{
-					this._doodle_rightmouse_up();
-				}
-				 
-				this.canvas.releaseCapture();
-				this.canvas.style.cursor = 'text';
-				$.stopEvent(e);
+		_rightmouseup_handler : function(e, is_chrome) {
+			if(this.__right_mouse_down__ === false)
+				return;
+			this.__right_mouse_down__ = false;
+			if(Daisy.Global.cur_mode === 'handword') {
+				this._handword_rightmouse_up();
+			} else {
+				this._doodle_rightmouse_up();
 			}
+			if( typeof this.canvas.releaseCapture === 'function')
+				this.canvas.releaseCapture();
+			this.canvas.style.cursor = 'text';
+			$.stopEvent(e);
+
 		},
-		_handword_rightmouse_move : function(e,is_chrome) {
-			var p = is_chrome?this._getEventPoint_chrome(e,true):this._getEventPoint(e, true);
+		_handword_rightmouse_move : function(e, is_chrome) {
+			var p = is_chrome ? this._getEventPoint_chrome(e, true) : this._getEventPoint(e, true);
 			this.__tmp_new_length++;
 			this.__tmp_new_bihua.push(p);
 			this.render.paint();
 		},
-		_doodle_rightmouse_move : function(e,is_chrome){
-			var p = is_chrome?this._getEventPoint_chrome(e,false):this._getEventPoint(e, false);
+		_doodle_rightmouse_move : function(e, is_chrome) {
+			var p = is_chrome ? this._getEventPoint_chrome(e, false) : this._getEventPoint(e, false);
 			p.y += Math.round(this.padding_top / this.render.scale);
 			this.tmp_doodle._pushPoint(p);
 			this.render.paint();
 		},
-		_rightmousemove_handler : function(e) {
+		_rightmousemove_handler : function(e,is_chrome) {
 			if(this.__right_mouse_down__) {
-				
-				if(Daisy.Global.cur_mode === 'handword'){
-					this._handword_rightmouse_move(e);
-				}else{
-					this._doodle_rightmouse_move(e);
+
+				if(Daisy.Global.cur_mode === 'handword') {
+					this._handword_rightmouse_move(e,is_chrome);
+				} else {
+					this._doodle_rightmouse_move(e,is_chrome);
 				}
-				
+
 			}
 
-		},
-		_chrome_rightmousemove_handler : function(e) {
-			if(this.__right_mouse_down__) {
-				if(Daisy.Global.cur_mode === 'handword'){
-					this._handword_rightmouse_move(e);
-				}else{
-					this._doodle_rightmouse_move(e);
-				}
-				
-			}
-		},
-		_chrome_rightmouseup_handler : function(e) {
-			if(this.__right_mouse_down__) {
-				if(Daisy.Global.cur_mode === 'handword'){
-					this._handword_rightmouse_up();
-				}else{
-					this._doodle_rightmouse_up();
-				}
-				document.body.style.cursor = 'default';
-				this.canvas.style.cursor = "text";
-			}
-		},
-		_chrome_rightmousedown_handler : function(e) {
-			if(this.read_only)
-				return;
-			if(Daisy.Global.cur_mode === 'handword'){
-				this._handword_rightmouse_down(e,true);
-			}else{
-				this._doodle_rightmouse_down(e,true);	
-			}
-			document.body.style.cursor = 'crosshair';
-			this.canvas.style.cursor = "crosshair";
-			$.stopEvent(e);
-		}
+		 }
 	});
 })(Daisy, Daisy.$);

@@ -96,6 +96,29 @@ Daisy.$ = function(id) {
 				y : (p1.y + p2.y) / 2
 			}
 		},
+		besierToSVG : function(points){
+			var len = points.length, p_str = [];
+		
+			if(len < 2)
+				return "";
+			
+			var s = points[0], e = points[len - 1];
+
+			var ctrl = null, dest = null;
+			ctrl = points[0];
+			p_str.push("M",ctrl.x," ",ctrl.y," ");
+			for(var i = 0; i < len - 1; i++) {
+				dest = $.getMiddlePoint(points[i], points[i + 1]);
+				//ctx.quadraticCurveTo(ctrl.x, ctrl.y, dest.x, dest.y);
+				p_str.push("Q",ctrl.x," ",ctrl.y," ",dest.x," ",dest.y," ");
+				ctrl = points[i + 1];
+			}
+			dest = points[len - 1];
+			//ctx.quadraticCurveTo(ctrl.x, ctrl.y, dest.x, dest.y);
+			p_str.push("Q",ctrl.x," ",ctrl.y," ",dest.x," ",dest.y," ");
+	
+			return p_str.join("");
+		},
 		drawBesier : function(ctx, points) {
 			var len = points.length;
 			if(len === 0)
@@ -149,6 +172,7 @@ Daisy.$ = function(id) {
 
 			return f_width !== $.COMIC_WIDTH;
 		},
+		HAS_DROID_FONT : false,
 		FONTFACE_DROID : "@font-face {\nfont-family: 'Droid Sans';\n\tsrc: url('css/font/DroidSans.ttf') format('truetype');\n}\n@font-face {\nfont-family: 'Droid Sans';\n\tsrc: url('css/font/DroidSans-Bold.ttf') format('truetype');\nfont-weight: bold;\n}",
 
 		loadDroidSans : function() {
@@ -169,7 +193,7 @@ Daisy.$ = function(id) {
 		 * 35px Droid Sans Fallback
 		 */
 		CHAR_WIDTH_TABLE : "",
-		HAS_DROID_FONT : false,
+		
 		loadCharWidthTable : function() {
 			jQuery.ajax({
 				async : false,
@@ -226,8 +250,9 @@ Daisy.$ = function(id) {
 			var vx1 = line_end.x - line_start.x,vy1 = line_end.y - line_start.y, r1 = $.getPTPRange(line_start,line_end),
 				vx2 = point.x - line_start.x, vy2 = point.y - line_start.y, r2 = $.getPTPRange(line_start,point);
 			var cosa = (vx1*vx2+vy1*vy2)/(r1*r2), angle = Math.acos(cosa);
+			//$.log("cosa:"+cosa+", angle:"+angle)
 			if(angle>Math.PI/2 || r2*cosa>r1)
-				return this.HUGE_RANGE;
+				return Daisy._Doodle.HUGE_RANGE;
 			else {
 				return r2 * Math.sin(angle);
 			}
@@ -242,5 +267,7 @@ Daisy.$ = function(id) {
 			
 			return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
 		}
+		
+		
 	});
 })(Daisy.$);

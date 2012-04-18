@@ -121,7 +121,7 @@ function encode_image_file($fn) {
 		return uchr(0);
 	}
 
-	$dr = base64_encode(file_get_contents($d_fpath . $fn));
+	$dr = "data:image/png;base64,".base64_encode(file_get_contents($d_fpath . $fn));
 	$len = strlen($dr);
 	$h = (($len & 0xffff0000)>>16) & 0x0000ffff;
 	$l = $len & 0x0000ffff;

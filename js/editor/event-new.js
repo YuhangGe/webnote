@@ -25,43 +25,46 @@
 			this.__pre_pos__ = this.caret_pos;
 			this.__down_pos__ = this.caret_pos;
 		},
-		_leftmousedown_handler : function(e) {
+		_leftmousedown_handler : function(e, is_chrome) {
 			this.__left_mouse_down__ = true;
-			var p = this._getEventPoint(e);
-			if(Daisy.Global.cur_mode === 'doodle_edit'){
+			var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+			if(Daisy.Global.cur_mode === 'doodle_edit') {
+				p.y += Math.round(this.padding_top / this.render.scale);
 				this._doodle_edit_down(p);
-			}else{
+			} else {
 				this._deal_leftmouse_down(p);
 			}
-			
-			this.canvas.setCapture(true);
+			if( typeof this.canvas.setCapture === 'function')
+				this.canvas.setCapture(true);
 		},
-		_mousedown_handler : function(e) {
+		_mousedown_handler : function(e, is_chrome) {
 			//$.log(e.button);
 			if(e.button === 0) {
-				this._leftmousedown_handler(e);
+				this._leftmousedown_handler(e, is_chrome);
 			} else if(e.button === 2) {
-				this._rightmousedown_handler(e);
+				this._rightmousedown_handler(e, is_chrome);
 			} else {
 				$.stopEvent(e);
 			}
 
 		},
-		_leftmouseup_handler : function(e) {
-			if(Daisy.Global.cur_mode === 'doodle_edit'){
-				var p = this._getEventPoint(e);
+		_leftmouseup_handler : function(e, is_chrome) {
+			if(Daisy.Global.cur_mode === 'doodle_edit') {
+				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+				p.y += Math.round(this.padding_top / this.render.scale);
 				this._doodle_edit_up(p);
 			}
 			this.render.paint();
 			this.__left_mouse_down__ = false;
-			this.canvas.releaseCapture();
+			if( typeof this.canvas.releaseCapture === 'function')
+				this.canvas.releaseCapture();
 		},
-		_mouseup_handler : function(e) {
+		_mouseup_handler : function(e, is_chrome) {
 			//$.log('mup');
 			if(e.button === 0) {
-				this._leftmouseup_handler(e);
+				this._leftmouseup_handler(e, is_chrome);
 			} else if(e.button === 2) {
-				this._rightmouseup_handler(e);
+				this._rightmouseup_handler(e, is_chrome);
 			} else {
 				$.stopEvent(e);
 			}
@@ -88,63 +91,35 @@
 			}
 
 		},
-		_mousemove_handler : function(e) {
+		_mousemove_handler : function(e, is_chrome) {
 			if(this.__left_mouse_down__) {
-				var p = this._getEventPoint(e);
-				if(Daisy.Global.cur_mode === 'doodle_edit'){
+				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+				if(Daisy.Global.cur_mode === 'doodle_edit') {
+					p.y += Math.round(this.padding_top / this.render.scale);
 					this._doodle_edit_move(p);
-				}else{
+				} else {
 					var pos = this.cur_page._getCaret_xy(p.x, p.y);
 					this._deal_leftmouse_move(pos);
 				}
 			} else if(this.__right_mouse_down__) {
-				this._rightmousemove_handler(e);
+				this._rightmousemove_handler(e, is_chrome);
 			}
 			$.stopEvent(e);
 		},
 		_chrome_mousemove_handler : function(e) {
-			if(this.__left_mouse_down__) {
-				var p = this._getEventPoint_chrome(e), pos = this.cur_page._getCaret_xy(p.x, p.y);
-				this._deal_leftmouse_move(pos);
-			} else if(this.__right_mouse_down__) {
-				this._chrome_rightmousemove_handler(e);
-			}
-			$.stopEvent(e);
-		},
-		_chrome_leftmouseup_handler : function(e) {
-			this.__left_mouse_down__ = false;
-			this.render.paint();
-
+			this._mousemove_handler(e, true);
 		},
 		_chrome_mouseup_handler : function(e) {
 
-			if(e.button === 0) {
-				this._chrome_leftmouseup_handler(e);
-			} else if(e.button === 2) {
-				this._chrome_rightmouseup_handler(e);
-			} else {
-				$.stopEvent(e);
-			}
+			this._mouseup_handler(e, true);
 
 			$.delEvent(document.body, 'mousemove', this.__cmv_handler);
 			$.delEvent(document.body, 'mouseup', this.__cmu_handler);
 
 		},
-		_chrome_leftmousedown_handler : function(e) {
-			var p = this._getEventPoint_chrome(e);
-
-			this._deal_leftmouse_down(p);
-
-		},
 		_chrome_mousedown_handler : function(e) {
-			//$.log(e)
-			if(e.button === 0) {
-				this._chrome_leftmousedown_handler(e);
-			} else if(e.button === 2) {
-				this._chrome_rightmousedown_handler(e);
-			} else {
-				$.stopEvent(e);
-			}
+
+			this._mousedown_handler(e, true);
 			$.addEvent(document.body, 'mousemove', this.__cmv_handler);
 			$.addEvent(document.body, 'mouseup', this.__cmu_handler);
 		},
@@ -171,7 +146,7 @@
 					break;
 				case 9:
 					for(var i = 0; i < 4; i++)
-					this.insert(' ');
+						this.insert(' ');
 					$.stopEvent(e);
 					break;
 				case 46:
@@ -213,23 +188,21 @@
 						$.stopEvent(e);
 					}
 					break;
+				/**
+				 * firefox 和 ie 下面当caret(即textarea)为空时，快捷键ctrl+c不能触发 oncopy事件，
+				 * 需要手动处理
+				 */
 				case 67:
-					if(e.ctrlKey /* && ($.ie || $.firefox) */) {
+					if(e.ctrlKey && ($.ie || $.firefox)) {
 
 						this.copy();
 						$.stopEvent(e);
 					}
 					break;
 				case 88:
-					if(e.ctrlKey /* && ($.ie || $.firefox) */) {
+					if(e.ctrlKey && ($.ie || $.firefox)) {
 
 						this.cut();
-						$.stopEvent(e);
-					}
-					break;
-				case 86:
-					if(e.ctrlKey) {
-						this.paste();
 						$.stopEvent(e);
 					}
 					break;
@@ -298,29 +271,77 @@
 			$.stopEvent(e);
 		},
 		_copy_handler : function(e) {
-			//this.copy(e);
+			if(this.cur_page.select_mode)
+				this.clipboard.setData(this.cur_page.copyElement());
 			$.stopEvent(e);
 		},
 		_cut_handler : function(e) {
-			//this.cut(e);
+			this.cut(e);
 			$.stopEvent(e);
 		},
 		_paste_handler : function(e) {
-			/**
-			 * paste函数只在firefox下，并且内置的伪clipboard上没有内容的时候才会返回false，
-			 * 只有在这种情况下才不取消默认事件。因为firefox没办法直接操作系统clipboard上的数据，
-			 * 当copy时只能把数据copy到伪clipboard上（见clipboard.js代码），paste的时候也
-			 * 从伪clipboard上获取。但是，firefox用户可以也有从系统的clipboard得到数据的需要，
-			 * 为了平衡，就会在伪clipboard数据为空的时候返回false来使this.caret能够得到系统
-			 * clipboard上的数据从而触发input事件插入数据。注意一但firefox用户执行过copy操作，则
-			 * paste操作将不会得到系统clipboard上的数据。
-			 */
-			//$.log("paste");
+			this.clipboard.getData(e, $.createDelegate(this, this._deal_paste));
+			if($.chrome || $.safari || $.ie)
+				$.stopEvent(e);
+		},
+		_paste_html : function(html) {
 
-			//if(this.paste(e)) {
-			//$.stopEvent(e);
-			//}
-			$.stopEvent(e);
+			var dom_p = document.createElement("div");
+			dom_p.innerHTML = html;
+			var text = dom_p.textContent;
+			//==null?dom_p.innerText:dom_p.textContent;
+			if($.chrome) {
+				/**
+				 * chrome 下面textContent会在前面和后面添加额外的换行，需要去除。 safari下面没有。
+				 */
+				text = text.substring(3, text.length - 3);
+			}
+			$.log(dom_p);
+			$.log("html - %s", html);
+			$.log("text - %s", text)
+			this.insert(text);
+
+			var images = dom_p.getElementsByTagName("img");
+			// $.log("images");
+			// $.log(images);
+			var left = this.caret_pos.left, top = this.caret_pos.top + this.line_height;
+			for(var i = 0; i < images.length; i++) {
+				var doo = Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], images[i].getAttribute("src"));
+				doo.move(left, top);
+				left += 5;
+				top += 5;
+				this.cur_page.doodle_list.unshift(doo);
+			}
+			// this.render.paint();
+		},
+		_deal_paste : function(data) {
+			if(data == null)
+				return;
+
+			if(data.type === "image") {
+				this.insertImage(data.value);
+			} else if(data.type === 'html') {
+				this._paste_html(data.value);
+			} else if(data.type === 'text' || data.type === 'url') {
+				this.insert(data.value);
+			} else if(data.type === 'item') {
+				var n_p;
+				for(var i = 0; i < data.value.length; i++) {
+					var ele = data.value[i];
+					//$.log(ele);
+					if(ele.type === Daisy._Element.Type.HANDWORD) {
+						ele.bihua = ele.value;
+						n_p = this.cur_page.insert(ele, this.caret_pos, ele.style);
+						delete ele.bihua;
+						this._setCaret(n_p);
+					} else {
+						n_p = this.cur_page.insert(ele.value, this.caret_pos, ele.style);
+						this._setCaret(n_p);
+					}
+				}
+				this.render.paint();
+			}
+
 		},
 		_caret_dblclick_handler : function(e) {
 			this.__mouse_down__ = false;
@@ -336,6 +357,32 @@
 			this.render.paint();
 			//e.preventDefault();
 		},
+		_drop_handler : function(e) {
+			$.stopEvent(e);
+			
+			var files = e.dataTransfer.files;
+			if(files == null)
+				return;
+			if(files.length <= 0)
+				return;
+			for(var i = 0; i < files.length; i++) {
+				var f = files[i], fr = new FileReader();
+				if(/text/.test(f.type)) {
+					fr.onload = $.createDelegate(this,function(e){
+						this.insert(e.target.result)
+					});
+					fr.readAsText(f);
+				} else if(/image/.test(f.type)) {
+					fr.onload = $.createDelegate(this,function(e){
+						this.insertImage(e.target.result);
+					});
+					fr.readAsDataURL(f);
+				}
+			}
+		},
+		_stop_handler : function(e) {
+			$.stopEvent(e);
+		},
 		initEvent : function() {
 			var me = this;
 			this.__left_mouse_down__ = false;
@@ -346,7 +393,7 @@
 			this.__ime_preval__ = "";
 
 			if( typeof this.canvas.setCapture === 'function') {
-				$.log('sc')
+
 				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
 				$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
 				$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
@@ -392,7 +439,12 @@
 
 			$.addEvent(this.canvas, 'contextmenu', function(e) {
 				$.stopEvent(e);
-			})
+			});
+
+			$.addEvent(this.canvas, "dragenter", $.createDelegate(this, this._stop_handler));
+			$.addEvent(this.canvas, "dragexit", $.createDelegate(this, this._stop_handler));
+			$.addEvent(this.canvas, "dragover", $.createDelegate(this, this._stop_handler));
+			$.addEvent(this.canvas, "drop", $.createDelegate(this, this._drop_handler));
 		}
 	});
 	/**MODULE END**/

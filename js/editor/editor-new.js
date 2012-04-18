@@ -9,10 +9,10 @@
 			parent.innerHTML = "SuperNote 编辑器只支持Firefox、Chrome和IE9及以上浏览器。<br/>请使用新版浏览器获得最佳体验。"
 			return null;
 		}
-		if($.HAS_DROID_FONT === null) {
-			$.HAS_DROID_FONT = $.hasFont("Droid Sans Fallback") | $.hasFont("Microsoft Yahei") | $.hasFont("微软雅黑");
+		if($.HAS_DROID_FONT === false) {
+			$.HAS_DROID_FONT = $.hasFont("Droid Sans Fallback") || $.hasFont("Microsoft Yahei") || $.hasFont("微软雅黑");
 		}
-		//$.HAS_DROID_FONT = true;
+		$.log("has droid font:" + $.HAS_DROID_FONT)
 
 		if((!$.HAS_DROID_FONT) && $.CHAR_WIDTH_TABLE === "") {
 			//$.log($.HAS_DROID_FONT)
@@ -95,6 +95,8 @@
 		//当前是否正在涂鸦
 		this.doodle_mode = false;
 		this.tmp_doodle = null;
+		this.select_doodle = null;
+		this.edit_doodle = new Daisy._EditDoodle();
 
 		this.cur_page = null;
 		this.pages = [];
@@ -190,7 +192,7 @@
 		},
 		_getEventPoint_chrome : function(e, not_scale) {
 			var off = $.getOffset(this.container);
-			var x = e.x - off.left, y = e.y - off.top;
+			var x = e.x - off.left, y = e.y - off.top + this.container.scrollTop + document.body.scrollTop;
 			if(y < 0)
 				y = 0;
 			return {
@@ -245,10 +247,21 @@
 			this.focused = true;
 			this.caret.focus();
 		},
+		insertImage : function(src) {
+			var doo = Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], src);
+			doo.move(this.caret_pos.left, this.caret_pos.top + this.line_height);
+			this.cur_page.doodle_list.unshift(doo);
+			this.render.paint();
+		},
 		insert : function(element, style) {
 			var n_p;
+			if( typeof element === 'string')
+				element = element.replace("\t", "    ").replace(/\r\n/g, "\n");
+
 			if(element.length) {
 				for(var i = 0; i < element.length; i++) {
+					//$.log(element[i]);
+					//$.log(element.charCodeAt(i));
 					n_p = this.cur_page.insert(element[i], this.caret_pos, style);
 					this._setCaret(n_p);
 				}
@@ -261,6 +274,9 @@
 		},
 		append : function(element) {
 			var n_p;
+			if( typeof element === 'string')
+				element = element.replace("\t", "    ").replace(/\r\n/g, "\n");
+
 			if(element.length) {
 				for(var i = 0; i < element.length; i++) {
 					this.cur_page.append(element[i]);
@@ -315,33 +331,6 @@
 			}
 
 			this._setCaret(new_cp);
-		},
-		copy : function() {
-			$.log("copy")
-			if(this.cur_page.select_mode)
-				this.clipboard.setData(this.cur_page.copyElement());
-		},
-		paste : function() {
-			$.log("paste");
-			var data = this.clipboard.getData();
-			if(data != null) {
-				var n_p;
-				for(var i = 0; i < data.length; i++) {
-					var ele = data[i];
-					//$.log(ele);
-					if(ele.type === Daisy._Element.Type.HANDWORD) {
-						ele.bihua = ele.value;
-						n_p = this.cur_page.insert(ele, this.caret_pos, ele.style);
-						delete ele.bihua;
-						this._setCaret(n_p);
-					} else {
-						n_p = this.cur_page.insert(ele.value, this.caret_pos, ele.style);
-						this._setCaret(n_p);
-					}
-				}
-				this.render.paint();
-			}
-
 		},
 		getThumb : function() {
 			return this.render.getThumb();

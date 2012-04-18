@@ -23,7 +23,7 @@
 			case T.IMAGE:
 				//$.log("image");
 				var img = new Image();
-				img.src = "data:image/gif;base64," + value;
+				img.src = value;
 				d = new Daisy._ImageDoodle(img, tag);
 				break;
 			case T.ERASER:
@@ -64,13 +64,14 @@
 		d.pen_width = pen_width;
 		d.color = color
 		d.eraser_list = eraser_list;
-		d.SELECT_RANGE = 10;
-		d.HUGE_RANGE = 999999;
 		d.parent = new Daisy._Doodle();
 		d.parent.eraser_list = eraser_list;
 		return d;
 	}
-
+	
+	Daisy._Doodle.HUGE_RANGE = 999999;
+	Daisy._Doodle.SELECT_RANGE = 20;
+	
 	Daisy._Doodle.Type = {
 		NORMAL : 0,
 		EMBOSS : 1,
@@ -87,12 +88,20 @@
 		SKETCH : 13
 	}
 
-	Daisy._ImageDoodle = function(image, matrix, eraser_list) {
+	Daisy._ImageDoodle = function(image, matrix) {
 		this.image = image;
+		this.width = 0;
+		this.height = 0;
+		var me = this;
 		this.image.onload = function() {
 			SNEditor.render.paint();
+			me.width = me.image.width;
+			me.height = me.image.height;
 		}
-		this.matrix = matrix;
+		if(matrix!=null)
+			this.matrix = matrix;
+		else
+			this.matrix = [1,0,0,0,1,0];
 	}
 	Daisy._ImageDoodle.prototype = {
 		draw : function(ctx) {
@@ -103,6 +112,10 @@
 
 			this.parent.drawEraser(ctx);
 
+		},
+		move : function(dx,dy){
+			this.matrix[2] += dx;
+			this.matrix[5] += dy;
 		}
 	}
 	Daisy._EraserDoodle = function(pen_width, points) {
@@ -112,13 +125,28 @@
 
 	Daisy._PointDoodle = function(points, pen_width) {
 		this.points = points;
+		this.center = {
+			x : 0,
+			y : 0
+		}
 		this._calc(pen_width);
 		this.data = null;
 		this.change = true;
 	}
 	Daisy._PointDoodle.prototype = {
 		getPointWeight : function(point){
-			
+			var r = Daisy._Doodle.HUGE_RANGE, tmp_r = 0;
+			for(var i=0;i<this.points.length-1;i++){
+				tmp_r = $.getPTLRange(point,this.points[i],this.points[i+1]);
+				if(tmp_r<r)
+					r = tmp_r;
+			}
+			$.log("r:"+r)
+			if(r<=Daisy._Doodle.SELECT_RANGE){
+				return Math.round(r*100);
+			}else{
+				return Daisy._Doodle.HUGE_RANGE;
+			}
 		},
 		getFocusRect : function(rect_points) {
 			rect_points[0].x = this.left;
@@ -129,6 +157,33 @@
 			rect_points[2].y = this.top + this.height;
 			rect_points[3].x = this.left;
 			rect_points[3].y = this.top + this.height;
+		},
+		move : function(dx,dy){
+			for(var i=0;i<this.points.length;i++){
+				this.points[i].x += dx;
+				this.points[i].y += dy;
+			}
+			this.left += dx;
+			this.top += dy;
+		},
+		_scale : function(s){
+		  
+			for(var i=0;i<this.points.length;i++){
+				this.points[i].x = Math.round((this.points[i].x - this.center.x)*s + this.center.x);
+				this.points[i].y = Math.round((this.points[i].y - this.center.y)*s + this.center.y);
+			}
+
+			this.pen_width *= s;
+            
+		},
+		_rotate : function(a){
+			//$.log(this.center)
+			for(var i=0;i<this.points.length;i++){
+				var c_x = this.points[i].x - this.center.x, c_y = this.points[i].y - this.center.y;
+				this.points[i].x = Math.round(c_x*Math.cos(a) - c_y*Math.sin(a) + this.center.x);
+				this.points[i].y = Math.round(c_x*Math.sin(a) + c_y*Math.cos(a) + this.center.y);
+			}
+			//this._calc(this.pen_width);
 		},
 		_calc : function(pen_width) {
 			if(this.points.length === 0) {
@@ -157,6 +212,15 @@
 			this.height = y2 - y1 + off * 2;
 			this.left = x1 - off;
 			this.top = y1 - off;
+			this.center.x = this.left + Math.round(this.width/2);
+			this.center.y = this.top + Math.round(this.height/2);
+			
+		},
+		setRotateScale : function(rotate,scale){
+			this._scale(scale);
+			this._rotate(rotate);
+			this.change = true;
+			this._calc(this.pen_width);
 		},
 		draw : function(ctx, width, height) {
 			if(this.points.length === 0) {
@@ -168,7 +232,7 @@
 				ctx.strokeStyle = this.color;
 				ctx.lineWidth = this.pen_width;
 				$.drawBesier(ctx, this.points);
-
+				//$.log(this.points);
 				if(this.type === Daisy._Doodle.Type.BLUR) {
 					//$.log('blur : %d,%d	',this.width,this.height);
 
@@ -214,7 +278,18 @@
 	}
 	Daisy._LightDoodle.prototype = {
 		getPointWeight : function(point){
-			
+			var r = Daisy._Doodle.HUGE_RANGE, tmp_r = 0;
+			for(var i=0;i<this.points.length-1;i++){
+				tmp_r = $.getPTLRange(point,this.points[i],this.points[i+1]);
+				if(tmp_r<r)
+					r = tmp_r;
+			}
+			$.log("r:"+r)
+			if(r<=Daisy._Doodle.SELECT_RANGE){
+				return Math.round(r*100);
+			}else{
+				return Daisy._Doodle.HUGE_RANGE;
+			}
 		},
 		getFocusRect : function(rect_points) {
 			rect_points[0].x = this.left;
@@ -273,7 +348,31 @@
 	}
 	Daisy._RectDoodle.prototype = {
 		getPointWeight : function(point){
+			var r = Daisy._Doodle.HUGE_RANGE,_m = 0;
+			for(var i=0;i<=1;i++){
+				for(j=2;j<=3;j++){
+					var tmp_r = $.getPTLRange(point,this.points[i],this.points[j]);
+					if(tmp_r < r){
+						r = tmp_r;
+						_m = j;
+					}
+				}
+			}
+			if(r<Daisy._Doodle.SELECT_RANGE)
+				return Math.round(100 * r);
 			
+			//$.log(this.points);
+			//$.log(point)
+			if(this.isPointIn(point)){
+				var radius = _m===2?Math.abs(this.points[1].y-this.points[0].y)/2:Math.abs(this.points[1].x-this.points[0].x)/2;
+				//$.log(radius)
+				return Math.round((radius-r)/radius*1000);
+			}else{
+				return Daisy._Doodle.HUGE_RANGE;
+			}
+		},
+		isPointIn : function(p){
+			return p.x > this.points[0].x && p.x < this.points[1].x && p.y > this.points[0].y && p.y < this.points[1].y;
 		},
 		getFocusRect : function(rect_points) {
 			this._calc(this.pen_width);
@@ -349,12 +448,12 @@
 	Daisy._CircleDoodle.prototype = {
 		getPointWeight : function(point){
 			var r = this.radius - $.getPTPRange(point,this.center);
-			if( Math.abs(r) < this.pen_width/2 + this.SELECT_RANGE){
-				return 1000 + Math.round(1000 * r);
+			if( Math.abs(r) <= this.SELECT_RANGE){
+				return Math.round(100 * Math.abs(r));
 			}else if(r>0)
 				return Math.round(r/this.radius*1000);
 			else
-				return 0;
+				return Daisy._Doodle.HUGE_RANGE;
 		},
 		getFocusRect : function(rect_points) {
 			this._calc(this.pen_width);
@@ -400,11 +499,15 @@
 	}
 	Daisy._LineDoodle.prototype = {
 		getPointWeight : function(point){
+			//$.log(point);
+			//$.log(this.start);
+			//$.log(this.end);
 			var r = $.getPTLRange(point,this.start,this.end);
-			if(r<=this.pen_width/2 + this.SELECT_RANGE){
-				return 1000 + Math.round(1000 * r);
+			//$.log("range:"+r)
+			if(r<= Daisy._Doodle.SELECT_RANGE){
+				return Math.round(100 * r);
 			}else
-				return 0;
+				return Daisy._Doodle.HUGE_RANGE;
 		},
 		getFocusRect : function(rect_points) {
 			this._calc(this.pen_width);

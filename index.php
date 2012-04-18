@@ -211,7 +211,7 @@
 						
 						<a id="ctrl-handword" href="javascript:ctrlSetCurMode();" title="手寫模式下您可以使用鼠標右鍵輸入手寫文字">手寫(已開)</a>
 						<a id="ctrl-doodle" href="javascript:ctrlSetCurMode();" title="塗鴉模式下您可以使用鼠標右鍵繪製塗鴉">塗鴉(已關)</a>
-						<span id="ctrl-doodle-option" style="display:none;" >
+						<span id="ctrl-doodle-option" style=";" >
 								<a href="javascript:;" title="選擇畫筆類型">畫筆：</a>
 								<select id="ctrl-doodle-type" onchange="ctrlSetDoodleType();">
 									<option>普通</option>
@@ -244,7 +244,7 @@
 							</div> -->
 						</span>
 						<a href="javascript:ctrlDoodleEdit();" title="進行塗鴉編輯模式，可以選擇、縮放、旋轉塗鴉" id="ctrl-doodle-edit">編輯塗鴉</a>
-						<a style="position: relative;">
+						<a style="position: relative;width:25px;" title="选择颜色">
 							<div  id="colorSelector"><div></div></div>
 						</a>
 						
