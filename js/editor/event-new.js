@@ -70,14 +70,15 @@
 			}
 
 		},
-		_deal_leftmouse_move : function(pos) { out_if:
+		_deal_leftmouse_move : function(pos) { 
+			outif:
 			if(pos.para !== this.__pre_pos__.para || pos.para_at !== this.__pre_pos__.para_at) {
 				this._setCaret(pos);
 				this.focus();
 				var from = this.__down_pos__, to = pos;
-				if(from.para === to.para && from.para_at === to.para_at && this.select_mode === true) {
+				if(from.para === to.para && from.para_at === to.para_at && this.cur_page.select_mode) {
 					this.cur_page.select(null);
-					break out_if;
+					break outif;
 				} else if(from.para > to.para || (from.para === to.para && from.para_at > to.para_at)) {
 					from = pos;
 					to = this.__down_pos__;
@@ -86,9 +87,9 @@
 				//$.log("select from %d,%d,line %d to %d,%d,line %d",from.para,from.para_at,from.line,to.para,to.para_at,to.line);
 				this.cur_page.select(from, to);
 
-				this.render.paint();
-				this.__pre_pos__ = pos;
 			}
+			this.render.paint();
+			this.__pre_pos__ = pos;
 
 		},
 		_mousemove_handler : function(e, is_chrome) {

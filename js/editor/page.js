@@ -50,7 +50,9 @@
 			return this.para_info.length - 1;
 		},
 		_getCaret_xy : function(x, y) {
-			//$.log(x+","+y);
+			y = y<0?0:y;
+			x = x<0?0:x;
+			//$.log("x:%d,y:%d",x,y)
 			var rd = this.editor.render, line_height = rd.line_height, row = Math.floor(y / line_height), p_i = this._getParaByRow(row), para = this.para_info[p_i], idx = para.index, left = 0, bottom = (row + 1) * line_height, p_at = -1;
 			var lp = this.para_info[this.para_info.length - 1], max_bot = (lp.line_start + lp.line_cross) * line_height;
 			if(bottom > max_bot) {

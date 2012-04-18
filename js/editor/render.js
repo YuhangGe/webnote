@@ -203,7 +203,7 @@
 			}
 	
 			this._paintDoodle();
-		
+		 
 			if(this.page.select_mode) {
 				this._paintSelect(this.page.select_range.from, this.page.select_range.to);
 			}
