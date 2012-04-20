@@ -340,6 +340,7 @@
 				case Daisy._Doodle.Type.CIRCLE:
 				case Daisy._Doodle.Type.IMAGE:
 				case Daisy._Doodle.Type.LIGHT:
+				case Daisy._Doodle.Type.NORMAL:
 					doo.draw(this.doodle_ctx);
 					break;
 				default:

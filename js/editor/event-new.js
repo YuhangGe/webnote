@@ -30,6 +30,7 @@
 			var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
 			if(Daisy.Global.cur_mode === 'doodle_edit') {
 				p.y += Math.round(this.padding_top / this.render.scale);
+				//$.log("d : %d,%d",p.x,p.y)
 				this._doodle_edit_down(p);
 			} else {
 				this._deal_leftmouse_down(p);
@@ -196,14 +197,14 @@
 				case 67:
 					if(e.ctrlKey && ($.ie || $.firefox)) {
 
-						this.copy();
+						this._copy_handler(null);
 						$.stopEvent(e);
 					}
 					break;
 				case 88:
 					if(e.ctrlKey && ($.ie || $.firefox)) {
 
-						this.cut();
+						this._cut_handler(null);
 						$.stopEvent(e);
 					}
 					break;
@@ -272,18 +273,20 @@
 			$.stopEvent(e);
 		},
 		_copy_handler : function(e) {
-			if(this.cur_page.select_mode)
-				this.clipboard.setData(this.cur_page.copyElement());
-			$.stopEvent(e);
+			if(Daisy.Global.cur_mode === 'handword' && this.cur_page.select_mode){
+				this.clipboard.setData("item",this.cur_page.copyElement(),e);
+			}else if(Daisy.Global.cur_mode === "doodle_edit"){
+				
+			}
+			if(e!=null)
+				$.stopEvent(e);
 		},
 		_cut_handler : function(e) {
-			this.cut(e);
-			$.stopEvent(e);
+			this._copy_handler(e);
+			
 		},
 		_paste_handler : function(e) {
 			this.clipboard.getData(e, $.createDelegate(this, this._deal_paste));
-			if($.chrome || $.safari || $.ie)
-				$.stopEvent(e);
 		},
 		_paste_html : function(html) {
 
@@ -297,9 +300,6 @@
 				 */
 				text = text.substring(3, text.length - 3);
 			}
-			$.log(dom_p);
-			$.log("html - %s", html);
-			$.log("text - %s", text)
 			this.insert(text);
 
 			var images = dom_p.getElementsByTagName("img");

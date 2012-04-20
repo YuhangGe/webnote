@@ -8,8 +8,8 @@ Daisy.Global = {
 	},
 	hand_weight : 1.5,
 	doodle_weight : 9,
-	cur_mode : 'handword',
-	doodle_type : Daisy._Doodle.Type.NORMAL,
+	cur_mode : 'doodle_edit',
+	doodle_type : Daisy._Doodle.Type.BLUR,
 	doodle_color : 'blue',
 	DWTable : [4,6,9,13,18]
 }

@@ -92,18 +92,47 @@
 		this.image = image;
 		this.width = 0;
 		this.height = 0;
-		var me = this;
-		this.image.onload = function() {
-			SNEditor.render.paint();
-			me.width = me.image.width;
-			me.height = me.image.height;
-		}
 		if(matrix!=null)
 			this.matrix = matrix;
 		else
 			this.matrix = [1,0,0,0,1,0];
+	
+		this._calc();
+		var me = this;
+		this.image.onload = function() {
+			SNEditor.render.paint();
+			me._calc();
+		}
+		
+		
 	}
 	Daisy._ImageDoodle.prototype = {
+		_calc : function(){
+			var w = this.image.width, h = this.image.height, x = new Array(4), y = new Array(4);
+			x[0] = this.matrix[2];
+			y[0] = this.matrix[5];
+			x[1] = this.matrix[0]*w + this.matrix[2];
+			y[1] = this.matrix[3]*w + this.matrix[5];
+			x[2] = this.matrix[1]*h + this.matrix[2];
+			y[2] = this.matrix[4]*h + this.matrix[5];
+			x[3] = this.matrix[0]*w + this.matrix[1]*h + this.matrix[2];
+			y[3] = this.matrix[3]*w + this.matrix[4]*h + this.matrix[5];
+			var l = x[0], t = y[0], r = x[0], b = y[0];
+			for(var i=1;i<4;i++){
+				if(l > x[i])
+					l = x[i];
+				if(r < x[i])
+					r = x[i];
+				if(t > y[i])
+					t = y[i];
+				if(b < y[i])
+					b = y[i];
+			}
+			this.left = l - 5;
+			this.top = t - 5;
+			this.width = r - l + 10;
+			this.height = b - t + 10;
+		},
 		draw : function(ctx) {
 			ctx.save();
 			ctx.setTransform(this.matrix[0], this.matrix[3], this.matrix[1], this.matrix[4], this.matrix[2], this.matrix[5]);
@@ -113,10 +142,36 @@
 			this.parent.drawEraser(ctx);
 
 		},
+		getFocusRect : function(rect_points) {
+			rect_points[0].x = this.left;
+			rect_points[0].y = this.top;
+			rect_points[1].x = this.left + this.width;
+			rect_points[1].y = this.top;
+			rect_points[2].x = this.left + this.width;
+			rect_points[2].y = this.top + this.height;
+			rect_points[3].x = this.left;
+			rect_points[3].y = this.top + this.height;
+		},
 		move : function(dx,dy){
 			this.matrix[2] += dx;
 			this.matrix[5] += dy;
-		}
+			this.left += dx;
+			this.top += dy;
+			this._calc()
+		},
+		_scale : function(s,p){
+			this.matrix[0] *= s;
+			this.matrix[4] *= s;
+		},
+		_rotate : function(a,p){
+			
+		},
+		setRotateScale : function(rotate,scale,center_point){
+			this._scale(scale,center_point);
+			this._rotate(rotate,center_point);
+			this._calc();
+		},
+		
 	}
 	Daisy._EraserDoodle = function(pen_width, points) {
 		this.points = points;
@@ -125,10 +180,6 @@
 
 	Daisy._PointDoodle = function(points, pen_width) {
 		this.points = points;
-		this.center = {
-			x : 0,
-			y : 0
-		}
 		this._calc(pen_width);
 		this.data = null;
 		this.change = true;
@@ -166,22 +217,22 @@
 			this.left += dx;
 			this.top += dy;
 		},
-		_scale : function(s){
+		_scale : function(s,p){
 		  
 			for(var i=0;i<this.points.length;i++){
-				this.points[i].x = Math.round((this.points[i].x - this.center.x)*s + this.center.x);
-				this.points[i].y = Math.round((this.points[i].y - this.center.y)*s + this.center.y);
+				this.points[i].x = Math.round((this.points[i].x - p.x)*s + p.x);
+				this.points[i].y = Math.round((this.points[i].y - p.y)*s + p.y);
 			}
 
 			this.pen_width *= s;
             
 		},
-		_rotate : function(a){
+		_rotate : function(a,p){
 			//$.log(this.center)
 			for(var i=0;i<this.points.length;i++){
-				var c_x = this.points[i].x - this.center.x, c_y = this.points[i].y - this.center.y;
-				this.points[i].x = Math.round(c_x*Math.cos(a) - c_y*Math.sin(a) + this.center.x);
-				this.points[i].y = Math.round(c_x*Math.sin(a) + c_y*Math.cos(a) + this.center.y);
+				var c_x = this.points[i].x - p.x, c_y = this.points[i].y - p.y;
+				this.points[i].x = Math.round(c_x*Math.cos(a) - c_y*Math.sin(a) + p.x);
+				this.points[i].y = Math.round(c_x*Math.sin(a) + c_y*Math.cos(a) + p.y);
 			}
 			//this._calc(this.pen_width);
 		},
@@ -212,13 +263,14 @@
 			this.height = y2 - y1 + off * 2;
 			this.left = x1 - off;
 			this.top = y1 - off;
-			this.center.x = this.left + Math.round(this.width/2);
-			this.center.y = this.top + Math.round(this.height/2);
 			
 		},
-		setRotateScale : function(rotate,scale){
-			this._scale(scale);
-			this._rotate(rotate);
+		setRotateScale : function(rotate,scale,center_point){
+			this._scale(scale,center_point);
+			/**
+			 * 目前rotate有bug，先不实现 
+			 */
+			//this._rotate(rotate,center_point);
 			this.change = true;
 			this._calc(this.pen_width);
 		},
@@ -252,7 +304,6 @@
 					ctx.strokeStyle = 'white';
 					ctx.lineWidth = this.pen_width / 2;
 					$.drawBesier(ctx, this.points);
-					var t_f = new Date().getTime();
 					//$.log("neon time:%d", new Date().getTime() - t_f);
 				}
 				this.parent.drawEraser(ctx);

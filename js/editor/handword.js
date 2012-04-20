@@ -69,8 +69,8 @@
 			p.y += Math.round(this.padding_top / this.render.scale);
 			this.__right_mouse_down__ = true;
 			this.doodle_mode = true;
-			this.tmp_doodle = Daisy._Doodle.create(Daisy.Global.doodle_type, Daisy.Global.doodle_weight, Daisy.Global.doodle_color, [], [p], true);
-
+			this.tmp_doodle = Daisy._Doodle.create(Daisy.Global.doodle_type, Daisy.Global.doodle_weight, Daisy.Global.doodle_color, [], [p]);
+			this.tmp_doodle.editStart();
 		},
 		_rightmousedown_handler : function(e, is_chrome) {
 			if(this.read_only)
@@ -99,7 +99,7 @@
 		_doodle_rightmouse_up : function() {
 			
 			this.doodle_mode = false;
-			this.tmp_doodle.tmp_mode = false;
+			this.tmp_doodle.editFinish();
 			if(this.tmp_doodle.points.length > 1) {
 				this.cur_page.doodle_list.unshift(this.tmp_doodle);
 				this.render.paint();
@@ -129,7 +129,7 @@
 		_doodle_rightmouse_move : function(e, is_chrome) {
 			var p = is_chrome ? this._getEventPoint_chrome(e, false) : this._getEventPoint(e, false);
 			p.y += Math.round(this.padding_top / this.render.scale);
-			this.tmp_doodle._pushPoint(p);
+			this.tmp_doodle.editPushPoint(p);
 			this.render.paint();
 		},
 		_rightmousemove_handler : function(e,is_chrome) {

@@ -21,7 +21,7 @@
 		<script type ="text/javascript" src="js/editor/element.js"></script>
 		<script type="text/javascript" src="js/editor/event-new.js"></script>
 		<script type="text/javascript" src="js/editor/handword.js"></script>
-		<script type="text/javascript" src="js/editor/doodle.js"></script>
+		<script type="text/javascript" src="js/editor/doodle_new.js"></script>
 		<script type="text/javascript" src="js/editor/doodle_edit.js"></script>
 		<script type="text/javascript" src="js/editor/clipboard.js"></script>
 		<script type="text/javascript" src="js/editor/load_new.js"></script>

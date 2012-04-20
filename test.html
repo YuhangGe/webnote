@@ -11,145 +11,163 @@
 				if( typeof console !== 'undefined')
 					console.log(msg);
 			}
-			$(function() {
-				$("#text").bind('paste', function(e) {
-					$.log(e);
-					e = e.originalEvent;
+			$.inherit = function(inheritClass, baseClass) {
+				//首先把父类的prototype中的函数继承到子类中
+				for(var pFunc in baseClass.prototype) {
+					var sp = inheritClass.prototype[pFunc];
+					//如果子类中没有这个函数，添加
+					if( typeof sp === 'undefined') {
+						inheritClass.prototype[pFunc] = baseClass.prototype[pFunc];
+					}
+					//如果子类已经有这个函数，则忽略。以后可使用下面的callBase函数调用父类的方法
 
-					if(e.clipboardData) {
-						log('event.clipboardData');
-						if(e.clipboardData.types) {
-							log('event.clipboardData.types');
+				}
+				//保存继承树，当有多级继承时要借住继承树对父类进行访问
+				inheritClass.__base_objects__ = new Array();
+				inheritClass.__base_objects__.push(baseClass);
 
-							// Look for a types property that is undefined
-							// This is currently the case for Firefox
-							if(!(e.clipboardData.types instanceof Array)) {
-								log('event.clipboardData.types is undefined');
-							}
+				if( typeof baseClass.__base_objects__ !== 'undefined') {
+					for(var i = 0; i < baseClass.__base_objects__.length; i++)
+						inheritClass.__base_objects__.push(baseClass.__base_objects__[i]);
+				}
 
-							var d_type = e.clipboardData.types[0];
+				/**
+				 * 执行父类构造函数，相当于java中的this.super()
+				 * 不使用super是因为super是ECMAScript保留关键字.
+				 * @param {arguments} args 参数，可以不提供
+				 */
+				inheritClass.prototype.base = function(args) {
 
-							if(d_type === "text/html") {
-									var val = e.clipboardData.getData("text/html");
-									log('text/html - ' + val);
-							}else if(/image/.test(d_type)) {
-								var file = e.clipboardData.items[0].getAsFile();
-								var reader = new FileReader();
+					var baseClass = null, rtn = undefined;
+					if( typeof this.__inherit_deep__ === 'undefined') {
+						this.__inherit_deep__ = 0;
+					} else {
+						this.__inherit_deep__++;
+						//$.dprint("d+:"+this.__inherit_deep__);
+					}
 
-								reader.onload = function(e) {
-									//$.log(file.name);
-									$.log(e.target.result);
-									logImage(e.target.result);
+					baseClass = inheritClass.__base_objects__[this.__inherit_deep__];
 
-								};
-								reader.readAsDataURL(file);
-							}else {
-								var val = e.clipboardData.getData("text/plain");
-									log( 'text/plain - ' + val);
-							} 
+					if( typeof args === "undefined" || args == null) {
+						rtn = baseClass.call(this);
+					} else if( args instanceof Array === true) {
+						rtn = baseClass.apply(this, args);
+					} else {
+						var _args = new Array();
+						for(var i = 0; i < arguments.length; i++)
+							_args.push(arguments[i]);
+						rtn = baseClass.apply(this, _args);
+					}
 
+					this.__inherit_deep__--;
+
+					//$.dprint("d-:"+this.__inherit_deep__);
+					return rtn;
+				}
+				/**
+				 * 给继承的子类添加调用父函数的方法
+				 * @param {arguments} args 参数，可以不提供
+				 */
+				inheritClass.prototype.callBase = function(args) {
+					//firefox bug fix
+					arguments;
 					
+					var baseClass = null, rtn = undefined;
+
+					if( typeof this.__inherit_deep__ === 'undefined') {
+						this.__inherit_deep__ = 0;
+
+					} else {
+						this.__inherit_deep__++;
+						//$.dprint("d+:"+this.__inherit_deep__);
+					}
+
+					//$.dprint(this.__inherit_deep__);
+					baseClass = inheritClass.__base_objects__[this.__inherit_deep__];
+					$.log(inheritClass.prototype.callBase.caller)
+					var med = baseClass.prototype[inheritClass.prototype.callBase.caller.name];
+					if( typeof med === 'function') {
+						if( typeof args === "undefined" || args === null) {
+							rtn = med.call(this);
+						} else if( args instanceof Array === true) {
+							rtn = med.apply(this, args);
 						} else {
-							// Look for access to data if types array is missing
-							// This is currently the case for Chrome
-							var text = e.clipboardData.getData('text/plain');
-							var url = e.clipboardData.getData('text/uri-list');
-							var html = e.clipboardData.getData('text/html');
-							log('text/plain - ' + text);
-							if(url !== undefined) {
-								log('text/uri-list - ' + url);
-							}
-							if(html !== undefined) {
-								log('text/html - ' + html);
-							}
+							rtn = med.apply(this, arguments);
 						}
+					} else {
+						throw "There is no method:" + method + " in baseClass";
 					}
 
-					// IE event is attached to the window object
-					if(window.clipboardData) {
-						log('window.clipboardData');
-						// The schema is fixed
-						var text = window.clipboardData.getData('text');
-						
-						log('Text - ' + text);
-						if(url !== null) {
-							log('URL - ' + url);
-						}
-						if(html !== null) {
-							log("Html - " + html)
-						}
-					}
-					
-					// Needs a few msec to excute paste
-					window.setTimeout(function(){
-						$.log(e)
-						log("ftxt - "+ e.target.textContent);
-					}, 50);
+					this.__inherit_deep__--;
 
-				});
-
-				$('#btn').click(function(e) {
-					clearLog();
-				});
-			});
-
-			function logContents() {
-
+					//$.dprint("d-:"+this.__inherit_deep__);
+					//$.dprint("----");
+					return rtn;
+				}
 			}
-
-			function logImage(dataURL) {
-				$("<img>").attr("src", dataURL).appendTo("#output");
+			
+			var A = function(name){
+				this.name = name;
 			}
-
-			// Add log item by creating and appending an li
-			function log(str) {
-				$("#output").append("<p>" + str + "</p>");
+			A.prototype = {
+				say : function(msg){
+					alert(name + " says: " + msg);
+				}
 			}
-
-			// Clears the log by removing all the li tags
-			function clearLog() {
-				$("#output").html("");
+			
+			var B = function(name,age){
+				this.base(name);
+				this.age = age;
 			}
-
+			B.prototype = {
+				say : function(msg){
+					this.callBase(msg);
+					alert("my age: "+this.age);
+				}
+			}
+			$.inherit(B,A);
+			
+			var C = function(){
+				this.base("daisy",22);
+			}
+			C.prototype = {
+				say : function(){
+					this.callBase("I Love Daisy.");
+				}
+			}
+			$.inherit(C,B);
+			
+			function T1(){
+				this.t = 123;
+			}
+			T1.prototype = {
+				f : function(){
+					arguments;
+					$.log(this.t)
+					$.log(arguments.callee.caller);
+					$.log(T1.prototype.f.caller.caller)
+				}
+			}
+			
+			function T2(){
+				
+			}
+			T2.prototype = {
+				f2 : function(){
+					new T1().f(1,2,3);
+				}
+			}
 			function do_test() {
-				var ns = document.createElementNS("http://www.w3.org/2000/svg", "svg")
-
-				ns.setAttribute("width", 100)
-				ns.setAttribute("height", 100)
-
-				var c = document.createElementNS("http://www.w3.org/2000/svg", "circle")
-				c.setAttribute("cx", 50)
-				c.setAttribute("cy", 50)
-				c.setAttribute("r", 40)
-				c.setAttribute("stroke", "blue")
-				c.setAttribute("fill", "red")
-
-				$("#svg-test").append($(ns).append($(c)))
+				new T2().f2(1,2,3)
+				//new C().say();
 			}
 		</script>
 	</head>
 	<body>
-		<div id="svg-test">
-			good
-			"
-			<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='85' height='30'>
-				<path d='M14 5 Q14 5 13.5 5 Q13 5 13 5 Q13 5 12.5 5 Q12 5 11.5 5.5 Q11 6 10 8 Q9 10 8.5 11 Q8 12 8 12.5 Q8 13 8 14.5 Q8 16 8 16 Q8 16 8.5 16 Q9 16 9.5 16 Q10 16 11 16 Q12 16 13 16 Q14 16 14 15.5 Q14 15 14.5 15 Q15 15 15.5 14 Q16 13 16 13 Q16 13 16.5 12.5 Q17 12 17 12 Q17 12 17 11.5 Q17 11 17 10.5 Q17 10 17 10 Q17 10 17 10 Q17 10 17 10 Q17 10 17 11 Q17 12 17 13 Q17 14 17.5 15.5 Q18 17 18.5 20.5 Q19 24 19 25 Q19 26 19 26 Q19 26 18.5 26.5 Q18 27 18 27 Q18 27 17.5 27.5 Q17 28 15.5 28.5 Q14 29 13.5 29.5 Q13 30 12 30 Q11 30 10.5 29.5 Q10 29 8.5 28.5 Q7 28 6 27 Q5 26 4.5 25.5 Q4 25 4 24.5 Q4 24 4 24 Q4 24 4 24 Q4 24 4 23.5 Q4 23 4.5 22.5 Q5 22 6.5 21.5 Q8 21 8.5 21 Q9 21 10 21 Q11 21 11 21 Q11 21 11 21 M26 11 Q26 11 26 11.5 Q26 12 26 12 Q26 12 26 12.5 Q26 13 26 13.5 Q26 14 26 14 Q26 14 26 14.5 Q26 15 26.5 15 Q27 15 27.5 15 Q28 15 29.5 15 Q31 15 31.5 15 Q32 15 33.5 15 Q35 15 35.5 15 Q36 15 36 15 Q36 15 36.5 15 Q37 15 37 15 Q37 15 37 15 Q37 15 37 14.5 Q37 14 36.5 13.5 Q36 13 35 11.5 Q34 10 34 9.5 Q34 9 34 9 Q34 9 34 9 Q34 9 34 9 Q34 9 33.5 9 Q33 9 33 9 Q33 9 33 9 Q33 9 32 9.5 Q31 10 29.5 11 Q28 12 27.5 12 Q27 12 27 12 Q27 12 27 12 M51 12 Q51 12 51 12 Q51 12 51 12 Q51 12 51 12 Q51 12 50.5 12 Q50 12 49 12 Q48 12 46.5 14 Q45 16 44.5 16.5 Q44 17 44 17.5 Q44 18 44 18.5 Q44 19 44 19 Q44 19 44 19 Q44 19 44.5 19.5 Q45 20 45 20 Q45 20 45 20 Q45 20 46.5 20 Q48 20 49 20 Q50 20 50.5 20 Q51 20 51.5 19.5 Q52 19 52 19 Q52 19 52.5 18.5 Q53 18 53 18 Q53 18 53 18 Q53 18 53 17.5 Q53 17 53 16 Q53 15 53 15 Q53 15 53 15 Q53 15 53 15 Q53 15 53 15 Q53 15 53 14.5 Q53 14 52.5 14 Q52 14 52 14 M71 15 Q71 15 71 15 Q71 15 70.5 15 Q70 15 70 15 Q70 15 68.5 15.5 Q67 16 66.5 16 Q66 16 65.5 16.5 Q65 17 64.5 17 Q64 17 63 18 Q62 19 62 19.5 Q62 20 62 20.5 Q62 21 62 21 Q62 21 62 21.5 Q62 22 62 22.5 Q62 23 62 23 Q62 23 62 23 Q62 23 62 23 Q62 23 62.5 23 Q63 23 63.5 23 Q64 23 65 22.5 Q66 22 67 21 Q68 20 68 19.5 Q68 19 68.5 18.5 Q69 18 69.5 17.5 Q70 17 70.5 15.5 Q71 14 71 13.5 Q71 13 71.5 12 Q72 11 72 10 Q72 9 72 8 Q72 7 72 6.5 Q72 6 72 4 Q72 2 72 1.5 Q72 1 72 0.5 Q72 0 72 0 Q72 0 72 0 Q72 0 72 0 Q72 0 72 0 Q72 0 72 0.5 Q72 1 71.5 2.5 Q71 4 71 5 Q71 6 70.5 8.5 Q70 11 69.5 13 Q69 15 69 16.5 Q69 18 69 18.5 Q69 19 69 19.5 Q69 20 69 20.5 Q69 21 69 21.5 Q69 22 69.5 22.5 Q70 23 70 23 Q70 23 70 23 Q70 23 70 23 Q70 23 71 23 Q72 23 72 23 Q72 23 72.5 23 Q73 23 73.5 23 Q74 23 74.5 23 Q75 23 75 22.5 Q75 22 75 22 Q75 22 75.5 22 Q76 22 76 22 Q76 22 76 22 Q76 22 76 22 Q76 22 76 21.5 Q76 21 76 21 ' fill='none' stroke='black' stroke-width='1.5' />
-			</svg>"
-			hello
-		</div>
+		
 		<div>
 			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
 		</div>
-		<div>
-			<div id="text" style="width: 200px;height:300px;border:1px solid blue;" contenteditable="true"></div>
-			<!--
-			<textarea cols="40" rows="10" id="text"></textarea>
-			-->
-			<input type="button" value="Clear" id="btn"  />
-		</div>
-		<p>
-			Log Console:
-		</p>
-		<div id="output" style="min-height: 100px;max-width:500px;border:1px dashed blue;"></div>
+		
 	</body>
 </html>

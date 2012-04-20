@@ -8,8 +8,8 @@
 		this.inner_data = null;
 		this.saved_event = null;
 		this.saved_callback = null;
-		
-		this._image_delegate = $.createDelegate(this,this._imageLoad);
+
+		this._image_delegate = $.createDelegate(this, this._imageLoad);
 		this._text_delegate = $.createDelegate(this, this._textLoad);
 	};
 	var C = Daisy.Clipboard;
@@ -33,13 +33,13 @@
 						value : e.clipboardData.getData("text/html")
 					}
 					this._checkData();
-				}else if(d_type === "text/uri-list"){
+				} else if(d_type === "text/uri-list") {
 					this.data = {
 						type : 'url',
 						value : e.clipboardData.getData("text/uri-list")
 					}
 					this._checkData();
-				}else if(/image/.test(d_type)) {
+				} else if(/image/.test(d_type)) {
 					var reader = new FileReader();
 
 					reader.onload = this._image_delegate;
@@ -66,10 +66,22 @@
 				/*
 				 * firefox
 				 */
-				window.setTimeout( this._text_delegate , 5);
-
+				if(this.inner_text!=null && this.inner_text !== ""){
+					this.data = {
+						type : 'item',
+						value : this.inner_data
+					};
+					this._checkData();
+				}else{
+					window.setTimeout(this._text_delegate, 5);
+					//直接返回，不要stopEvent，使得文本可以复制到caret中。
+					return;
+				}
 			}
-
+			/*
+			 * stopEvent阻止文本复制到caret中。
+			 */
+			$.stopEvent(e);
 		},
 		_textLoad : function() {
 			this.data = {
@@ -88,9 +100,7 @@
 		},
 		_checkData : function() {
 			if(this.data.type === "text") {
-				if(this.data.value === "") {
-					this.data = null;
-				} else if(this.data.value === this.inner_text) {
+				if(this.data.value!=="" && this.data.value === this.inner_text) {
 					this.data.type = "item";
 					this.data.value = this.inner_data;
 				}
@@ -99,8 +109,31 @@
 			this.saved_callback(this.data);
 
 		},
+		_item2Text : function(items) {
+			var txt = "";
+			for(var i = 0; i < items.length; i++) {
+				var it = items[i];
+				if(it.type === Daisy._Element.Type.HANDWORD) {
+					txt += "\uFFFC";
+				} else {
+					txt += it.toString();
+				}
+			}
+			return txt;
+		},
 		setData : function(type, value, e) {
-			this.data = data;
+			if(type === 'item') {
+				this.inner_data = value;
+				this.inner_text = this._item2Text(value);
+				if(e && e.clipboardData) {
+					e.clipboardData.setData("text/plain", this.inner_text);
+				} else if(window.clipboardData) {
+					window.clipboardData.setData("text", this.inner_text);
+				}
+			} else if(type === 'image') {
+
+			}
+
 		}
 	}
 

@@ -77,6 +77,108 @@ Daisy.$ = function(id) {
 				ele.attachEvent('onmousewheel', handler);
 			}
 		},
+		/**
+		 * js 面向对象。
+		 *
+		 */
+		inherit : function(inheritClass, baseClass) {
+			//首先把父类的prototype中的函数继承到子类中
+			for(var pFunc in baseClass.prototype) {
+				var sp = inheritClass.prototype[pFunc];
+				//如果子类中没有这个函数，添加
+				if( typeof sp === 'undefined') {
+					inheritClass.prototype[pFunc] = baseClass.prototype[pFunc];
+				}
+				//如果子类已经有这个函数，则忽略。以后可使用下面的callBase函数调用父类的方法
+
+			}
+			//保存继承树，当有多级继承时要借住继承树对父类进行访问
+			inheritClass.__base_objects__ = new Array();
+			inheritClass.__base_objects__.push(baseClass);
+
+			if( typeof baseClass.__base_objects__ !== 'undefined') {
+				for(var i = 0; i < baseClass.__base_objects__.length; i++)
+					inheritClass.__base_objects__.push(baseClass.__base_objects__[i]);
+			}
+
+			/**
+			 * 执行父类构造函数，相当于java中的this.super()
+			 * 不使用super是因为super是ECMAScript保留关键字.
+			 * @param {arguments} args 参数，可以不提供
+			 */
+			inheritClass.prototype.base = function(args) {
+
+				var baseClass = null, rtn = undefined;
+				if( typeof this.__inherit_deep__ === 'undefined') {
+					this.__inherit_deep__ = 0;
+				} else {
+					this.__inherit_deep__++;
+					//$.dprint("d+:"+this.__inherit_deep__);
+				}
+
+				baseClass = inheritClass.__base_objects__[this.__inherit_deep__];
+
+				if( typeof args === "undefined" || args == null) {
+					rtn = baseClass.call(this);
+				} else if( args instanceof Array === true) {
+					rtn = baseClass.apply(this, args);
+				} else {
+					var _args = new Array();
+					for(var i = 0; i < arguments.length; i++)
+						_args.push(arguments[i]);
+					rtn = baseClass.apply(this, _args);
+				}
+
+				this.__inherit_deep__--;
+
+				//$.dprint("d-:"+this.__inherit_deep__);
+				return rtn;
+			}
+			/**
+			 * 给继承的子类添加调用父函数的方法
+			 * @param {string} method 父类的函数的名称
+			 * @param {arguments} args 参数，可以不提供
+			 */
+			inheritClass.prototype.callBase = function(method, args) {
+
+				var baseClass = null, rtn = undefined;
+
+				if( typeof this.__inherit_deep__ === 'undefined') {
+					this.__inherit_deep__ = 0;
+
+				} else {
+					this.__inherit_deep__++;
+					//$.dprint("d+:"+this.__inherit_deep__);
+				}
+
+				//$.dprint(this.__inherit_deep__);
+				baseClass = inheritClass.__base_objects__[this.__inherit_deep__];
+
+				var med = baseClass.prototype[method];
+				if( typeof med === 'function') {
+					if( typeof args === "undefined" || args === null) {
+						rtn = med.call(this);
+					} else if( args instanceof Array === true) {
+						rtn = med.apply(this, args);
+					} else {
+						var _args = new Array();
+						//从位置1开始，因为第0位参数是method的名称
+						for(var i = 1; i < arguments.length; i++) {
+							_args.push(arguments[i]);
+						}
+						rtn = med.apply(this, _args);
+					}
+				} else {
+					throw "There is no method:" + method + " in baseClass";
+				}
+
+				this.__inherit_deep__--;
+
+				//$.dprint("d-:"+this.__inherit_deep__);
+				//$.dprint("----");
+				return rtn;
+			}
+		},
 		getFontHeight : function(font) {
 			var ele = document.createElement("span"), h = 0;
 			ele.style.font = font;
@@ -96,27 +198,27 @@ Daisy.$ = function(id) {
 				y : (p1.y + p2.y) / 2
 			}
 		},
-		besierToSVG : function(points){
+		besierToSVG : function(points) {
 			var len = points.length, p_str = [];
-		
+
 			if(len < 2)
 				return "";
-			
+
 			var s = points[0], e = points[len - 1];
 
 			var ctrl = null, dest = null;
 			ctrl = points[0];
-			p_str.push("M",ctrl.x," ",ctrl.y," ");
+			p_str.push("M", ctrl.x, " ", ctrl.y, " ");
 			for(var i = 0; i < len - 1; i++) {
 				dest = $.getMiddlePoint(points[i], points[i + 1]);
 				//ctx.quadraticCurveTo(ctrl.x, ctrl.y, dest.x, dest.y);
-				p_str.push("Q",ctrl.x," ",ctrl.y," ",dest.x," ",dest.y," ");
+				p_str.push("Q", ctrl.x, " ", ctrl.y, " ", dest.x, " ", dest.y, " ");
 				ctrl = points[i + 1];
 			}
 			dest = points[len - 1];
 			//ctx.quadraticCurveTo(ctrl.x, ctrl.y, dest.x, dest.y);
-			p_str.push("Q",ctrl.x," ",ctrl.y," ",dest.x," ",dest.y," ");
-	
+			p_str.push("Q", ctrl.x, " ", ctrl.y, " ", dest.x, " ", dest.y, " ");
+
 			return p_str.join("");
 		},
 		drawBesier : function(ctx, points) {
@@ -193,7 +295,7 @@ Daisy.$ = function(id) {
 		 * 35px Droid Sans Fallback
 		 */
 		CHAR_WIDTH_TABLE : "",
-		
+
 		loadCharWidthTable : function() {
 			jQuery.ajax({
 				async : false,
@@ -247,11 +349,10 @@ Daisy.$ = function(id) {
 		 * line_start,line_end : {x:0,y:0}
 		 */
 		getPTLRange : function(point, line_start, line_end) {
-			var vx1 = line_end.x - line_start.x,vy1 = line_end.y - line_start.y, r1 = $.getPTPRange(line_start,line_end),
-				vx2 = point.x - line_start.x, vy2 = point.y - line_start.y, r2 = $.getPTPRange(line_start,point);
-			var cosa = (vx1*vx2+vy1*vy2)/(r1*r2), angle = Math.acos(cosa);
+			var vx1 = line_end.x - line_start.x, vy1 = line_end.y - line_start.y, r1 = $.getPTPRange(line_start, line_end), vx2 = point.x - line_start.x, vy2 = point.y - line_start.y, r2 = $.getPTPRange(line_start, point);
+			var cosa = (vx1 * vx2 + vy1 * vy2) / (r1 * r2), angle = Math.acos(cosa);
 			//$.log("cosa:"+cosa+", angle:"+angle)
-			if(angle>Math.PI/2 || r2*cosa>r1)
+			if(angle > Math.PI / 2 || r2 * cosa > r1)
 				return Daisy._Doodle.HUGE_RANGE;
 			else {
 				return r2 * Math.sin(angle);
@@ -263,11 +364,36 @@ Daisy.$ = function(id) {
 		/**
 		 * 计算两点距离(Point To Point)
 		 */
-		getPTPRange : function(point1,point2){
-			
+		getPTPRange : function(point1, point2) {
+
 			return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
+		},
+		/**
+		 * 得到包围点阵的最小矩形
+		 * @param {Object} points 点阵
+		 * @param {Number} offset 包围点阵的矩形的偏移量
+		 * @return {Object} rect {left:,top:,width:,height:}
+		 */
+		getPointsBound : function(points, offset) {
+			//$.log(points)
+			var p = points[0], x1 = p.x, y1 = p.y, x2 = p.x, y2 = p.y;
+			for(var j = 0; j < points.length; j++) {
+				p = points[j];
+				if(p.x < x1)
+					x1 = p.x;
+				if(p.x > x2)
+					x2 = p.x;
+				if(p.y < y1)
+					y1 = p.y;
+				if(p.y > y2)
+					y2 = p.y;
+			}
+			return {
+				width : x2 - x1 + offset * 2,
+				height : y2 - y1 + offset * 2,
+				left : x1 - offset,
+				top : y1 - offset
+			}
 		}
-		
-		
 	});
 })(Daisy.$);
