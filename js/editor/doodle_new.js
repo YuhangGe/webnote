@@ -199,13 +199,25 @@
 			this.matrix[5] = this.pre_matrix[5]+ dy;
 		},
 		editRotateScale : function(relay_point, rotate, scale){
-			var m = this.matrix, pm = this.pre_matrix, sin = Math.sin(rotate), cos = Math.cos(rotate);
-			m[0] = cos*pm[0]-sin*pm[3];
-			m[1] = cos*pm[1] - sin*pm[4];
-			m[2] = cos*pm[2] - sin*pm[5];
-			m[3] = sin*pm[0] + cos*pm[3];
-			m[4] = sin*pm[1] + cos*pm[4];
-			m[5] = sin*pm[2] + cos*pm[5];
+			/**
+			 * 对矩阵进行缩放。由于操作的时候是相对图形中心点（relay_point）进行的旋转，而this.matrix保存的是相对于原点 的旋转，
+			 * 所以实际的操作是先将中点移回原点，然后旋转，缩放，然后再将中点移回来。
+			 * 
+			 * 					[1 0 x]		[cos(rotate) -sin(rotate) x]		[scale 0 0]		[1 0 -x]
+			 * this.matrix =	[0 1 y]	* 	[sin(rotate)  cos(rotate) y]	*	[scale 0 0]	* 	[0 1 -y]	*	this.pre_matrix
+			 * 					[0 0 1]		[0            0           1]		[0     0 1]		[0 0  1]
+			 * 其中x，y是图形中心点（relay_point）的坐标
+			 * 注意矩阵相乘的顺序和图形变换操作的次序是相反的，最右边的矩阵代表最先进行的变形。
+			 * 注意下面的代码是上面矩阵展开精简后的结果。
+			 * 
+			 */
+			var m = this.matrix, pm = this.pre_matrix, s = Math.sin(rotate) * scale, c = Math.cos(rotate) * scale, x = relay_point.x, y = relay_point.y;
+			m[0] = c*pm[0] - s*pm[3];
+			m[1] = c*pm[1] - s*pm[4];
+			m[2] = c*pm[2] - s*pm[5] - c*x + s*y + x;
+			m[3] = s*pm[0] + c*pm[3];
+			m[4] = s*pm[1] + c*pm[4];
+			m[5] = s*pm[2] + c*pm[5] - s*x - c*y + y;
 			
 		},
 		editPushPoint : function() {
