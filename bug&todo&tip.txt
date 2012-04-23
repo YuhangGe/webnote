@@ -3,4 +3,4 @@ bug:
 
 bug:
 
-doodle大小变化时会变形。当压缩到比较小再放大时。
+doodle旋转时有诡异bug

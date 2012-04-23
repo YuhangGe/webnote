@@ -63,8 +63,8 @@
 		this.doodle_canvas = document.createElement("canvas");
 		this.doodle_ctx = this.doodle_canvas.getContext('2d');
 
-		this.filter_canvas = document.createElement('canvas');
-		this.filter_ctx = this.filter_canvas.getContext('2d');
+		this.mask_canvas = document.createElement('canvas');
+		this.mask_ctx = this.mask_canvas.getContext('2d');
 
 		this.thumb_canvas = document.createElement('canvas');
 		this.thumb_ctx = this.thumb_canvas.getContext('2d');
@@ -74,8 +74,8 @@
 
 		this.doodle_canvas.width = this.width;
 		this.doodle_canvas.height = this.height;
-		this.filter_canvas.width = this.width;
-		this.filter_canvas.height = this.height;
+		this.mask_canvas.width = this.width;
+		this.mask_canvas.height = this.height;
 		this.thumb_scale = 1 / 5;
 		this.thumb_width = this.width * this.thumb_scale;
 		this.thumb_height = this.height * this.thumb_scale;
@@ -94,14 +94,16 @@
 		this.ctx.lineJoin = "round";
 		this.doodle_ctx.lineCap = "round";
 		this.doodle_ctx.lineJoin = "round";
-		this.filter_ctx.lineCap = "round";
-		this.filter_ctx.lineJoin = "round";
+		this.mask_ctx.lineCap = "round";
+		this.mask_ctx.lineJoin = "round";
 
 		this.ctx.font = this.editor.font;
 		this.space_width = this.ctx.measureText(" ").width;
 	}
 	Daisy._Render.prototype = {
 		setScale : function(scale) {
+			this.ctx.lineCap = "round";
+			this.ctx.lineJoin = "round";
 			this.scale = scale;
 			this.paint();
 		},
@@ -128,7 +130,7 @@
 					}
 					e++;
 				}
-			
+
 				//$.log("s:%d,e:%d",idx,e-1);
 				var ele = null, do_again = true, visible = true;
 				for(var i = idx; i < e; i++) {
@@ -201,15 +203,15 @@
 				top += this.line_height;
 				this._drawLine(this.ctx, 0, top, this.width, top);
 			}
-	
+
 			this._paintDoodle();
-		 
+
 			if(this.page.select_mode) {
 				this._paintSelect(this.page.select_range.from, this.page.select_range.to);
 			}
 
 			this.ctx.restore();
-		
+
 		},
 		_paintSelect : function(from, to) {
 			this.ctx.fillStyle = "rgba(0,255,0,0.2)";
@@ -265,16 +267,7 @@
 			//'bottom';
 
 			this._paintBackground();
-			
-			if(this.editor.doodle_mode) {
-				this.ctx.save();
-				this.ctx.scale(this.scale, this.scale);
-				this.doodle_ctx.clearRect(0, 0, this.width, this.height);
-				this._paintEachDoodle(this.editor.tmp_doodle);
-				this.ctx.drawImage(this.doodle_canvas, 0, 0);
-				this.ctx.restore();
-			}
-			
+
 			var e_arr = this.page.ele_array;
 
 			this.ctx.save();
@@ -333,39 +326,25 @@
 
 			//$.processEmboss(this.ctx,400,200,600,600);
 		},
-		_paintEachDoodle : function(doo) {
-			switch(doo.type) {
-				case Daisy._Doodle.Type.LINE:
-				case Daisy._Doodle.Type.RECT:
-				case Daisy._Doodle.Type.CIRCLE:
-				case Daisy._Doodle.Type.IMAGE:
-				case Daisy._Doodle.Type.LIGHT:
-				case Daisy._Doodle.Type.NORMAL:
-					doo.draw(this.doodle_ctx);
-					break;
-				default:
-					this.filter_ctx.clearRect(0, 0, this.width, this.height);
-					doo.draw(this.filter_ctx, this.width, this.height);
-					this.doodle_ctx.drawImage(this.filter_canvas, 0, 0);
-					break;
-			}
-		},
 		_paintDoodle : function() {
-			if(this.page.doodle_list.length === 0)
-				return;
-			this.doodle_ctx.clearRect(0, 0, this.width, this.height);
 			
 			for(var i = this.page.doodle_list.length - 1; i >= 0; i--) {
-				if(this.editor.select_doodle!==this.page.doodle_list[i])
-					this._paintEachDoodle(this.page.doodle_list[i]);
+				if(this.editor.select_doodle !== this.page.doodle_list[i])
+					this.page.doodle_list[i].draw(this.ctx, this.doodle_ctx, this.mask_ctx);
 			}
-			if(this.editor.select_doodle!=null){
+			/**
+			 * 如果有选中的doodle，则最后画这个doodle，同时把辅助边框的edit_doodle画上
+			 */
+			if(this.editor.select_doodle !== null) {
 				//$.log(this.select_doodle)
-				this._paintEachDoodle(this.editor.select_doodle);
-				this.editor.edit_doodle.draw(this.doodle_ctx);
+				this.editor.select_doodle.draw(this.ctx, this.doodle_ctx, this.mask_ctx);
+				this.editor.edit_doodle.draw(this.ctx);
+			} else if(this.editor.doodle_mode) {
+				/**
+				 * 如果当前正在画新 的doodle，则将这个临时的新的doodle画上。
+				 */
+				this.editor.tmp_doodle.draw(this.ctx, this.doodle_ctx, this.mask_ctx);
 			}
-			
-			this.ctx.drawImage(this.doodle_canvas, 0, 0);
 		},
 		getThumb : function() {
 			var pre_scale = this.scale;

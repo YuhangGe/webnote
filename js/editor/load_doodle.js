@@ -19,9 +19,12 @@
 			$.log("doodle number:%d", d_num);
 			for(var i = 0; i < d_num; i++) {
 				var doo = this.readDoodle();
-				//$.log(doo)
-				if(doo!==null)
+				
+				if(doo!==null){
 					this.page.doodle_list.push(doo);
+					 
+				}
+					
 			}
 			//$.log(this.page.doodle_list);
 			//img = this.page.doodle_list[0];
@@ -62,7 +65,8 @@
 				}
 				value = g_list;
 			}else if(type === Daisy._Doodle.Type.ERASER) {
-				throw "eraser doodle? must be attached to other doodle.";
+				$.log("what?! eraser doodle? should not it be attached to other doodle?");
+				return null;
 			} else if(type === Daisy._Doodle.Type.IMAGE) {
 				var h = this.read(),l=this.read(),d_len = h<<16|l;
 				//$.log('image len:%d,h:%d,l:%d', d_len,h,l);

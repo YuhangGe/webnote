@@ -337,6 +337,7 @@
 		},
 		clear : function() {
 			this.cur_page.reset();
+			this.select_doodle = null;
 			this._setCaret({
 				index : -1,
 				para : 0,

@@ -392,7 +392,9 @@ Daisy.$ = function(id) {
 				width : x2 - x1 + offset * 2,
 				height : y2 - y1 + offset * 2,
 				left : x1 - offset,
-				top : y1 - offset
+				top : y1 - offset,
+				right : x2 + offset,
+				bottom : y2 + offset
 			}
 		}
 	});

@@ -33,12 +33,12 @@
 			var b = doo.getBoundary();
 			this.points[0].x = b.left;
 			this.points[0].y = b.top;
-			this.points[1].x = b.left + b.width;
+			this.points[1].x = b.right;
 			this.points[1].y = b.top;
-			this.points[2].x = b.left + b.width;
-			this.points[2].y = b.top + b.height;
+			this.points[2].x = b.right;
+			this.points[2].y = b.bottom;
 			this.points[3].x = b.left;
-			this.points[3].y = b.top + b.height;
+			this.points[3].y = b.bottom;
 			this._calc();
 		},
 		_calc : function(){
@@ -64,29 +64,32 @@
 			return p.x >= this.points[0].x && p.x <= this.points[1].x && p.y >= this.points[0].y && p.y <= this.points[2].y;
 		},
 		isPointInClose : function(p){
-			return false;
+			return p.x >= this.points[1].x - this.CANCEL_BTN.width/2 && p.x <= this.points[1].x + this.CANCEL_BTN.width/2
+				&& p.y >= this.points[1].y-this.CANCEL_BTN.height/2 && p.y <= this.points[1].y + this.CANCEL_BTN.height/2;
 		},
 		isPointInRotate : function(p){
 			return p.x >= this.points[2].x - this.ROTATE_BTN.width/2 && p.x <= this.points[2].x + this.ROTATE_BTN.width/2
 				&& p.y >= this.points[2].y-this.ROTATE_BTN.height/2 && p.y <= this.points[2].y + this.ROTATE_BTN.height/2;
 		},
 		editRotateScale : function(point){
-			var rs = this._getRSValue(point);
+			var rs = this._calcRSValue(point);
 			this.callBase("editRotateScale", this.center, rs.rotate,rs.scale);
 			return rs;
 		},
-		_getRSValue : function(point){
-			
-			var r1 = $.getPTPRange(this.center,point), r2 = $.getPTPRange(this.center,this.pre_point), r3 = $.getPTPRange(this.pre_point,point),
-				 cosa = (r1*r1+r2*r2-r3*r3)/(2*r1*r2);  
-			var scale = r1 / r2;
-			//$.log(cosa / Math.PI * 180);
-			var rotate = Math.acos(cosa);
-			//$.log(cur_p)
-			// to do 逆时针旋转
+		_calcRSValue : function(point){
+			var vx1 = point.x - this.center.x, vy1 = point.y - this.center.y, vx2 = this.pre_point.x - this.center.x, vy2 = this.pre_point.y - this.center.y;
+			var r1 = Math.sqrt(vx1*vx1+vy1*vy1), r2 = Math.sqrt(vx2*vx2+vy2*vy2);
+			var cosa = (vx1*vx2+vy1*vy2)/(r1*r2), angle = Math.acos(cosa);
+			if(Math.abs(cosa-1.0)<=0.0000001){
+				angle = 0;
+			}else if(Math.abs(cosa+1.0)<=0.0000001){
+				angle = Math.PI;
+			}else if(vx1 * vy2 - vx2 * vy1>0){
+				angle = Math.PI * 2 - angle;
+			}
 			return {
-				scale : scale,
-				rotate : rotate
+				scale : r1 / r2,
+				rotate : angle
 			}
 		}
 	}
@@ -144,7 +147,10 @@
 				this.__doodle_move__ = false;
 				return;
 			}else if(this.__doodle_close__){
-				
+				if(window.confirm("确认删除涂鸦？")){
+					this.cur_page.removeDoodle(this.select_doodle);
+					this.select_doodle = null;
+				}
 				this.__doodle_close__ = false;
 				return;
 			}else if(this.__doodle_rotate__){

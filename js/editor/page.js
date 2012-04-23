@@ -356,6 +356,9 @@
 				rtn.push(this.ele_array[i].copy());
 			}
 			return rtn;
+		},
+		removeDoodle : function(doodle){
+			this.doodle_list.splice(this.doodle_list.indexOf(doodle),1);
 		}
 	}
 
