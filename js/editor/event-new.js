@@ -208,6 +208,17 @@
 						$.stopEvent(e);
 					}
 					break;
+				case 90:
+					if(e.ctrlKey){
+						this.history.undo();
+						$.stopEvent(e);
+					}
+					break;
+				case 89:
+					if(e.ctrlKey){
+						this.history.redo();
+						$.stopEvent(e);
+					}
 
 			}
 		},
@@ -326,21 +337,13 @@
 			} else if(data.type === 'text' || data.type === 'url') {
 				this.insert(data.value);
 			} else if(data.type === 'item') {
-				var n_p;
-				for(var i = 0; i < data.value.length; i++) {
-					var ele = data.value[i];
-					//$.log(ele);
-					if(ele.type === Daisy._Element.Type.HANDWORD) {
-						ele.bihua = ele.value;
-						n_p = this.cur_page.insert(ele, this.caret_pos, ele.style);
-						delete ele.bihua;
-						this._setCaret(n_p);
-					} else {
-						n_p = this.cur_page.insert(ele.value, this.caret_pos, ele.style);
-						this._setCaret(n_p);
-					}
-				}
-				this.render.paint();
+				/**
+				 * 从剪切版复制Daisy._Element元素时，对剪切版中的元素进行拷贝后插入到文本中。 
+				 */
+				var n_value = [];
+				for(var i=0;i<data.value.length;i++)
+					n_value.push(data.value[i].copy());
+				this.insert(n_value);
 			}
 
 		},

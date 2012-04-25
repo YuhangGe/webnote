@@ -50,8 +50,8 @@
 			return this.para_info.length - 1;
 		},
 		_getCaret_xy : function(x, y) {
-			y = y<0?0:y;
-			x = x<0?0:x;
+			y = y < 0 ? 0 : y;
+			x = x < 0 ? 0 : x;
 			//$.log("x:%d,y:%d",x,y)
 			var rd = this.editor.render, line_height = rd.line_height, row = Math.floor(y / line_height), p_i = this._getParaByRow(row), para = this.para_info[p_i], idx = para.index, left = 0, bottom = (row + 1) * line_height, p_at = -1;
 			var lp = this.para_info[this.para_info.length - 1], max_bot = (lp.line_start + lp.line_cross) * line_height;
@@ -140,9 +140,17 @@
 			}
 
 		},
-		_insertLine : function(caret) {
-			this.ele_array.splice(caret.index + 1, 0, new Daisy._NewLineElement());
-
+		insertLine : function(caret) {
+			var n_e = new Daisy._NewLineElement();
+			$.log(caret.index)
+			if(caret.index>0){
+				var p_e = this.ele_array[caret.index];
+				$.log(p_e)
+				n_e.left = p_e;
+				n_e.bottom = p_e;
+				n_e.line_at = p_e.line_at;
+			}
+			this.ele_array.splice(caret.index + 1, 0, n_e);
 			var para = this.para_info[caret.para], l_len = caret.para_at + 1, r_len = para.length - l_len;
 			para.length = l_len;
 			for(var i = caret.para + 1; i < this.para_number; i++) {
@@ -166,35 +174,38 @@
 			if(pre_lc !== (para.line_cross + new_para.line_cross)) {
 				this._moveLineUpDown(caret.para + 2, this.para_number - 1, (para.line_cross + new_para.line_cross) - pre_lc);
 			}
-			return this._getCaret_p(caret.para + 1, -1);
+			return {
+				caret : this._getCaret_p(caret.para + 1, -1),
+				value : n_e
+			}
 		},
-		insert : function(ele, caret, style) {
-			if(this.select_mode) {
-				caret = this._delSelect();
-				this.select_mode = false;
-			}
-			var new_ele = null;
-			if( typeof ele === 'string') {
-				if(ele === '\n') {
-					return this._insertLine(caret);
-				}
-				new_ele = new Daisy._CharElement(ele, style == null ? {
-					font : this.editor.font,
-					bold : this.editor.font_bold,
-					color : this.editor.color
-				} : $.copyJson(style));
-			} else {
-				new_ele = new Daisy._HandElement(ele.bihua, style == null ? {
-					weight : ele.weight,
-					color : ele.color
-				} : $.copyJson(style), ele.width, ele.height);
-			}
-			this.ele_array.splice(caret.index + 1, 0, new_ele);
-
+		insertChar : function(chr, caret, style) {
+			if(chr === '\n')
+				return this.insertLine(caret);
+			var n_e = new Daisy._CharElement(chr, style == null ? {
+				font : this.editor.font,
+				bold : this.editor.font_bold,
+				color : this.editor.color
+			} : $.copyJson(style));
+			
+			return this.insertElement(n_e,caret);
+		},
+		/**
+		 * 直接插入一个 Daisy._Element元素。
+		 * @param {Object} ele
+		 * @param {Object} caret
+		 */
+		insertElement : function(ele, caret) {
+			if(ele.value === "\n")
+				return this.insertLine(caret);
+			
+			this.ele_array.splice(caret.index + 1, 0, ele);
 			this.para_info[caret.para].length++;
 			this._resetParagraph(caret.para, 1);
-
-			return this._getCaret_p(caret.para, caret.para_at + 1);
+			return {
+				caret : this._getCaret_p(caret.para, caret.para_at + 1),
+				value : ele
+			}
 		},
 		_moveLineUpDown : function(start, end, step) {
 			//$.log("move %d,%d,%d",start,end,step);
@@ -219,8 +230,15 @@
 				line_start : last_para.line_start + last_para.line_cross,
 				line_cross : 1
 			})
-
-			this.ele_array.push(new Daisy._NewLineElement());
+			var n_e = new Daisy._NewLineElement();
+			if(this.ele_array.length>0){
+				var p_e = this.ele_array[this.ele_array.length-1];
+				//$.log(p_e)
+				n_e.left = p_e.left+p_e.width;
+				n_e.bottom = p_e.bottom;
+				n_e.line_at = p_e.line_at;
+			}
+			this.ele_array.push(n_e);
 			this.para_number++;
 		},
 		append : function(ele) {
@@ -248,10 +266,11 @@
 			this._resetParagraph(this.para_number - 1);
 
 		},
-		_delElement : function(p_idx, p_at) {
-			var para = this.para_info[p_idx], e_idx = para.index + ( p_at = (p_at == null ? para.length : p_at)) + 1;
-
-			this.ele_array.splice(e_idx, 1);
+		delElement : function(caret) {
+			var p_idx = caret.para, p_at = caret.para_at,
+				para = this.para_info[p_idx], e_idx = para.index + ( p_at = (p_at == null ? para.length : p_at)) + 1;
+			
+			var d_e = this.ele_array.splice(e_idx, 1);
 			if(p_at === para.length) {
 				var b_para = this.para_info.splice(p_idx+1,1)[0], pre_lc = para.line_cross + b_para.line_cross;
 				//$.log(this.para_info);
@@ -271,16 +290,18 @@
 				para.length--;
 				this._resetParagraph(p_idx, -1);
 			}
-
-			return this._getCaret_p(p_idx, p_at - 1);
+			caret.index = e_idx;
+			return {
+				caret_before : caret,
+				caret : this._getCaret_p(p_idx, p_at - 1),
+				value : d_e
+			} 
 		},
-		_delSelect : function() {
-
-			var f = this.select_range.from, t = this.select_range.to;
-			var f_p = f.para, t_p = t.para, f_at = f.para_at, t_at = t.para_at;
-			var len = t.index - f.index;
-			this.ele_array.splice(f.index + 1, len);
-
+		delRange : function(from, to) {
+			var f_p = from.para, t_p = to.para, f_at = from.para_at, t_at = to.para_at;
+			var len = to.index - from.index;
+			var d_e = this.ele_array.splice(from.index + 1, len);
+		
 			for(var i = t_p + 1; i < this.para_number; i++) {
 				this.para_info[i].index -= len;
 			}
@@ -307,27 +328,9 @@
 
 			this.select_mode = false;
 
-			return this.select_range.from;
-		},
-		_del : function(caret) {
-			if(this.select_mode) {
-				return this._delSelect();
-			}
-			if(caret.index === this.ele_array.length - 1)
-				return caret;
-			else
-				return this._delElement(caret.para, caret.para_at + 1);
-		},
-		_back : function(caret) {
-			if(this.select_mode) {
-				return this._delSelect();
-			}
-			if(caret.para_at >= 0) {
-				return this._delElement(caret.para, caret.para_at);
-			} else if(caret.para > 0) {
-				return this._delElement(caret.para - 1, null);
-			} else {
-				return caret;
+			return {
+				caret : from,
+				value : d_e
 			}
 		},
 		setSelectColor : function(color) {
@@ -357,8 +360,8 @@
 			}
 			return rtn;
 		},
-		removeDoodle : function(doodle){
-			this.doodle_list.splice(this.doodle_list.indexOf(doodle),1);
+		removeDoodle : function(doodle) {
+			this.doodle_list.splice(this.doodle_list.indexOf(doodle), 1);
 		}
 	}
 

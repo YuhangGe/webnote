@@ -38,6 +38,7 @@
 		this.caret = $('sn-caret');
 
 		this.clipboard = Daisy.Clipboard.getInstance();
+		this.history = new Daisy._UndoRedoManager(this);
 
 		this.line_height = config.line_height;
 		this.line_count = config.line_count;
@@ -253,23 +254,78 @@
 			this.cur_page.doodle_list.unshift(doo);
 			this.render.paint();
 		},
-		insert : function(element, style) {
-			var n_p;
-			if( typeof element === 'string')
-				element = element.replace("\t", "    ").replace(/\r\n/g, "\n");
+		_insertText : function(text, caret) {
+			var e_arr = [], re;
+			text = text.replace("\t", "    ").replace(/\r\n/g, "\n");
+			for(var i = 0; i < text.length; i++) {
+				re = this.cur_page.insertChar(text[i], caret);
+				caret = re.caret;
+				e_arr.push(re.value);
 
-			if(element.length) {
-				for(var i = 0; i < element.length; i++) {
-					//$.log(element[i]);
-					//$.log(element.charCodeAt(i));
-					n_p = this.cur_page.insert(element[i], this.caret_pos, style);
-					this._setCaret(n_p);
-				}
-			} else {
-				n_p = this.cur_page.insert(element, this.caret_pos, style);
-				this._setCaret(n_p);
 			}
-
+			return {
+				caret : caret,
+				value : e_arr
+			};
+		},
+		_insertElements : function(e_arr, caret) {
+			for(var i = 0; i < e_arr.length; i++) {
+				re = this.cur_page.insertElement(e_arr[i], caret);
+				caret = re.caret;
+			}
+			return {
+				caret : caret,
+				value : e_arr
+			};
+		},
+		/**
+		 * 直接插入元素，不设置撤销。这个专门用来给undo 和  redo时后插入元素使用
+		 */
+		_insert : function(e_arr, caret) {
+			this._setCaret(this._insertElements(e_arr, caret).caret);
+			this.render.paint();
+		},
+		/**
+		 * 删除from 到 to 的元素。专门给undo redo调用
+		 * @param {Object} from
+		 * @param {Object} to
+		 */
+		_delete : function(from, to) {
+			this._setCaret(this.cur_page.delRange(from, to).caret);
+			this.render.paint();
+		},
+		insert : function(value, caret) {
+			//$.log("insert:%s", value)
+			//console.trace()
+			caret = caret ? caret : this.caret_pos;
+			/*
+			 * re result
+			 * c_b caret_before
+			 * c_a caret_after
+			 * ele_arr element array
+			 */
+			var cmd = new Daisy._CombineCommand();
+			var re;
+			if(this.cur_page.select_mode) {
+				var sr = this.cur_page.select_range, fc = sr.from, tc = sr.to;
+				re = this.cur_page.delRange(fc, tc);
+				cmd.add(new Daisy._DeleteCommand(tc, re.caret, re.value));
+				caret = re.caret;
+			}
+			if( typeof value === 'string') {
+				re = this._insertText(value, caret);
+			} else if( value instanceof Array) {
+				re = this._insertElements(value, caret);
+			} else {
+				var ie = this.cur_page.insertElement(value, caret);
+				re = {
+					caret : ie.caret,
+					value : [ie.value]
+				}
+			}
+			cmd.add(new Daisy._InsertCommand(caret, re.caret, re.value));
+			this.history.add(cmd);
+			this._setCaret(re.caret);
 			this.render.paint();
 		},
 		append : function(element) {
@@ -286,17 +342,67 @@
 			}
 			this.render.paint();
 		},
-		_delOrBack : function(is_del) {
-			var new_pos = null;
-			if(is_del) {
-				new_pos = this.cur_page._del(this.caret_pos);
-			} else {
-				new_pos = this.cur_page._back(this.caret_pos);
+		/**
+		 * 处理键盘按键delete
+		 */
+		_key_del : function() {
+			var from = this.caret_pos, to = null;
+			if(from.index === this.cur_page.ele_array.length - 1) {
+				return ;
 			}
-			this._setCaret(new_pos);
+			to = {
+				para : from.para,
+				para_at : from.para_at + 1,
+				index : from.index + 1
+			};
+			if(from.para_at === this.cur_page.para_info[from.para].length - 1){
+				to.para++;
+				to.para_at = -1;
+			}
+			this.del(from,to);
+		},
+		/**
+		 * 处理键盘按键 backspace
+		 */
+		_key_back : function() {
+			var to = this.caret_pos, from = null;
+			if(to.para_at >= 0) {
+				this.del(this.caret_pos);
+			} else if(this.caret_pos.para > 0) {
+				this.del({
+					para : this.caret_pos.para - 1,
+					para_at : null
+				});
+			}
 
+		},
+		/**
+		 * 删除caret处的元素
+		 * @param {Object} caret
+		 */
+		del : function(caret) {
+			var re = this.cur_page.delElement(caret);
+			this.history.add(new Daisy._DeleteCommand(re.caret_before, re.caret, re.value));
+			this._setCaret(re.caret);
 			this.render.paint();
 		},
+		del : function(from, to) {
+			var re = this.cur_page.delRange(from, to);
+			this.history.add(new Daisy._DeleteCommand(to, from, re.value));
+			this._setCaret(from);
+			this.render.paint();
+		},
+		_delOrBack : function(is_del) {
+			if(this.cur_page.select_mode) {
+				this.del(this.cur_page.select_range.from, this.cur_page.select_range.to);
+				this.cur_page.select_mode = false;
+			} else if(is_del) {
+				this._key_del();
+			} else {
+				this._key_back();
+			}
+		},
+
 		moveCaret : function(dir) {
 			var cp = this.caret_pos, p_idx = cp.para, p_at = cp.para_at, new_cp = cp;
 			switch(dir) {

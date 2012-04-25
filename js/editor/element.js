@@ -53,7 +53,7 @@
 			return c_style;
 		},
 		draw : function(ctx){
-			
+			return;
 		}
 	}
 

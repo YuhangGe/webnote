@@ -24,6 +24,7 @@
 		<script type="text/javascript" src="js/editor/doodle_new.js"></script>
 		<script type="text/javascript" src="js/editor/doodle_edit.js"></script>
 		<script type="text/javascript" src="js/editor/clipboard.js"></script>
+		<script type="text/javascript" src="js/editor/undoredo.js"></script>
 		<script type="text/javascript" src="js/editor/load_new.js"></script>
 		<script type="text/javascript" src="js/editor/load_doodle.js" ></script>
 		
@@ -31,6 +32,7 @@
 		<script type="text/javascript" src="js/editor/filter/blur2.js"></script>
 		<script type="text/javascript" src="js/editor/filter/blur3.js"></script>
 		<script type="text/javascript" src="js/editor/filter/emboss.js"></script>
+		
 		
 		<script type="text/javascript" src="js/index.js"></script>
 		<script type="text/javascript" src="js/ctrl.js"></script>

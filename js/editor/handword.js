@@ -4,13 +4,11 @@
 (function(Daisy, $) {
 	$.extend(Daisy.WebNote.prototype, {
 		_createHandWord : function(bihuas) {
-			var hw = {
-				width : 0,
-				height : 0,
+			var hw = new Daisy._HandElement([], {
 				color : this.color,
 				weight : Daisy.Global.hand_weight,
-				bihua : []
-			}
+			}, 0, 0);
+
 			var p0 = bihuas[0][0], x1 = p0.x, y1 = p0.y, x2 = p0.x, y2 = p0.y;
 			for(var i = 0; i < bihuas.length; i++) {
 				var bh = bihuas[i];
@@ -36,7 +34,7 @@
 					p.x = Math.floor((p.x - x1) * bili) + this.font_height * 0.1;
 					p.y = Math.floor((p.y - y1) * bili);
 				}
-				hw.bihua.push(bh);
+				hw.value.push(bh);
 			}
 			hw.width = Math.round((w / h * b_h) + this.font_height * 0.3);
 			hw.height = b_h;
@@ -105,7 +103,7 @@
 			var dl = this.cur_page.doodle_list;
 			if(this.tmp_doodle.type !== Daisy._Doodle.Type.ERASER) {
 				dl.unshift(this.tmp_doodle);
-			}else{
+			} else {
 				for(var i = 0; i < dl.length; i++) {
 					dl[i].removeTmpEraser(this.tmp_doodle);
 					dl[i].addEraserIfIn(this.tmp_doodle);

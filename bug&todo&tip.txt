@@ -3,4 +3,10 @@ bug:
 
 bug:
 
-doodle旋转时有诡异bug
+1、doodle旋转时有诡异bug
+
+
+2、含橡皮擦的嵌套群组会不能正确绘制。具体在代码中有注释说明。
+
+todo:
+1、undo redo

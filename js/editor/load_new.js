@@ -124,16 +124,18 @@
 			return v;
 		},
 		_loadHandWord : function() {
-
-			var hw = {
-				index : this.read(),
-				width : this.read(),
-				height : this.read(),
-				weight : this.read_float(),
-				color : '',
-				bihua : []
-			};
-			hw.color = this._getColorStr(this.read(), this.read(), this.read());
+			var index = this.read(),
+				width = this.read(),
+				height = this.read(),
+				style = {
+					weight : this.read_float(),
+					color :  this._getColorStr(this.read(), this.read(), this.read()),
+				},
+				value = [];
+			var hw = new Daisy._HandElement(value, style, width, height);
+			//额外附属一个index,用来插入时检索
+			hw.index = index; 
+			
 			var bnum = this.read();
 			for(var j = 0; j < bnum; j++) {
 				var new_bh = [], pn = this.read();
@@ -146,12 +148,14 @@
 					});
 
 				}
-				hw.bihua.push(new_bh);
+				hw.value.push(new_bh);
 			}
-
+			
+			/**
+			 * 在有些版本的手机导出文件里面，手写体的width没有给出，则在这里计算。 
+			 */
 			if(hw.width === 0) {
 				hw.width = this._calcHandWidth(hw.bihua,hw.height);
-					//$.log("do calc width:"+hw.width);
 			}
 			//$.log(hw.width)
 			return hw;

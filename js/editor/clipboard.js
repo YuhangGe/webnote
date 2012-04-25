@@ -73,8 +73,7 @@
 					};
 					this._checkData();
 				}else{
-					window.setTimeout(this._text_delegate, 5);
-					//直接返回，不要stopEvent，使得文本可以复制到caret中。
+					//直接返回，不要stopEvent，使得文本可以复制到caret中，然后会触发 input事件，从而将文本插入。
 					return;
 				}
 			}
