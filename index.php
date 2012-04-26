@@ -211,9 +211,9 @@
 						<a title="設置文本是否加粗" id="ctrl-setbold" href="javascript:ctrlSetBold();">加粗(已關)</a>
 						<a title="設置編輯區域是否只讀" id='ctrl-readonly' href="javascript:ctrlReadOnly();">只讀(已關)</a>
 						
-						<a id="ctrl-handword" href="javascript:ctrlSetCurMode();" title="手寫模式下您可以使用鼠標右鍵輸入手寫文字">手寫(已開)</a>
-						<a id="ctrl-doodle" href="javascript:ctrlSetCurMode();" title="塗鴉模式下您可以使用鼠標右鍵繪製塗鴉">塗鴉(已關)</a>
-						<span id="ctrl-doodle-option" style=";" >
+						<a id="ctrl-handword" href="javascript:ctrlSetCurMode();" title="手寫模式下您可以使用鼠標右鍵輸入手寫文字，左鍵選取文字">手寫(已開)</a>
+						<a id="ctrl-doodle" href="javascript:ctrlSetCurMode();" title="塗鴉模式下您可以使用鼠標右鍵繪製塗鴉，左鍵選擇和編輯塗鴉">塗鴉(已關)</a>
+						<span id="ctrl-doodle-option" style="display:none;" >
 								<a href="javascript:;" title="選擇畫筆類型">畫筆：</a>
 								<select id="ctrl-doodle-type" onchange="ctrlSetDoodleType();">
 									<option>普通</option>
@@ -245,7 +245,6 @@
 								</ul>
 							</div> -->
 						</span>
-						<a href="javascript:ctrlDoodleEdit();" title="進行塗鴉編輯模式，可以選擇、縮放、旋轉塗鴉" id="ctrl-doodle-edit">編輯塗鴉</a>
 						<a style="position: relative;width:25px;" title="选择颜色">
 							<div  id="colorSelector"><div></div></div>
 						</a>

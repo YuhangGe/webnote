@@ -25,8 +25,8 @@
 				 * chrome safari
 				 */
 				var d_type = e.clipboardData.types[0];
-				$.log(e.clipboardData.types);
-				$.log(e.clipboardData.items);
+				//$.log(e.clipboardData.types);
+				//$.log(e.clipboardData.items);
 				if(d_type === "text/html") {
 					this.data = {
 						type : 'html',

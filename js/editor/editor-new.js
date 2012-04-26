@@ -38,8 +38,9 @@
 		this.caret = $('sn-caret');
 
 		this.clipboard = Daisy.Clipboard.getInstance();
-		this.history = new Daisy._UndoRedoManager(this);
-
+		this.text_history = new Daisy._TextHistory(this);
+		this.doodle_history = new Daisy._UndoRedoManager(this);
+		
 		this.line_height = config.line_height;
 		this.line_count = config.line_count;
 
@@ -248,12 +249,6 @@
 			this.focused = true;
 			this.caret.focus();
 		},
-		insertImage : function(src) {
-			var doo = Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], src);
-			doo.move(this.caret_pos.left, this.caret_pos.top + this.line_height);
-			this.cur_page.doodle_list.unshift(doo);
-			this.render.paint();
-		},
 		_insertText : function(text, caret) {
 			var e_arr = [], re;
 			text = text.replace("\t", "    ").replace(/\r\n/g, "\n");
@@ -261,7 +256,6 @@
 				re = this.cur_page.insertChar(text[i], caret);
 				caret = re.caret;
 				e_arr.push(re.value);
-
 			}
 			return {
 				caret : caret,
@@ -291,8 +285,40 @@
 		 * @param {Object} to
 		 */
 		_delete : function(from, to) {
-			this._setCaret(this.cur_page.delRange(from, to).caret);
+			this.cur_page.delRange(from, to);
+			this._setCaret(this.cur_page._getCaret_p(from.para,from.para_at));
 			this.render.paint();
+		},
+		_insertDoodle : function(doo){
+			this.cur_page.doodle_list.unshift(doo);
+			this.render.paint();
+		},
+		_removeDoodle : function(doo){
+			var dl = this.cur_page.doodle_list;
+			dl.splice(dl.indexOf(doo),1);
+			if(this.select_doodle === doo){
+				this.select_doodle = null;
+				
+			}
+			this.render.paint();
+		},
+		insertDoodle : function(doo){
+			var cmd = null;
+			if(doo instanceof Array){
+				cmd = new Daisy._CombineCommand();
+				for(var i=0;i<doo.length;i++){
+					this._insertDoodle(doo[i]);
+					cmd.add(new Daisy._DoodleNewCommand(doo[i]))
+				}
+			}else{
+				cmd = new Daisy._DoodleNewCommand(doo);
+				this._insertDoodle(doo);
+			}
+			this.doodle_history.add(cmd);
+		},
+		removeDoodle : function(doo){
+			this._removeDoodle(doo);
+			this.doodle_history.add(new Daisy._DoodleDelCommand(doo));
 		},
 		insert : function(value, caret) {
 			//$.log("insert:%s", value)
@@ -304,11 +330,12 @@
 			 * c_a caret_after
 			 * ele_arr element array
 			 */
-			var cmd = new Daisy._CombineCommand();
+			var cmd = null;
 			var re;
 			if(this.cur_page.select_mode) {
 				var sr = this.cur_page.select_range, fc = sr.from, tc = sr.to;
 				re = this.cur_page.delRange(fc, tc);
+				cmd = new Daisy._CombineCommand();
 				cmd.add(new Daisy._DeleteCommand(tc, re.caret, re.value));
 				caret = re.caret;
 			}
@@ -323,8 +350,12 @@
 					value : [ie.value]
 				}
 			}
-			cmd.add(new Daisy._InsertCommand(caret, re.caret, re.value));
-			this.history.add(cmd);
+			if(cmd!==null)
+				cmd.add(new Daisy._InsertCommand(caret, re.caret, re.value));
+			else
+				cmd = new Daisy._InsertCommand(caret, re.caret, re.value);
+			
+			this.text_history.add(cmd);
 			this._setCaret(re.caret);
 			this.render.paint();
 		},
@@ -366,30 +397,28 @@
 		 */
 		_key_back : function() {
 			var to = this.caret_pos, from = null;
-			if(to.para_at >= 0) {
-				this.del(this.caret_pos);
-			} else if(this.caret_pos.para > 0) {
-				this.del({
-					para : this.caret_pos.para - 1,
-					para_at : null
-				});
-			}
+			if(to.index < 0)
+				return;
+			from = {
+				para : to.para,
+				para_at : to.para_at - 1,
+				index : to.index - 1
+			};
+			if(to.para_at < 0){
+				from.para--;
+				from.para_at =  this.cur_page.para_info[from.para].length - 1;
+			};
+			this.del(from,to);
 
 		},
 		/**
 		 * 删除caret处的元素
 		 * @param {Object} caret
 		 */
-		del : function(caret) {
-			var re = this.cur_page.delElement(caret);
-			this.history.add(new Daisy._DeleteCommand(re.caret_before, re.caret, re.value));
-			this._setCaret(re.caret);
-			this.render.paint();
-		},
-		del : function(from, to) {
+		del : function(from, to, c_t) {
 			var re = this.cur_page.delRange(from, to);
-			this.history.add(new Daisy._DeleteCommand(to, from, re.value));
-			this._setCaret(from);
+			this.text_history.add(new Daisy._DeleteCommand(to, from, re.value));
+			this._setCaret(this.cur_page._getCaret_p(from.para,from.para_at));
 			this.render.paint();
 		},
 		_delOrBack : function(is_del) {

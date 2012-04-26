@@ -142,10 +142,10 @@
 		},
 		insertLine : function(caret) {
 			var n_e = new Daisy._NewLineElement();
-			$.log(caret.index)
+			//$.log(caret.index)
 			if(caret.index>0){
 				var p_e = this.ele_array[caret.index];
-				$.log(p_e)
+				//$.log(p_e)
 				n_e.left = p_e;
 				n_e.bottom = p_e;
 				n_e.line_at = p_e.line_at;

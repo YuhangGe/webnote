@@ -45,12 +45,7 @@ Daisy.$ = function(id) {
 		},
 		createDelegate : function(instance, func) {
 			return function() {
-				try {
-					func.apply(instance, arguments);
-				} catch(e) {
-					console.trace();
-					$.log(e);
-				}
+				func.apply(instance, arguments);
 			}
 		},
 		stopEvent : function(e) {
@@ -316,6 +311,13 @@ Daisy.$ = function(id) {
 				})(table);
 			}).fail(function(table) {
 			});
+		},
+		copyArray : function(arr){
+			var n_a = [];
+			for(var i=0;i<arr.length;i++){
+				n_a.push(arr[i]);
+			}
+			return arr;
 		},
 		copyJson : function(json) {
 			var rtn = {}

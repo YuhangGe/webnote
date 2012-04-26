@@ -1,12 +1,13 @@
-bug:
+tip:
 1、当前firefox下面，由于不能将数据存入剪切板，当前采用的规则是如果用户没有在程序内复制过，则粘贴时粘贴系统数据，如果用户复制过，则粘贴复制的内部数据。
 
 bug:
 
-1、doodle旋转时有诡异bug
-
+1、image doodle旋转时有诡异bug
+2、image doodle在不停的操作后不停的undo redo这期间有不确实诡异bug.还不清楚这两个bug是否是同一原因。
 
 2、含橡皮擦的嵌套群组会不能正确绘制。具体在代码中有注释说明。
 
 todo:
-1、undo redo
+1、橡皮插的undo redo
+3. 非firefox下面doodle选择框用虚线。

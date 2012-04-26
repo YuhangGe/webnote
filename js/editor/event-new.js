@@ -28,9 +28,9 @@
 		_leftmousedown_handler : function(e, is_chrome) {
 			this.__left_mouse_down__ = true;
 			var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
-			if(Daisy.Global.cur_mode === 'doodle_edit') {
+			if(Daisy.Global.cur_mode === 'doodle') {
 				p.y += Math.round(this.padding_top / this.render.scale);
-				//$.log("d : %d,%d",p.x,p.y)
+				//$.log("d : %d,%d", p.x, p.y)
 				this._doodle_edit_down(p);
 			} else {
 				this._deal_leftmouse_down(p);
@@ -50,7 +50,7 @@
 
 		},
 		_leftmouseup_handler : function(e, is_chrome) {
-			if(Daisy.Global.cur_mode === 'doodle_edit') {
+			if(Daisy.Global.cur_mode === 'doodle') {
 				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
 				p.y += Math.round(this.padding_top / this.render.scale);
 				this._doodle_edit_up(p);
@@ -71,8 +71,7 @@
 			}
 
 		},
-		_deal_leftmouse_move : function(pos) { 
-			outif:
+		_deal_leftmouse_move : function(pos) { outif:
 			if(pos.para !== this.__pre_pos__.para || pos.para_at !== this.__pre_pos__.para_at) {
 				this._setCaret(pos);
 				this.focus();
@@ -96,7 +95,7 @@
 		_mousemove_handler : function(e, is_chrome) {
 			if(this.__left_mouse_down__) {
 				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
-				if(Daisy.Global.cur_mode === 'doodle_edit') {
+				if(Daisy.Global.cur_mode === 'doodle') {
 					p.y += Math.round(this.padding_top / this.render.scale);
 					this._doodle_edit_move(p);
 				} else {
@@ -209,18 +208,26 @@
 					}
 					break;
 				case 90:
-					if(e.ctrlKey){
-						this.history.undo();
+					if(e.ctrlKey) {
+						this._undo_handler();
 						$.stopEvent(e);
 					}
 					break;
 				case 89:
-					if(e.ctrlKey){
-						this.history.redo();
+					if(e.ctrlKey) {
+						this._redo_handler();
 						$.stopEvent(e);
 					}
 
 			}
+		},
+		_undo_handler : function(){
+			var h = Daisy.Global.cur_mode === 'doodle' ? this.doodle_history : this.text_history;
+			h.undo();
+		},
+		_redo_handler : function(){
+			var h = Daisy.Global.cur_mode === 'doodle' ? this.doodle_history : this.text_history;
+			h.redo();
 		},
 		_textinput_handler : function(e) {
 			//$.log("ti")
@@ -284,17 +291,17 @@
 			$.stopEvent(e);
 		},
 		_copy_handler : function(e) {
-			if(Daisy.Global.cur_mode === 'handword' && this.cur_page.select_mode){
-				this.clipboard.setData("item",this.cur_page.copyElement(),e);
-			}else if(Daisy.Global.cur_mode === "doodle_edit"){
-				
+			if(Daisy.Global.cur_mode === 'handword' && this.cur_page.select_mode) {
+				this.clipboard.setData("item", this.cur_page.copyElement(), e);
+			} else if(Daisy.Global.cur_mode === "doodle_edit") {
+
 			}
-			if(e!=null)
+			if(e != null)
 				$.stopEvent(e);
 		},
 		_cut_handler : function(e) {
 			this._copy_handler(e);
-			
+
 		},
 		_paste_handler : function(e) {
 			this.clipboard.getData(e, $.createDelegate(this, this._deal_paste));
@@ -311,37 +318,48 @@
 				 */
 				text = text.substring(3, text.length - 3);
 			}
-			this.insert(text);
+			if(text.length !== 0)
+				this.insert(text);
 
 			var images = dom_p.getElementsByTagName("img");
-			// $.log("images");
-			// $.log(images);
-			var left = this.caret_pos.left, top = this.caret_pos.top + this.line_height;
+			if(images.length === 0)
+				return;
+
+			var left = this.caret_pos.left, top = this.caret_pos.top + this.line_height, doo_arr = [];
 			for(var i = 0; i < images.length; i++) {
-				var doo = Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], images[i].getAttribute("src"));
-				doo.move(left, top);
+				doo_arr.push(Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], images[i].getAttribute("src"), [1, 0, left, 0, 1, top]));
 				left += 5;
 				top += 5;
-				this.cur_page.doodle_list.unshift(doo);
 			}
-			// this.render.paint();
+			this.insertDoodle(doo_arr);
+			/*
+			 * 插入图片后将当前模式切换成涂鸦模式。
+			 * ctrlSetCurMode 函数不是editor的，是全局的函数。
+			 */
+			ctrlSetCurMode("doodle");
 		},
 		_deal_paste : function(data) {
 			if(data == null)
 				return;
 
 			if(data.type === "image") {
-				this.insertImage(data.value);
+				var doo = Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], data.value, [1, 0, this.caret_pos.left, 0, 1, this.caret_pos.top + this.line_height]);
+				this.insertDoodle(doo);
+				/*
+				 * 插入图片后将当前模式切换成涂鸦模式。
+				 * ctrlSetCurMode 函数不是editor的，是全局的函数。
+				 */
+				ctrlSetCurMode("doodle");
 			} else if(data.type === 'html') {
 				this._paste_html(data.value);
 			} else if(data.type === 'text' || data.type === 'url') {
 				this.insert(data.value);
 			} else if(data.type === 'item') {
 				/**
-				 * 从剪切版复制Daisy._Element元素时，对剪切版中的元素进行拷贝后插入到文本中。 
+				 * 从剪切版复制Daisy._Element元素时，对剪切版中的元素进行拷贝后插入到文本中。
 				 */
 				var n_value = [];
-				for(var i=0;i<data.value.length;i++)
+				for(var i = 0; i < data.value.length; i++)
 					n_value.push(data.value[i].copy());
 				this.insert(n_value);
 			}
@@ -363,7 +381,7 @@
 		},
 		_drop_handler : function(e) {
 			$.stopEvent(e);
-			
+
 			var files = e.dataTransfer.files;
 			if(files == null)
 				return;
@@ -372,13 +390,19 @@
 			for(var i = 0; i < files.length; i++) {
 				var f = files[i], fr = new FileReader();
 				if(/text/.test(f.type)) {
-					fr.onload = $.createDelegate(this,function(e){
+					fr.onload = $.createDelegate(this, function(e) {
 						this.insert(e.target.result)
 					});
 					fr.readAsText(f);
 				} else if(/image/.test(f.type)) {
-					fr.onload = $.createDelegate(this,function(e){
-						this.insertImage(e.target.result);
+					fr.onload = $.createDelegate(this, function(e) {
+						var doo = Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], e.target.result, [1, 0, this.caret_pos.left, 0, 1, this.caret_pos.top + this.line_height]);
+						this.insertDoodle(doo);
+						/*
+						 * 插入图片后将当前模式切换成涂鸦模式。
+						 * ctrlSetCurMode 函数不是editor的，是全局的函数。
+						 */
+						ctrlSetCurMode("doodle");
 					});
 					fr.readAsDataURL(f);
 				}

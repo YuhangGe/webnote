@@ -145,8 +145,8 @@
 		},
 		editMove : function(dx, dy) {
 			for(var i = 0; i < this.points.length; i++) {
-				this.points[i].x = this._pre_ps[i].x + dx;
-				this.points[i].y = this._pre_ps[i].y + dy;
+				this.points[i].x = this.pre_points[i].x + dx;
+				this.points[i].y = this.pre_points[i].y + dy;
 			}
 			for(var i = 0; i < this.eraser_list.length; i++) {
 				this.eraser_list[i].editMove(dx, dy);
@@ -155,7 +155,7 @@
 		},
 		editRotateScale : function(relay_point, rotate, scale) {
 			for(var i = 0; i < this.points.length; i++) {
-				var c_x = this._pre_ps[i].x - relay_point.x, c_y = this._pre_ps[i].y - relay_point.y;
+				var c_x = this.pre_points[i].x - relay_point.x, c_y = this.pre_points[i].y - relay_point.y;
 				c_x = c_x * scale;
 				c_y = c_y * scale;
 				this.points[i].x = Math.round(c_x + relay_point.x);
@@ -164,11 +164,22 @@
 				this.points[i].x = Math.round(c_x * Math.cos(rotate) - c_y * Math.sin(rotate) + relay_point.x);
 				this.points[i].y = Math.round(c_x * Math.sin(rotate) + c_y * Math.cos(rotate) + relay_point.y);
 			}
-			this.pen_width = this._pre_pw * scale;
+			this.pen_width = this.pre_pw * scale;
 			for(var i = 0; i < this.eraser_list.length; i++) {
 				this.eraser_list[i].editRotateScale(relay_point, rotate, scale);
 			}
 			this._calc();
+		},
+		rotateScale : function(relay_point, rotate, scale){
+			this.pre_points = this.points;
+			this.pre_pw = this.pen_width;
+			for(var i = 0; i < this.eraser_list.length; i++) {
+				var e = this.eraser_list[i];
+				e.pre_points = e.points;
+				e.pre_pw = e.pen_width;
+			}
+		 
+			this.editRotateScale(relay_point, rotate, scale);
 		},
 		_copyPoints : function() {
 			var c_ps = [];
@@ -180,16 +191,23 @@
 			}
 			return c_ps;
 		},
+		move : function(dx, dy){
+			for(var i = 0; i < this.points.length; i++) {
+				this.points[i].x += dx;
+				this.points[i].y += dy;
+			}
+			for(var i = 0; i < this.eraser_list.length; i++) {
+				this.eraser_list[i].move(dx, dy);
+			}
+			this._calc();
+		},
 		editStart : function() {
 			this.edit_mode = true;
-			this._pre_ps = this._copyPoints();
-			this._pre_b = $.copyJson(this.boundary);
-			this._pre_pw = this.pen_width;
+			this.pre_points = this._copyPoints();
+			this.pre_pw = this.pen_width;
 			for(var i = 0; i < this.eraser_list.length; i++) {
-
 				this.eraser_list[i].editStart();
 			}
-
 		},
 		editFinish : function(point) {
 			this.edit_mode = false;
@@ -206,6 +224,7 @@
 	}
 
 	Daisy._ImageDoodle = function(img_src, matrix, e_list) {
+		$.log('new img')
 		this.base(Daisy._Doodle.Type.IMAGE, [], "black", 5, e_list);
 		this.image = new Image();
 		if(matrix != null)
@@ -214,11 +233,12 @@
 			this.matrix = [1, 0, 0, 0, 1, 0];
 		this.image.onload = $.createDelegate(this, this._img_load);
 		this.image.src = img_src;
-
+		this.img_loaded = false;
 	}
 	Daisy._ImageDoodle.prototype = {
 		_img_load : function() {
 			this._calc();
+			this.img_loaded = true;
 			SNEditor.render.paint();
 		},
 		_calc : function(w, h) {
@@ -239,6 +259,8 @@
 			this.callBase("_calc");
 		},
 		draw : function(ctx, d_ctx, m_ctx) {
+			if(!this.img_loaded)
+				return;
 			var b = this.boundary, l = b.left, t = b.top, w = b.width, h = b.height;
 			d_ctx.clearRect(0, 0, d_ctx.canvas.width, d_ctx.canvas.height);
 			this._doDraw(d_ctx, l, t, w, h);
@@ -278,6 +300,24 @@
 				this.eraser_list[i].editMove(dx, dy);
 			}
 			this._calc();
+		},
+		move : function(dx,dy){
+			this.matrix[2] += dx;
+			this.matrix[5] += dy;
+			for(var i = 0; i < this.eraser_list.length; i++) {
+				this.eraser_list[i].move(dx, dy);
+			}
+			this._calc();
+		},
+		rotateScale : function(relay_point, rotate, scale){
+			 
+			this.pre_matrix = $.copyArray(this.matrix);
+			for(var i = 0; i < this.eraser_list.length; i++) {
+				var e = this.eraser_list[i];
+				e.pre_points = e.points;
+				e.pre_pw = e.pen_width;
+			}
+			this.editRotateScale(relay_point, rotate, scale);
 		},
 		editRotateScale : function(relay_point, rotate, scale) {
 			/**
@@ -474,21 +514,10 @@
 		this.base(Daisy._Doodle.Type.CIRCLE, points, color, pen_width, e_list);
 	}
 	Daisy._CircleDoodle.prototype = {
-		editMove : function(dx, dy) {
-			this.callBase("editMove", [dx, dy]);
-			this._calcRadius();
-		},
-		editRotateScale : function(relay_point, rotate, scale) {
-			this.callBase("editRotateScale", relay_point, rotate, scale);
-			this._calcRadius();
-		},
-		_calcRadius : function() {
-			this.center = $.getMiddlePoint(this.points[0], this.points[1]);
-			this.radius = Math.round($.getPTPRange(this.points[0], this.points[1]) / 2);
-		},
 		_calc : function() {
 			var off = Math.round(this.pen_width);
-			this._calcRadius();
+			this.center = $.getMiddlePoint(this.points[0], this.points[1]);
+			this.radius = Math.round($.getPTPRange(this.points[0], this.points[1]) / 2);
 			this.boundary.width = this.radius * 2 + off * 2;
 			this.boundary.height = this.boundary.width;
 			this.boundary.left = this.center.x - this.radius - off;
