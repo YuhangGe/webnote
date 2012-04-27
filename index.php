@@ -15,17 +15,17 @@
 		<link rel="stylesheet" media="screen" type="text/css" href="css/colorpicker.css" />
 		
 		<script type="text/javascript" src="js/editor/utility.js"></script>
-		<script type="text/javascript" src="js/editor/editor-new.js"></script>
+		<script type="text/javascript" src="js/editor/editor.js"></script>
 		<script type="text/javascript" src="js/editor/render.js"></script>
 		<script type = "text/javascript" src="js/editor/page.js"></script>
 		<script type ="text/javascript" src="js/editor/element.js"></script>
-		<script type="text/javascript" src="js/editor/event-new.js"></script>
+		<script type="text/javascript" src="js/editor/event.js"></script>
 		<script type="text/javascript" src="js/editor/handword.js"></script>
-		<script type="text/javascript" src="js/editor/doodle_new.js"></script>
+		<script type="text/javascript" src="js/editor/doodle.js"></script>
 		<script type="text/javascript" src="js/editor/doodle_edit.js"></script>
 		<script type="text/javascript" src="js/editor/clipboard.js"></script>
 		<script type="text/javascript" src="js/editor/undoredo.js"></script>
-		<script type="text/javascript" src="js/editor/load_new.js"></script>
+		<script type="text/javascript" src="js/editor/load_content.js"></script>
 		<script type="text/javascript" src="js/editor/load_doodle.js" ></script>
 		
 		<script type="text/javascript" src="js/editor/filter/blur.js"></script>
@@ -212,8 +212,10 @@
 						<a title="設置編輯區域是否只讀" id='ctrl-readonly' href="javascript:ctrlReadOnly();">只讀(已關)</a>
 						
 						<a id="ctrl-handword" href="javascript:ctrlSetCurMode();" title="手寫模式下您可以使用鼠標右鍵輸入手寫文字，左鍵選取文字">手寫(已開)</a>
-						<a id="ctrl-doodle" href="javascript:ctrlSetCurMode();" title="塗鴉模式下您可以使用鼠標右鍵繪製塗鴉，左鍵選擇和編輯塗鴉">塗鴉(已關)</a>
+						<a id="ctrl-doodle" href="javascript:ctrlSetCurMode();" title="塗鴉模式下您可以繪製塗鴉">塗鴉(已關)</a>
+					
 						<span id="ctrl-doodle-option" style="display:none;" >
+								<a id="ctrl-doodle-edit" href="javascript:ctrlSetEditMode();" title="編輯模式下您可以選擇，縮放和旋轉塗鴉">開啟塗鴉編輯</a>
 								<a href="javascript:;" title="選擇畫筆類型">畫筆：</a>
 								<select id="ctrl-doodle-type" onchange="ctrlSetDoodleType();">
 									<option>普通</option>
@@ -224,6 +226,7 @@
 									<option>直線</option>
 									<option>矩形</option>
 									<option>圓形</option>
+									<option>橡皮擦</option>
 								</select>
 								<a href="javascript:;" title="選擇畫筆寬度">寬度：</a>
 								<select id="ctrl-doodle-weight" onchange="ctrlSetDoodleWeight();">

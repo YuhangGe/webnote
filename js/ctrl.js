@@ -69,27 +69,49 @@ function ctrlSaveNote() {
 	Daisy.Global.cur_page.saved = true;
 }
 
-function ctrlSetCurMode(mode) {
-	if(mode != null) {
-		mode = (mode === 'doodle') ? 'handword' : 'doodle';
-		Daisy.Global.cur_mode = mode;
+function ctrlSetEditMode(mode) {
+	if(mode == null) {
+		mode = Daisy.Global.cur_mode === 'doodle' ? 'doodle_edit' : 'doodle';
+	} else if(mode === 'doodle_edit') {
+		ctrlSetCurMode('doodle');
 	}
+	$.log(mode)
+	if(mode === 'doodle') {
 
-	if(Daisy.Global.cur_mode === 'handword') {
+		$('#ctrl-doodle-edit').html("開啟塗鴉編輯")
+	} else if(mode === 'doodle_edit') {
+
+		$('#ctrl-doodle-edit').html("關閉塗鴉編輯")
+	}
+	SNEditor.setMode(mode);
+	Daisy.Global.cur_mode = mode;
+}
+
+function ctrlSetCurMode(mode) {
+	if(mode == null) {
+		mode = Daisy.Global.cur_mode === 'handword' ? 'doodle' : 'handword';
+	}
+	if(mode === 'doodle') {
 		$("#ctrl-doodle-option").show();
 		$("#ctrl-handword").html("手寫(已關)");
 		$("#ctrl-doodle").html("塗鴉(已開)");
-		Daisy.Global.cur_mode = 'doodle'
-	} else {
+		$('#ctrl-doodle-edit').html("開啟塗鴉編輯")
+
+	} else if(mode === 'handword') {
 		$("#ctrl-doodle-option").hide();
 		$("#ctrl-handword").html("手寫(已開)");
 		$("#ctrl-doodle").html("塗鴉(已關)");
-		Daisy.Global.cur_mode = 'handword'
+		$('#ctrl-doodle-edit').html("關閉塗鴉編輯")
+
 	}
+	SNEditor.setMode(mode);
+	Daisy.Global.cur_mode = mode;
 }
 
 function ctrlSetDoodleType() {
 	var si = $('#ctrl-doodle-type')[0].selectedIndex;
+	if(si === 8)
+		si = Daisy._Doodle.Type.ERASER;
 	Daisy.Global.doodle_type = si;
 }
 

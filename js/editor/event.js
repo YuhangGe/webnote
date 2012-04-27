@@ -28,10 +28,14 @@
 		_leftmousedown_handler : function(e, is_chrome) {
 			this.__left_mouse_down__ = true;
 			var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
-			if(Daisy.Global.cur_mode === 'doodle') {
+			if(Daisy.Global.cur_mode === 'doodle_edit') {
 				p.y += Math.round(this.padding_top / this.render.scale);
 				//$.log("d : %d,%d", p.x, p.y)
 				this._doodle_edit_down(p);
+			} else if(Daisy.Global.cur_mode === 'doodle') {
+				p.y += Math.round(this.padding_top / this.render.scale);
+				$.log("%d,%d", p.x, p.y);
+				this._doodle_rightmouse_down(p);
 			} else {
 				this._deal_leftmouse_down(p);
 			}
@@ -50,10 +54,15 @@
 
 		},
 		_leftmouseup_handler : function(e, is_chrome) {
-			if(Daisy.Global.cur_mode === 'doodle') {
-				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+			var p = null, m = Daisy.Global.cur_mode;
+			if(m !== 'handword') {
+				p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
 				p.y += Math.round(this.padding_top / this.render.scale);
+			}
+			if(m === 'doodle_edit') {
 				this._doodle_edit_up(p);
+			} else if(m === 'doodle') {
+				this._doodle_rightmouse_up(p);
 			}
 			this.render.paint();
 			this.__left_mouse_down__ = false;
@@ -94,14 +103,19 @@
 		},
 		_mousemove_handler : function(e, is_chrome) {
 			if(this.__left_mouse_down__) {
-				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
-				if(Daisy.Global.cur_mode === 'doodle') {
+				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e), m = Daisy.Global.cur_mode;
+
+				if(m !== 'handword') {
 					p.y += Math.round(this.padding_top / this.render.scale);
-					this._doodle_edit_move(p);
-				} else {
-					var pos = this.cur_page._getCaret_xy(p.x, p.y);
-					this._deal_leftmouse_move(pos);
 				}
+				if(m === 'doodle_edit') {
+					this._doodle_edit_move(p);
+				} else if(m === 'doodle') {
+					this._doodle_rightmouse_move(p);
+				} else {
+					this._deal_leftmouse_move(this.cur_page._getCaret_xy(p.x, p.y));
+				}
+
 			} else if(this.__right_mouse_down__) {
 				this._rightmousemove_handler(e, is_chrome);
 			}
@@ -128,6 +142,41 @@
 
 			//$.log(e);
 			//$.log(this.read_only);
+			if(e.ctrlKey) {
+				switch(e.keyCode) {
+					case 90:
+						this._undo_handler();
+						$.stopEvent(e);
+						return;
+					case 89:
+						this._redo_handler();
+						$.stopEvent(e);
+						return;
+					case 65:
+						this._setCaret(this.cur_doc.selectAll());
+						this.render.paint();
+						$.stopEvent(e);
+						return;
+					/**
+					 * firefox 和 ie 下面当caret(即textarea)为空时，快捷键ctrl+c不能触发 oncopy事件，
+					 * 需要手动处理
+					 */
+					case 67:
+						if($.ie || $.firefox) {
+							this._copy_handler(null);
+							$.stopEvent(e);
+						}
+						return;
+					case 88:
+						if($.ie || $.firefox) {
+
+							this._cut_handler(null);
+							$.stopEvent(e);
+						}
+						return
+				}
+			}
+
 			if(this.read_only && (e.keyCode < 37 || e.keyCode > 40)) {
 				$.stopEvent(e);
 				return;
@@ -182,50 +231,14 @@
 						//$.log("ime on");
 					}
 					break;
-				case 65:
-					if(e.ctrlKey) {
-						this._setCaret(this.cur_doc.selectAll());
-						this.render.paint();
-						$.stopEvent(e);
-					}
-					break;
-				/**
-				 * firefox 和 ie 下面当caret(即textarea)为空时，快捷键ctrl+c不能触发 oncopy事件，
-				 * 需要手动处理
-				 */
-				case 67:
-					if(e.ctrlKey && ($.ie || $.firefox)) {
-
-						this._copy_handler(null);
-						$.stopEvent(e);
-					}
-					break;
-				case 88:
-					if(e.ctrlKey && ($.ie || $.firefox)) {
-
-						this._cut_handler(null);
-						$.stopEvent(e);
-					}
-					break;
-				case 90:
-					if(e.ctrlKey) {
-						this._undo_handler();
-						$.stopEvent(e);
-					}
-					break;
-				case 89:
-					if(e.ctrlKey) {
-						this._redo_handler();
-						$.stopEvent(e);
-					}
 
 			}
 		},
-		_undo_handler : function(){
+		_undo_handler : function() {
 			var h = Daisy.Global.cur_mode === 'doodle' ? this.doodle_history : this.text_history;
 			h.undo();
 		},
-		_redo_handler : function(){
+		_redo_handler : function() {
 			var h = Daisy.Global.cur_mode === 'doodle' ? this.doodle_history : this.text_history;
 			h.redo();
 		},
@@ -294,14 +307,18 @@
 			if(Daisy.Global.cur_mode === 'handword' && this.cur_page.select_mode) {
 				this.clipboard.setData("item", this.cur_page.copyElement(), e);
 			} else if(Daisy.Global.cur_mode === "doodle_edit") {
-
+				/**
+				 * todo... 
+				 */
 			}
 			if(e != null)
 				$.stopEvent(e);
 		},
 		_cut_handler : function(e) {
 			this._copy_handler(e);
-
+			/**
+			 * to do ...
+			 */
 		},
 		_paste_handler : function(e) {
 			this.clipboard.getData(e, $.createDelegate(this, this._deal_paste));

@@ -3,11 +3,10 @@ tip:
 
 bug:
 
-1、image doodle旋转时有诡异bug
-2、image doodle在不停的操作后不停的undo redo这期间有不确实诡异bug.还不清楚这两个bug是否是同一原因。
 
 2、含橡皮擦的嵌套群组会不能正确绘制。具体在代码中有注释说明。
 
+
 todo:
-1、橡皮插的undo redo
+1、doodle 的复制粘贴
 3. 非firefox下面doodle选择框用虚线。

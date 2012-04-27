@@ -130,6 +130,22 @@
 
 	}
 	Daisy.WebNote.prototype = {
+		setMode : function(mode){
+			if(mode === 'doodle'){
+				this.canvas.style.cursor = "crosshair";
+				//this.caret.style.display = "none";
+				this.read_only = true;
+			}else if(mode === 'doodle_edit'){
+				this.canvas.style.cursor = "default";
+				//this.caret.style.display = "none";
+				this.read_only = true;
+			}else{
+				this.canvas.style.cursor = "text";
+				//this.caret.style.display = "block";
+				this.read_only = false;
+			}
+			
+		},
 		setColor : function(color) {
 			this.color = color;
 
@@ -339,6 +355,7 @@
 				cmd.add(new Daisy._DeleteCommand(tc, re.caret, re.value));
 				caret = re.caret;
 			}
+			
 			if( typeof value === 'string') {
 				re = this._insertText(value, caret);
 			} else if( value instanceof Array) {
@@ -357,20 +374,6 @@
 			
 			this.text_history.add(cmd);
 			this._setCaret(re.caret);
-			this.render.paint();
-		},
-		append : function(element) {
-			var n_p;
-			if( typeof element === 'string')
-				element = element.replace("\t", "    ").replace(/\r\n/g, "\n");
-
-			if(element.length) {
-				for(var i = 0; i < element.length; i++) {
-					this.cur_page.append(element[i]);
-				}
-			} else {
-				n_p = this.cur_page.append(element);
-			}
 			this.render.paint();
 		},
 		/**

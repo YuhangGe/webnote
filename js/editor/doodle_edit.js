@@ -90,7 +90,7 @@
 		},
 		editRotateScale : function(point) {
 			var rs = this._calcRSValue(point);
-			this.callBase("editRotateScale", this.center, rs.rotate, rs.scale);
+			this.callBase("editRotateScale", this.center, rs.rotate, rs.scale,true);
 			return rs;
 		},
 		_calcRSValue : function(point) {
@@ -165,14 +165,12 @@
 		},
 		_doodle_edit_move : function(point) {
 			if(this.__doodle_move__) {
-				//var dx = point.x-this.__doodle_pre_point__.x, dy = point.y-this.__doodle_pre_point__.y;
+			
 				var d = this.edit_doodle.editMove(point);
 				this.select_doodle.editMove(d.x, d.y);
 
 			} else if(this.__doodle_rotate__) {
-				/**
-				 * todo 现在的旋转只能顺时针，而且还有bug。
-				 */
+			
 				var rs = this.edit_doodle.editRotateScale(point);
 				this.select_doodle.editRotateScale(this.edit_doodle.center, rs.rotate, rs.scale);
 

@@ -221,51 +221,6 @@
 				}
 			}
 		},
-		_appendLine : function() {
-
-			var last_para = this.para_info[this.para_number - 1]
-			this.para_info.push({
-				index : this.ele_array.length,
-				length : 0,
-				line_start : last_para.line_start + last_para.line_cross,
-				line_cross : 1
-			})
-			var n_e = new Daisy._NewLineElement();
-			if(this.ele_array.length>0){
-				var p_e = this.ele_array[this.ele_array.length-1];
-				//$.log(p_e)
-				n_e.left = p_e.left+p_e.width;
-				n_e.bottom = p_e.bottom;
-				n_e.line_at = p_e.line_at;
-			}
-			this.ele_array.push(n_e);
-			this.para_number++;
-		},
-		append : function(ele) {
-
-			var new_ele = null;
-			if( typeof ele === 'string') {
-				if(ele === '\n') {
-					this._appendLine();
-					return;
-				}
-				new_ele = new Daisy._CharElement(ele, {
-					font : this.editor.font,
-					bold : this.editor.font_bold,
-					color : this.editor.color
-				});
-			} else {
-				new_ele = new Daisy._HandElement(ele.bihua, {
-					weight : ele.weight,
-					color : ele.color
-				}, ele.width, ele.height);
-			}
-			this.ele_array.push(new_ele);
-
-			this.para_info[this.para_number - 1].length++;
-			this._resetParagraph(this.para_number - 1);
-
-		},
 		delElement : function(caret) {
 			var p_idx = caret.para, p_at = caret.para_at,
 				para = this.para_info[p_idx], e_idx = para.index + ( p_at = (p_at == null ? para.length : p_at)) + 1;

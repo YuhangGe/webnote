@@ -114,6 +114,7 @@
 		this.r = rotate;
 		this.s = scale;
 		this.p = relay_point;
+		this.p2 = relay_point;
 		if(doo.type===Daisy._Doodle.Type.IMAGE){
 			this.p = doo.pre_matrix;
 			this.p2 = doo.matrix;
@@ -129,7 +130,21 @@
 	}
 	$.inherit(Daisy._DoodleRSCommand, Daisy._URCommand);
 
-	
+	Daisy._DoodleEraserCommand = function(doo,eraser){
+		this.doodle = doo;
+		this.eraser = eraser;
+	}
+	Daisy._DoodleEraserCommand.prototype = {
+		undo : function(editor){
+			this.doodle.removeEraser(this.eraser);
+			editor.render.paint();
+		},
+		redo : function(editor){
+			this.doodle.addEraser(this.eraser);
+			editor.render.paint();
+		}
+	}
+	$.inherit(Daisy._DoodleEraserCommand, Daisy._URCommand);
 	Daisy._UndoRedoManager = function(editor) {
 		this.cmd_array = [];
 		this.cmd_index = -1;
@@ -169,6 +184,7 @@
 	}
 	Daisy._TextHistory.prototype = {
 		add : function(cmd){
+		
 			if(this.add_timeout!==null){
 				window.clearTimeout(this.add_timeout);
 			}else{

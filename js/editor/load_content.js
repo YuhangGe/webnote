@@ -64,10 +64,10 @@
 				var t = text[i];
 				//$.log("t:%d %s",i,t);
 				if(t === '\ufffc') {
-					this.editor.cur_page.append(this._findHW(hw_arr, i));
+					this.editor.insert(this._findHW(hw_arr, i));
 				} else {
 
-					this.editor.cur_page.append(t);
+					this.editor.insert(t);
 				}
 			}
 			this._loadStyle();
@@ -157,7 +157,7 @@
 			if(hw.width === 0) {
 				hw.width = this._calcHandWidth(hw.bihua,hw.height);
 			}
-			//$.log(hw.width)
+			
 			return hw;
 
 		},
