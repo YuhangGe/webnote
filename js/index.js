@@ -48,7 +48,7 @@ function layout() {
 $(window).resize(layout);
 
 $(function() {
-	
+
 	initPlugin();
 	/*
 	* phone
@@ -88,11 +88,11 @@ $(function() {
 	//$.get("other_lang.txt",function(data){
 	//SNEditor.append(data);
 	//})
-	
+
 	//SNEditor.append("\ndjlsdkl jdksljdklsdkj jdskljdlsdj  djslkdjklsd  djskldjklsd djskldjsd djklsdjlsdj djlsd d jsdkl d");
 	//SNEditor.append("Juan WongPodsdsddsdsdssted July 27, 2006 at 8:26 am | Permalinkglad I can help  Adam Ziegler");
-	
-	SNEditor.insert("a\n1234\nc");
+
+	SNEditor.insert("abc\nd");
 	//SNEditor.append("歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
 	loadAllBook();
 
@@ -102,40 +102,27 @@ $(function() {
  * 初始化jQuery 插件，包括颜色选择、tip、menu等
  */
 function initPlugin() {
-	$('#colorSelector').ColorPicker({
-		color : '#010101',
-		onShow : function(colpkr) {
-			$(colpkr).fadeIn(300);
-			return false;
-		},
-		onHide : function(colpkr) {
-			$(colpkr).fadeOut(300);
-			return false;
-		},
-		onChange : function(hsb, hex, rgb) {
-			$('#colorSelector').css('backgroundColor', '#' + hex);
-		},
-		onSubmit : function(hsb, hex, rgb, colpkr) {
-			ctrlSetColor('#' + hex);
-			$('#colorSelector').ColorPickerHide();
-		}
+	
+	var cp = new Daisy._ColorPicker('colorSelector', function(color){
+		 ctrlSetColor(color);
 	});
-	$('.edit-ctrl a').qtip({
-		position : {
-			my : "bottom left",
-			at : "top right",
-			adjust : {
-				x : 0,
-				y : -3
-			}
-		},
-		style : {
-			classes : 'ui-tooltip-shadow',
-			tip : {
-				border : 1
-			}
-		}
-	});
+	
+	// $('.edit-ctrl a').qtip({
+		// position : {
+			// my : "bottom left",
+			// at : "top right",
+			// adjust : {
+				// x : 0,
+				// y : -3
+			// }
+		// },
+		// style : {
+			// classes : 'ui-tooltip-shadow',
+			// tip : {
+				// border : 1
+			// }
+		// }
+	// });
 }
 
 /**
@@ -144,33 +131,33 @@ function initPlugin() {
 function loadAllBook() {
 	$.getJSON("data/getallbook.php", function(data) {
 		if(data.status != 0) {
-			alert('网络错误或未登录！请重试。');
+			$('#page-list').html("網絡錯誤或未登錄，請重試");
 			return;
 		}
 		var books = data.books, bl_dom = $('#book-list');
 		if(books.length == 0) {
-			$('#book-list li p').html("没有笔记本，请新建");
+			$('#book-list li p').html("沒有筆記本，請新建");
 		} else {
 			bl_dom.html("");
 		}
 		for(var i = 0; i < books.length; i++) {
 			var b = books[i];
 			bl_dom.append($('<li id="book_' + b.bookid + '" onclick="loadBook(\'' + b.bookid + '\');">').html('<p class="book-title">' + b.name + '</p></p><p class="book-type">(For ' + (b.type == 'phone' ? 'Phone' : 'Pad') + ') ' + b.pagenum + '页</p>'));
-
 		}
 	});
 }
 
 function loadBook(id) {
 	Daisy.Global.cur_page.bookid = id;
+	$('#page-list').html("<p>正在加載筆記列表，請稍候...</p>");
 	$.getJSON("data/getbook.php?bookid=" + id, function(data) {
 		if(data.status != 0) {
-			alert('网络错误或未登录！请重试。');
+			$('#page-list').html('<p>網絡錯誤或未登錄，請重試</p>');
 			return;
 		}
 		var pages = data.pages, pl_dom = $('#page-list');
 		if(pages.length == 0) {
-			$('#page-list').html("没有笔记本，请新建");
+			pl_dom.html("<p>沒有筆記，請新建</p>");
 		} else {
 			pl_dom.html("");
 		}
@@ -183,7 +170,7 @@ function loadBook(id) {
 
 function loadPage(id) {
 	SNEditor.clear();
-	SNEditor.insert("正在加载笔记...");
+	SNEditor.insert("正在加載筆記內容，請稍候...");
 	Daisy.Global.cur_page.pageid = id;
 	$.get("data/openpage.php?bookid=" + Daisy.Global.cur_page.bookid + "&pageid=" + id, function(data) {
 		//alert(data.length);

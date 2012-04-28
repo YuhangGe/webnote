@@ -35,7 +35,6 @@
 			a : 0,
 			next : null
 		};
-		;
 
 		var stack = stackStart;
 		for( i = 1; i < div; i++) {
@@ -46,8 +45,6 @@
 				a : 0,
 				next : null
 			};
-			if(i == radiusPlus1)
-				var stackEnd = stack;
 		}
 		stack.next = stackStart;
 		var stackIn = null;

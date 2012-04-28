@@ -154,6 +154,7 @@
 	}
 	Daisy._UndoRedoManager.prototype = {
 		add : function(cmd) {
+			//$.log(cmd)
 			
 			if(this.cmd_index + 1 < this.MAX_NUM){
 				this.cmd_index++;
@@ -173,6 +174,10 @@
 			if(this.cmd_index + 1 < this.cmd_size) {
 				this.cmd_array[++this.cmd_index].redo(this.editor);
 			}
+		},
+		clear : function(){
+			this.cmd_index = -1;
+			this.cmd_size = 0;
 		}
 	}
 	
@@ -183,6 +188,20 @@
 		this.add_timeout = null;
 	}
 	Daisy._TextHistory.prototype = {
+		undo : function(){
+			if(this.add_timeout!==null){
+				window.clearTimeout(this.add_timeout);
+				this._add_handler();
+			}
+			this.callBase("undo");
+		},
+		redo : function(){
+			if(this.add_timeout!==null){
+				window.clearTimeout(this.add_timeout);
+				this._add_handler();
+			}
+			this.callBase("redo");
+		},
 		add : function(cmd){
 		
 			if(this.add_timeout!==null){
@@ -196,6 +215,13 @@
 		_add_handler : function(){
 			this.callBase("add",this.add_cmd);
 			this.add_timeout = null;
+		},
+		clear : function(){
+			if(this.add_timeout!==null){
+				window.clearTimeout(this.add_timeout);
+				this.add_timeout = null;
+			}
+			this.callBase("clear");
 		}
 	}
 	$.inherit(Daisy._TextHistory, Daisy._UndoRedoManager);

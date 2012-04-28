@@ -111,8 +111,6 @@
 			this.page = this.editor.cur_page;
 		},
 		_measureParagraph : function(para) {
-			if(para.length === 0)
-				return 1;
 			var idx = para.index + 1, e_idx = idx + para.length;
 			var left = 0, bottom = this.padding_top + (para.line_start + 1) * this.line_height, lc = 1, l_at = para.line_start;
 			var e_arr = this.page.ele_array;
@@ -145,16 +143,21 @@
 						if(s_t === Daisy._MType.SPACE) {
 							ele.visible = false;
 						} else {
-							left = 0;
-							bottom += this.line_height;
-							lc++;
-							l_at++;
-							//$.log('break line');
-							if(do_again) {
-								//换行后重新布局
-								do_again = false;
-								i = idx - 1;
+							$.log(idx)
+							if(idx === para.index + 1) {
+
+							} else {
+								left = 0;
+								bottom += this.line_height;
+								lc++;
+								l_at++;
+								if(do_again) {
+									//换行后重新布局
+									do_again = false;
+									i = idx - 1;
+								}
 							}
+
 							continue;
 						}
 					}
@@ -163,8 +166,14 @@
 					ele.line_at = l_at;
 					left += ele.width;
 				}
-				
+
 				idx = e;
+			}
+			var nl = e_arr[e_idx];
+			if(nl != null) {
+				nl.left = left;
+				nl.bottom = bottom;
+				nl.line_at = l_at;
 			}
 			return lc;
 		},
@@ -218,16 +227,18 @@
 			this.ctx.fillStyle = "rgba(0,255,0,0.2)";
 			var e_arr = this.page.ele_array, s_e = e_arr[from.index + 1], e_e = e_arr[to.index], s_l = from.line, e_l = to.line;
 			var c_h = this.font_height, c_w = this.width;
-			//$.log("%d,%d",s_l,e_l);
+
 			if(s_l === e_l) {
 				//$.log(s_e);$.log(e_e);
 				this.ctx.fillRect(s_e.left, s_e.bottom - c_h + this.baseline_offset, e_e.left - s_e.left + e_e.width, c_h);
 			} else {
+				//$.log("%d,%d",s_l,e_l);
+				//$.log("%s,%s,%s,%s",s_e.left, s_e.bottom - c_h + this.baseline_offset, c_w - s_e.left, c_h)
 				this.ctx.fillRect(s_e.left, s_e.bottom - c_h + this.baseline_offset, c_w - s_e.left, c_h);
-				for(var i=s_l+1; i < e_l; i++) {
+				for(var i = s_l + 1; i < e_l; i++) {
 					this.ctx.fillRect(0, this.padding_top + (i + 1) * this.line_height - c_h + this.baseline_offset, c_w, c_h);
 				}
-				if(to.para_at>=0){
+				if(to.para_at >= 0) {
 					this.ctx.fillRect(0, e_e.bottom - c_h + this.baseline_offset, e_e.left + e_e.width, c_h);
 				}
 			}
@@ -259,7 +270,6 @@
 
 			this.ctx.textAlign = "start";
 			this.ctx.textBaseline = 'ideographic';
-			//'bottom';
 
 			this._paintBackground();
 
@@ -319,7 +329,7 @@
 			//$.processEmboss(this.ctx,400,200,600,600);
 		},
 		_paintDoodle : function() {
-			
+
 			for(var i = this.page.doodle_list.length - 1; i >= 0; i--) {
 				if(this.editor.select_doodle !== this.page.doodle_list[i])
 					this.page.doodle_list[i].draw(this.ctx, this.doodle_ctx, this.mask_ctx);

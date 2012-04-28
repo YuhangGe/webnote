@@ -3,17 +3,18 @@
 	<head>
 		<title>Super Note</title>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-		
-	
+
 		<script type="text/javascript" src="js/jquery-1.5.1.js"></script>
 		<script type="text/javascript" src="js/js-printf.js"></script>
-		
+
 		<script type="text/javascript" src="js/jquery.qtip.min.js"></script>
 		<link type="text/css" rel="stylesheet" href="css/jquery.qtip.min.css" />
 
+		<script type="text/javascript" src="js/simple-color-picker.js"></script>
+
 		<script type="text/javascript" src="js/colorpicker.js"></script>
 		<link rel="stylesheet" media="screen" type="text/css" href="css/colorpicker.css" />
-		
+
 		<script type="text/javascript" src="js/editor/utility.js"></script>
 		<script type="text/javascript" src="js/editor/editor.js"></script>
 		<script type="text/javascript" src="js/editor/render.js"></script>
@@ -27,18 +28,17 @@
 		<script type="text/javascript" src="js/editor/undoredo.js"></script>
 		<script type="text/javascript" src="js/editor/load_content.js"></script>
 		<script type="text/javascript" src="js/editor/load_doodle.js" ></script>
-		
+
 		<script type="text/javascript" src="js/editor/filter/blur.js"></script>
 		<script type="text/javascript" src="js/editor/filter/blur2.js"></script>
 		<script type="text/javascript" src="js/editor/filter/blur3.js"></script>
 		<script type="text/javascript" src="js/editor/filter/emboss.js"></script>
-		
-		
+
 		<script type="text/javascript" src="js/index.js"></script>
 		<script type="text/javascript" src="js/ctrl.js"></script>
 		<link rel="stylesheet" type="text/css" href="css/editor.css" />
 		<link type="text/css" rel="stylesheet" href="css/style.css" />
-		
+
 	</head>
 	<body>
 		<div id="top-menu"></div>
@@ -53,135 +53,139 @@
 					</div>
 					<ul id="book-list">
 						<li>
-							<p>正在加載筆記本...</p>
-						</li>
-					<!--	<li>
-							<p class="book-title">
-								笔记本1
-							</p>
-							<p class="book-type">
-								(For Phone) 2页
+							<p>
+								正在加載筆記本...
 							</p>
 						</li>
-						<li>
-							<p class="book-title">
-								笔记本2
-							</p>
-							<p class="book-type">
-								(For Pad) 200页
-							</p>
-						<li>
-							<p class="book-title">
-								笔记本3
-							</p>
-							<p class="book-type">
-								(For Phone) 52页
-							</p>
+						<!--	<li>
+						<p class="book-title">
+						笔记本1
+						</p>
+						<p class="book-type">
+						(For Phone) 2页
+						</p>
 						</li>
 						<li>
-							<p class="book-title">
-								笔记本1
-							</p>
-							<p class="book-type">
-								(For Phone) 2页
-							</p>
+						<p class="book-title">
+						笔记本2
+						</p>
+						<p class="book-type">
+						(For Pad) 200页
+						</p>
+						<li>
+						<p class="book-title">
+						笔记本3
+						</p>
+						<p class="book-type">
+						(For Phone) 52页
+						</p>
 						</li>
 						<li>
-							<p class="book-title">
-								笔记本2
-							</p>
-							<p class="book-type">
-								(For Pad) 200页
-							</p>
-						<li>
-							<p class="book-title">
-								笔记本3
-							</p>
-							<p class="book-type">
-								(For Phone) 52页
-							</p>
+						<p class="book-title">
+						笔记本1
+						</p>
+						<p class="book-type">
+						(For Phone) 2页
+						</p>
 						</li>
-					-->
+						<li>
+						<p class="book-title">
+						笔记本2
+						</p>
+						<p class="book-type">
+						(For Pad) 200页
+						</p>
+						<li>
+						<p class="book-title">
+						笔记本3
+						</p>
+						<p class="book-type">
+						(For Phone) 52页
+						</p>
+						</li>
+						-->
 					</ul>
 				</div>
 			</div>
 			<div id="col-2">
 				<div class="search">
-					<p>您好,&nbsp;<span>華碩科技</span><a>退出登錄</a></p>
-					
+					<p>
+						您好,&nbsp;<span>華碩科技</span><a>退出登錄</a>
+					</p>
+
 				</div>
 				<div class="note-list">
 					<div class="sub-title">
 						筆記預覽
-					<!--	<select>
-							<option value="1">修改时间</option>
-					</select> -->
+						<!--	<select>
+						<option value="1">修改时间</option>
+						</select> -->
 					</div>
 					<ul id="page-list">
-				<!--		<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<!--		<li>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
 						<li>
-							<p><img src="adb/thumb.png" />
-							</p>
-							<p>
-								2012年3月26日
-							</p>
+						<p><img src="adb/thumb.png" />
+						</p>
+						<p>
+						2012年3月26日
+						</p>
 						</li>
-					-->
+						-->
 					</ul>
 				</div>
 			</div>
@@ -205,17 +209,29 @@
 				</div>
 				<div class="editor-panel">
 					<div class="edit-ctrl">
-					 
-						<a href="javascript:;" title="複製選中文本">複製</a>
-						<a href="javascript:;" title="粘貼選中文本">粘貼</a>
-						<a title="設置文本是否加粗" id="ctrl-setbold" href="javascript:ctrlSetBold();">加粗(已關)</a>
-						<a title="設置編輯區域是否只讀" id='ctrl-readonly' href="javascript:ctrlReadOnly();">只讀(已關)</a>
-						
-						<a id="ctrl-handword" href="javascript:ctrlSetCurMode();" title="手寫模式下您可以使用鼠標右鍵輸入手寫文字，左鍵選取文字">手寫(已開)</a>
-						<a id="ctrl-doodle" href="javascript:ctrlSetCurMode();" title="塗鴉模式下您可以繪製塗鴉">塗鴉(已關)</a>
-					
-						<span id="ctrl-doodle-option" style="display:none;" >
-								<a id="ctrl-doodle-edit" href="javascript:ctrlSetEditMode();" title="編輯模式下您可以選擇，縮放和旋轉塗鴉">開啟塗鴉編輯</a>
+						<div>
+
+							<a class="ctrl-switch" title="設置編輯區域是否只讀" id='ctrl-readonly' href="javascript:ctrlSwitch('readonly');">只讀</a>
+							<a class="ctrl-switch"  href="javascript:ctrlSwitch('handword');">文字</a>
+							<a class="ctrl-switch"  id="ctrl-doodle" href="javascript:ctrlSwitch('doodle');" title="塗鴉模式下您可以繪製塗鴉">塗鴉</a>
+							<a class="ctrl-switch"  id="ctrl-doodle-edit" href="javascript:ctrlSwitch('doodle_edit');" >选择</a>
+						</div>
+						<div style="padding-left:5px;">
+							<div id="ctrl-readonly-panel" style="display:none;">
+								<p>当前处于只读模式</p>
+							</div>
+							<div id='ctrl-handword-panel'>
+								<a href="javascript:;" title="複製選中文本">複製</a>
+								<a href="javascript:;" title="粘貼選中文本">粘貼</a>
+								<a title="設置文本是否加粗" id="ctrl-setbold" href="javascript:ctrlSetBold();">加粗(已關)</a>
+								<span>
+									<a href="javascript:ctrlSetColor('black')" class="color-block" style="background: black;"></a>
+									<a href="javascript:ctrlSetColor('black')" class="color-block" style="background: blue;"></a>
+									<a href="javascript:ctrlSetColor('black')" class="color-block" style="background: red;"></a>
+									<a href="javascript:ctrlSetColor('black')" class="color-block" style="background: green;"></a>
+								</span>
+							</div>
+							<div  id="ctrl-doodle-panel" style="display:none;">
 								<a href="javascript:;" title="選擇畫筆類型">畫筆：</a>
 								<select id="ctrl-doodle-type" onchange="ctrlSetDoodleType();">
 									<option>普通</option>
@@ -236,29 +252,23 @@
 									<option>13</option>
 									<option>18</option>
 								</select>
-								
-							<!--
-								<a href="javascript:void();" title="" id="ctrl-filter"></a> 
-								<div id="ctrl-filter-menu" style="display: none;">
-								<ul>
-									<li><a href="javascript:void();">模糊</a></li>
-									<li>浮雕</li>
-									<li>空心</li>
-									<li>透明</li>
-								</ul>
-							</div> -->
-						</span>
-						<a style="position: relative;width:25px;" title="选择颜色">
-							<div  id="colorSelector"><div></div></div>
-						</a>
-						
+								<span> </span>
+							</div>
+							<div  id="ctrl-doodle-edit-panel" style="display:none;">
+								<a href="javascript:;" title="複製選中文本">複製</a>
+								<a href="javascript:;" title="粘貼選中文本">粘貼</a>
+							</div>
+						</div>
+
 					</div>
+
 					<div id="edit-container">
-						
+
 					</div>
 				</div>
 			</div>
 		</div>
-		
+
+		</style>
 	</body>
 </html>

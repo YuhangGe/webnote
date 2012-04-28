@@ -27,6 +27,7 @@
 
 			this.loadItem(data)
 			this.loadDoodle(data);
+			this.editor.clearUndoRedo();
 		},
 		loadItem : function(data, from) {
 			if(from != null)

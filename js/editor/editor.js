@@ -40,7 +40,7 @@
 		this.clipboard = Daisy.Clipboard.getInstance();
 		this.text_history = new Daisy._TextHistory(this);
 		this.doodle_history = new Daisy._UndoRedoManager(this);
-		
+
 		this.line_height = config.line_height;
 		this.line_count = config.line_count;
 
@@ -49,10 +49,12 @@
 		this.font_bold = config.font_bold == null ? false : config.font_bold;
 		this.padding_top = config.padding_top == null ? 22 : config.padding_top;
 		this.font_height = config.font_height == null ? 40 : config.font_height;
-		this.baseline_offset = 2;
+
 		//为了让底线和caret与文字底端对齐而设置的两个offset像素
 		this.caret_offset_1 = 0;
 		this.caret_offset_2 = 0;
+		this.baseline_offset = 2;
+
 		if($.chrome || $.safari) {
 			this.caret_offset_1 = 8;
 			this.caret_offset_2 = 8;
@@ -108,13 +110,13 @@
 			para : 0,
 			para_at : -1,
 			left : 0,
+			line : 0,
 			top : this.line_height - this.font_height
 		}
 
 		this.render = new Daisy._Render(this);
 		this.loader = new Daisy._Load(this);
 
-		this._resetCaret();
 		/**
 		 * ie 9 下面的一个hack. input必须有过非空值，它的style.height才能生效。
 		 */
@@ -130,21 +132,28 @@
 
 	}
 	Daisy.WebNote.prototype = {
-		setMode : function(mode){
-			if(mode === 'doodle'){
+		setMode : function(mode) {
+			if(mode === 'doodle') {
 				this.canvas.style.cursor = "crosshair";
-				//this.caret.style.display = "none";
+				this.select_doodle = null;
 				this.read_only = true;
-			}else if(mode === 'doodle_edit'){
+				this.caret.style.opacity = "0";
+			} else if(mode === 'doodle_edit') {
 				this.canvas.style.cursor = "default";
-				//this.caret.style.display = "none";
+				if(this.cur_page.doodle_list.length > 0) {
+					this.select_doodle = this.cur_page.doodle_list[0];
+					this.edit_doodle.attachDoodle(this.select_doodle);
+				}
+				this.caret.style.opacity = "0";
 				this.read_only = true;
-			}else{
+			} else {
+				this.select_doodle = null;
 				this.canvas.style.cursor = "text";
-				//this.caret.style.display = "block";
+				this.caret.style.opacity = "1";
 				this.read_only = false;
 			}
-			
+			this.focus();
+			this.render.paint();
 		},
 		setColor : function(color) {
 			this.color = color;
@@ -210,7 +219,7 @@
 		},
 		_getEventPoint_chrome : function(e, not_scale) {
 			var off = $.getOffset(this.container);
-			var x = e.x - off.left, y = e.y - off.top + this.container.scrollTop + document.body.scrollTop;
+			var x = e.x - off.left + this.container.scrollLeft + document.body.scrollLeft, y = e.y - off.top + this.container.scrollTop + document.body.scrollTop;
 			if(y < 0)
 				y = 0;
 			return {
@@ -224,9 +233,13 @@
 			if( typeof e.offsetX !== 'undefined') {
 				x = e.offsetX;
 				y = e.offsetY;
+			} else if( typeof e.x !== 'undefined') {
+				x = e.x, y = e.y
 			} else if( typeof e.layerX !== 'undefined') {
 				x = e.layerX;
 				y = e.layerY;
+			} else {
+				throw "no x in event(_getEventPoint)";
 			}
 			if(y < 0)
 				y = 0;
@@ -241,8 +254,8 @@
 		},
 		setCurPage : function(index) {
 			this.cur_page = this.pages[index];
+			this._resetCaret();
 			this.render.resetPage();
-
 		},
 		_moveCaret_xy : function(x, y) {
 			var new_pos = this.cur_page._getCaret_xy(x, y);
@@ -258,8 +271,18 @@
 		},
 		_resetCaret : function() {
 			//$.log(this.caret_pos.top);
-			this.caret.style.left = this.caret_pos.left * this.render.scale + 'px';
-			this.caret.style.top = (this.caret_pos.top + this.padding_top + this.baseline_offset - this.caret_offset_2) * this.render.scale + "px";
+			var l = this.caret_pos.left * this.render.scale, t = (this.caret_pos.top + this.padding_top + this.baseline_offset - this.caret_offset_2) * this.render.scale, off_t = t - this.container.scrollTop, off_b = off_t - this.height + this.line_height + this.caret_offset_2;
+
+			//$.log("off %d,%d",off_t,off_b)
+			if(off_t < 0) {
+				this.container.scrollTop += off_t;
+			} else if(off_b > 0) {
+				this.container.scrollTop += off_b;
+			}
+			if($.chrome && this.cur_page.select_mode)
+				t += 3;
+			this.caret.style.left = l + 'px';
+			this.caret.style.top = t + "px";
 		},
 		focus : function() {
 			this.focused = true;
@@ -302,37 +325,37 @@
 		 */
 		_delete : function(from, to) {
 			this.cur_page.delRange(from, to);
-			this._setCaret(this.cur_page._getCaret_p(from.para,from.para_at));
+			this._setCaret(this.cur_page._getCaret_p(from.para, from.para_at));
 			this.render.paint();
 		},
-		_insertDoodle : function(doo){
+		_insertDoodle : function(doo) {
 			this.cur_page.doodle_list.unshift(doo);
 			this.render.paint();
 		},
-		_removeDoodle : function(doo){
+		_removeDoodle : function(doo) {
 			var dl = this.cur_page.doodle_list;
-			dl.splice(dl.indexOf(doo),1);
-			if(this.select_doodle === doo){
+			dl.splice(dl.indexOf(doo), 1);
+			if(this.select_doodle === doo) {
 				this.select_doodle = null;
-				
+
 			}
 			this.render.paint();
 		},
-		insertDoodle : function(doo){
+		insertDoodle : function(doo) {
 			var cmd = null;
-			if(doo instanceof Array){
+			if( doo instanceof Array) {
 				cmd = new Daisy._CombineCommand();
-				for(var i=0;i<doo.length;i++){
+				for(var i = 0; i < doo.length; i++) {
 					this._insertDoodle(doo[i]);
 					cmd.add(new Daisy._DoodleNewCommand(doo[i]))
 				}
-			}else{
+			} else {
 				cmd = new Daisy._DoodleNewCommand(doo);
 				this._insertDoodle(doo);
 			}
 			this.doodle_history.add(cmd);
 		},
-		removeDoodle : function(doo){
+		removeDoodle : function(doo) {
 			this._removeDoodle(doo);
 			this.doodle_history.add(new Daisy._DoodleDelCommand(doo));
 		},
@@ -355,7 +378,7 @@
 				cmd.add(new Daisy._DeleteCommand(tc, re.caret, re.value));
 				caret = re.caret;
 			}
-			
+
 			if( typeof value === 'string') {
 				re = this._insertText(value, caret);
 			} else if( value instanceof Array) {
@@ -367,11 +390,11 @@
 					value : [ie.value]
 				}
 			}
-			if(cmd!==null)
+			if(cmd !== null)
 				cmd.add(new Daisy._InsertCommand(caret, re.caret, re.value));
 			else
 				cmd = new Daisy._InsertCommand(caret, re.caret, re.value);
-			
+
 			this.text_history.add(cmd);
 			this._setCaret(re.caret);
 			this.render.paint();
@@ -382,18 +405,18 @@
 		_key_del : function() {
 			var from = this.caret_pos, to = null;
 			if(from.index === this.cur_page.ele_array.length - 1) {
-				return ;
+				return;
 			}
 			to = {
 				para : from.para,
 				para_at : from.para_at + 1,
 				index : from.index + 1
 			};
-			if(from.para_at === this.cur_page.para_info[from.para].length - 1){
+			if(from.para_at === this.cur_page.para_info[from.para].length - 1) {
 				to.para++;
 				to.para_at = -1;
 			}
-			this.del(from,to);
+			this.del(from, to);
 		},
 		/**
 		 * 处理键盘按键 backspace
@@ -407,11 +430,11 @@
 				para_at : to.para_at - 1,
 				index : to.index - 1
 			};
-			if(to.para_at < 0){
+			if(to.para_at < 0) {
 				from.para--;
-				from.para_at =  this.cur_page.para_info[from.para].length - 1;
+				from.para_at = this.cur_page.para_info[from.para].length - 1;
 			};
-			this.del(from,to);
+			this.del(from, to);
 
 		},
 		/**
@@ -421,7 +444,7 @@
 		del : function(from, to, c_t) {
 			var re = this.cur_page.delRange(from, to);
 			this.text_history.add(new Daisy._DeleteCommand(to, from, re.value));
-			this._setCaret(this.cur_page._getCaret_p(from.para,from.para_at));
+			this._setCaret(this.cur_page._getCaret_p(from.para, from.para_at));
 			this.render.paint();
 		},
 		_delOrBack : function(is_del) {
@@ -485,6 +508,11 @@
 			});
 			this.render.paint();
 			this.focus();
+			this.clearUndoRedo();
+		},
+		clearUndoRedo : function() {
+			this.text_history.clear();
+			this.doodle_history.clear();
 		}
 	}
 

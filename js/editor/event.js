@@ -34,13 +34,15 @@
 				this._doodle_edit_down(p);
 			} else if(Daisy.Global.cur_mode === 'doodle') {
 				p.y += Math.round(this.padding_top / this.render.scale);
-				$.log("%d,%d", p.x, p.y);
+				//$.log("%d,%d", p.x, p.y);
 				this._doodle_rightmouse_down(p);
 			} else {
 				this._deal_leftmouse_down(p);
 			}
 			if( typeof this.canvas.setCapture === 'function')
 				this.canvas.setCapture(true);
+			if(is_chrome)
+				$.stopEvent(e)
 		},
 		_mousedown_handler : function(e, is_chrome) {
 			//$.log(e.button);
@@ -123,6 +125,7 @@
 		},
 		_chrome_mousemove_handler : function(e) {
 			this._mousemove_handler(e, true);
+			
 		},
 		_chrome_mouseup_handler : function(e) {
 
@@ -428,6 +431,30 @@
 		_stop_handler : function(e) {
 			$.stopEvent(e);
 		},
+		_dblclick_handler : function(e){
+			if(Daisy.Global.cur_mode!=='handword')
+				return;
+			var p =  this._getEventPoint(e),
+				ei = this.cur_page._getElementIndex_xy(p.x, p.y);
+			if(ei<0){
+				return;
+			}
+			 
+			var T = Daisy._Element.Type, e_arr = this.cur_page.ele_array,
+				li = ei - 1, ri = ei;
+	
+			if(e_arr[ei].type === T.CHAR){
+				var lc = e_arr[li], rc = e_arr[++ri];
+				while(lc && lc.type === T.CHAR && /[a-zA-Z_]/.test(lc.value)){
+					lc = e_arr[--li];
+				}
+				while(rc && rc.type === T.CHAR && /[a-zA-Z_]/.test(rc.value)){
+					rc = e_arr[++ri];
+				}
+			}
+			this._setCaret(this.cur_page.selectByIndex(li,ri-1));
+			this.render.paint();
+		},
 		initEvent : function() {
 			var me = this;
 			this.__left_mouse_down__ = false;
@@ -448,7 +475,9 @@
 				this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
 				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
 			}
-
+			
+			$.addEvent(this.canvas,'dblclick' ,$.createDelegate(this,this._dblclick_handler));
+			
 			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
 			$.addEvent(this.caret, 'mouseup', $.createDelegate(this, this._mouseup_handler));
 

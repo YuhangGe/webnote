@@ -328,7 +328,7 @@
 			}
 			this.editRotateScale(relay_point, rotate, scale);
 		},
-		editRotateScale : function(relay_point, rotate, scale) {
+		editRotateScale : function(relay_point, rotate, scale, not_calc) {
 			/**
 			 * 对矩阵进行缩放。由于操作的时候是相对图形中心点（relay_point）进行的旋转，而this.matrix保存的是相对于原点 的旋转，
 			 * 所以实际的操作是先将中点移回原点，然后旋转，缩放，然后再将中点移回来。
@@ -350,6 +350,9 @@
 			m[5] = s * pm[2] + c * pm[5] - s * x - c * y + y;
 			for(var i = 0; i < this.eraser_list.length; i++) {
 				this.eraser_list[i].editRotateScale(relay_point, rotate, scale, true);
+			}
+			if(not_calc!==true){
+				this._calc();
 			}
 		},
 		editPushPoint : function() {

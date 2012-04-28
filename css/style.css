@@ -88,6 +88,9 @@ a:hover{
 	font-weight: bold;
 	border-bottom: 1px solid #ebebeb;
 }
+#col-3 .edit-ctrl{
+	height: 65px;
+}
 #col-3 .edit-ctrl a{
 	margin: 0px 8px 0px 1px;
 	font-size : 12px;
@@ -184,4 +187,18 @@ a:hover{
 	width: 28px;
 	height: 28px;
 	background: url('../images/select2.png') center;
+}
+
+.color-block {
+	width: 20px;
+	height: 20px;
+	position: relative;
+	top: 5px;
+	border: 1px solid white;
+}
+
+#col-3 .edit-ctrl .ctrl-switch{
+	font-size: 23px;
+	border : 1px solid white;
+	
 }

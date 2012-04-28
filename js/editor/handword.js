@@ -65,6 +65,7 @@
 		_doodle_rightmouse_down : function(point) {
 
 			this.__right_mouse_down__ = true;
+		
 			this.doodle_mode = true;
 			this.tmp_doodle = Daisy._Doodle.create(Daisy.Global.doodle_type, Daisy.Global.doodle_weight, Daisy.Global.doodle_color, [], [point]);
 			this.tmp_doodle.editStart();
@@ -98,7 +99,10 @@
 
 		},
 		_doodle_rightmouse_up : function() {
-
+			if(this.__right_mouse_down__ === false)
+				return;
+			this.__right_mouse_down__ = false;
+			document.body.onmousedown = null;
 			this.doodle_mode = false;
 			this.tmp_doodle.editFinish();
 			if(this.tmp_doodle.points.length <= 1)
