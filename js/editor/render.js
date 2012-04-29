@@ -130,7 +130,7 @@
 				}
 
 				//$.log("s:%d,e:%d",idx,e-1);
-				var ele = null, do_again = true, visible = true;
+				var ele = null, do_again = (idx!==para.index + 1), visible = true;
 				for(var i = idx; i < e; i++) {
 					ele = e_arr[i];
 					if(ele.need_measure)
@@ -143,22 +143,15 @@
 						if(s_t === Daisy._MType.SPACE) {
 							ele.visible = false;
 						} else {
-							$.log(idx)
-							if(idx === para.index + 1) {
-
-							} else {
-								left = 0;
-								bottom += this.line_height;
-								lc++;
-								l_at++;
-								if(do_again) {
-									//换行后重新布局
-									do_again = false;
-									i = idx - 1;
-								}
+                            left = 0;
+							bottom += this.line_height;
+							lc++;
+							l_at++;
+                            if(do_again) {
+								//换行后重新布局
+								do_again = false;
+								i = idx - 1;
 							}
-
-							continue;
 						}
 					}
 					ele.left = left;

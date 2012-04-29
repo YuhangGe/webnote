@@ -114,7 +114,7 @@
 			return n_e;
 		},
 		addEraser : function(eraser){
-			this.eraser_list.push(n_e);
+			this.eraser_list.push(eraser);
 		},
 		removeEraser : function(eraser){
 			this.eraser_list.splice(this.eraser_list.indexOf(eraser),1);

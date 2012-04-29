@@ -92,7 +92,7 @@ $(function() {
 	//SNEditor.append("\ndjlsdkl jdksljdklsdkj jdskljdlsdj  djslkdjklsd  djskldjklsd djskldjsd djklsdjlsdj djlsd d jsdkl d");
 	//SNEditor.append("Juan WongPodsdsddsdsdssted July 27, 2006 at 8:26 am | Permalinkglad I can help  Adam Ziegler");
 
-	SNEditor.insert("abc\nd");
+	SNEditor.insert("abaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabcdefghizkdjksljdlc\nd");
 	//SNEditor.append("歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
 	loadAllBook();
 
@@ -102,27 +102,7 @@ $(function() {
  * 初始化jQuery 插件，包括颜色选择、tip、menu等
  */
 function initPlugin() {
-	
-	var cp = new Daisy._ColorPicker('colorSelector', function(color){
-		 ctrlSetColor(color);
-	});
-	
-	// $('.edit-ctrl a').qtip({
-		// position : {
-			// my : "bottom left",
-			// at : "top right",
-			// adjust : {
-				// x : 0,
-				// y : -3
-			// }
-		// },
-		// style : {
-			// classes : 'ui-tooltip-shadow',
-			// tip : {
-				// border : 1
-			// }
-		// }
-	// });
+
 }
 
 /**
@@ -169,6 +149,8 @@ function loadBook(id) {
 }
 
 function loadPage(id) {
+    ctrlSetBold(true);
+    ctrlSetColor('black');
 	SNEditor.clear();
 	SNEditor.insert("正在加載筆記內容，請稍候...");
 	Daisy.Global.cur_page.pageid = id;

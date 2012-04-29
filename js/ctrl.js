@@ -1,3 +1,6 @@
+var CTRL_MODE = ['readonly', 'handword', 'doodle', 'doodle-edit'],
+    COLORS = ['black', 'blue', 'red', 'green'];
+
 Daisy.Global = {
 	cur_page : {
 		bookid : '',
@@ -10,23 +13,14 @@ Daisy.Global = {
 	doodle_weight : 9,
 	cur_mode : 'handword',
 	doodle_type : Daisy._Doodle.Type.NORMAL,
-	doodle_color : 'blue',
 	DWTable : [4, 6, 9, 13, 18]
 }
 
-function ctrlReadOnly() {
-	if(SNEditor.read_only) {
-		$('#ctrl-readonly').html("只讀(已關)");
-		SNEditor.read_only = false;
 
-	} else {
-		$('#ctrl-readonly').html("只讀(已開)");
-		SNEditor.read_only = true;
-	}
-	SNEditor.focus();
-}
-
-function ctrlSetBold() {
+function ctrlSetBold(bold) {
+    if(bold!=null){
+        SNEditor.font_bold =  bold;
+    }
 	if(SNEditor.font_bold) {
 		SNEditor.setBold(false);
 		$('#ctrl-setbold').html("加粗(已關)");
@@ -38,14 +32,21 @@ function ctrlSetBold() {
 }
 
 function ctrlSetColor(color) {
+    for(var i=0;i<COLORS.length;i++){
+        $("#ctrl-color-"+COLORS[i]).removeClass("color-current");
+    }
+    $("#ctrl-color-"+color).addClass("color-current");
 	Daisy.Global.doodle_color = color;
 	SNEditor.setColor(color);
 	SNEditor.focus();
 }
 
 function ctrlNewNote() {
-	$('#edit-2').show();
-	$('#edit-1').hide();
+	$('#ctrl-edit-save').show();
+	$('#ctrl-edit-new').hide();
+    ctrlSwitch('handword');
+    ctrlSetBold(true);
+    ctrlSetColor('black');
 	var d = new Date();
 	Daisy.Global.cur_page.pageid = d.getTime();
 	Daisy.Global.cur_page.date = d.getFullYear() + "年" + (d.getMonth() + 1) + "月" + d.getDate() + "日";
@@ -55,13 +56,15 @@ function ctrlNewNote() {
 }
 
 function ctrlCancelNote() {
-	$('#edit-1').show();
-	$('#edit-2').hide();
+	$('#ctrl-edit-new').show();
+	$('#ctrl-edit-save').hide();
 	if(!Daisy.Global.cur_page.saved)
 		$('#page_' + Daisy.Global.cur_page.pageid).remove();
 }
 
 function ctrlSaveNote() {
+    $('#ctrl-edit-new').show();
+	$('#ctrl-edit-save').hide();
 	var id = Daisy.Global.cur_page.pageid;
 	$('#thumb_' + id).attr('src', SNEditor.render.getThumb());
 	$('#page_' + id + " .new-tip").remove();
@@ -87,23 +90,19 @@ function ctrlSetEditMode(mode) {
 	Daisy.Global.cur_mode = mode;
 }
 
-function ctrlSetCurMode(mode) {
-	if(mode == null) {
-		mode = Daisy.Global.cur_mode === 'handword' ? 'doodle' : 'handword';
-	}
-	if(mode === 'doodle') {
-		$("#ctrl-doodle-option").show();
-		$("#ctrl-handword").html("手寫(已關)");
-		$("#ctrl-doodle").html("塗鴉(已開)");
-		$('#ctrl-doodle-edit').html("開啟塗鴉編輯")
-
-	} else if(mode === 'handword') {
-		$("#ctrl-doodle-option").hide();
-		$("#ctrl-handword").html("手寫(已開)");
-		$("#ctrl-doodle").html("塗鴉(已關)");
-		$('#ctrl-doodle-edit').html("關閉塗鴉編輯")
-
-	}
+function ctrlSwitch(mode) {
+    for(var i=0;i<CTRL_MODE.length;i++) {
+        $('#ctrl-switch-'+CTRL_MODE[i]).removeClass("switch-current");
+        $('#ctrl-panel-'+CTRL_MODE[i]).hide();
+    }
+    $('#ctrl-switch-'+ mode).addClass("switch-current");
+    $('#ctrl-panel-'+mode).show();
+	var cp = $('#color-picker').remove();
+    if(mode === 'handword'){
+        cp.appendTo('#ctrl-panel-handword');
+    }else{
+        cp.appendTo('#ctrl-panel-doodle');
+    }
 	SNEditor.setMode(mode);
 	Daisy.Global.cur_mode = mode;
 }

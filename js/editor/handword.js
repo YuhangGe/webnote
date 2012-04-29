@@ -67,11 +67,11 @@
 			this.__right_mouse_down__ = true;
 		
 			this.doodle_mode = true;
-			this.tmp_doodle = Daisy._Doodle.create(Daisy.Global.doodle_type, Daisy.Global.doodle_weight, Daisy.Global.doodle_color, [], [point]);
+			this.tmp_doodle = Daisy._Doodle.create(Daisy.Global.doodle_type, Daisy.Global.doodle_weight, this.color, [], [point]);
 			this.tmp_doodle.editStart();
 		},
 		_rightmousedown_handler : function(e, is_chrome) {
-			if(this.read_only)
+			if(this.cur_mode === 'readonly')
 				return;
 
 			// if(Daisy.Global.cur_mode === 'doodle') {
@@ -82,7 +82,7 @@
 			// this._handword_rightmouse_down(e, is_chrome);
 			//
 			// }
-			if(Daisy.Global.cur_mode === 'handword')
+			else if(this.cur_mode === 'handword')
 				this._handword_rightmouse_down(e, is_chrome);
 			this.canvas.style.cursor = 'crosshair';
 			if( typeof this.canvas.setCapture === 'function')
@@ -102,7 +102,6 @@
 			if(this.__right_mouse_down__ === false)
 				return;
 			this.__right_mouse_down__ = false;
-			document.body.onmousedown = null;
 			this.doodle_mode = false;
 			this.tmp_doodle.editFinish();
 			if(this.tmp_doodle.points.length <= 1)
@@ -135,7 +134,7 @@
 			// } else {
 			// this._handword_rightmouse_up();
 			// }
-			if(Daisy.Global.cur_mode === 'handword')
+			if(this.cur_mode === 'handword')
 				this._handword_rightmouse_up();
 			if( typeof this.canvas.releaseCapture === 'function')
 				this.canvas.releaseCapture();
@@ -168,7 +167,7 @@
 				// } else {
 				// this._handword_rightmouse_move(e, is_chrome);
 				// }
-				if(Daisy.Global.cur_mode === 'handword')
+				if(this.cur_mode === 'handword')
 					this._handword_rightmouse_move(e, is_chrome);
 			}
 

@@ -28,11 +28,11 @@
 		_leftmousedown_handler : function(e, is_chrome) {
 			this.__left_mouse_down__ = true;
 			var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
-			if(Daisy.Global.cur_mode === 'doodle_edit') {
+			if(this.cur_mode === 'doodle-edit') {
 				p.y += Math.round(this.padding_top / this.render.scale);
 				//$.log("d : %d,%d", p.x, p.y)
 				this._doodle_edit_down(p);
-			} else if(Daisy.Global.cur_mode === 'doodle') {
+			} else if(this.cur_mode === 'doodle') {
 				p.y += Math.round(this.padding_top / this.render.scale);
 				//$.log("%d,%d", p.x, p.y);
 				this._doodle_rightmouse_down(p);
@@ -56,14 +56,14 @@
 
 		},
 		_leftmouseup_handler : function(e, is_chrome) {
-			var p = null, m = Daisy.Global.cur_mode;
-			if(m !== 'handword') {
-				p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+			var p = null, m = this.cur_mode;
+			if(m === 'doodle-edit') {
+                p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
 				p.y += Math.round(this.padding_top / this.render.scale);
-			}
-			if(m === 'doodle_edit') {
 				this._doodle_edit_up(p);
 			} else if(m === 'doodle') {
+                p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+				p.y += Math.round(this.padding_top / this.render.scale);
 				this._doodle_rightmouse_up(p);
 			}
 			this.render.paint();
@@ -105,14 +105,12 @@
 		},
 		_mousemove_handler : function(e, is_chrome) {
 			if(this.__left_mouse_down__) {
-				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e), m = Daisy.Global.cur_mode;
-
-				if(m !== 'handword') {
+				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e), m = this.cur_mode;
+				if(m === 'doodle-edit') {
 					p.y += Math.round(this.padding_top / this.render.scale);
-				}
-				if(m === 'doodle_edit') {
 					this._doodle_edit_move(p);
 				} else if(m === 'doodle') {
+                    p.y += Math.round(this.padding_top / this.render.scale);
 					this._doodle_rightmouse_move(p);
 				} else {
 					this._deal_leftmouse_move(this.cur_page._getCaret_xy(p.x, p.y));
@@ -156,7 +154,7 @@
 						$.stopEvent(e);
 						return;
 					case 65:
-						this._setCaret(this.cur_doc.selectAll());
+						//this._setCaret(this.cur_doc.selectAll());
 						this.render.paint();
 						$.stopEvent(e);
 						return;
@@ -180,7 +178,7 @@
 				}
 			}
 
-			if(this.read_only && (e.keyCode < 37 || e.keyCode > 40)) {
+			if(this.cur_mode === 'readonly' && (e.keyCode < 37 || e.keyCode > 40)) {
 				$.stopEvent(e);
 				return;
 			}
@@ -238,12 +236,16 @@
 			}
 		},
 		_undo_handler : function() {
-			var h = Daisy.Global.cur_mode === 'doodle' ? this.doodle_history : this.text_history;
+            if(this.cur_mode === 'readonly')
+                return;
+			var h = this.cur_mode === 'handword' ? this.text_history : this.doodle_history;
 			h.undo();
 		},
 		_redo_handler : function() {
-			var h = Daisy.Global.cur_mode === 'doodle' ? this.doodle_history : this.text_history;
-			h.redo();
+			if(this.cur_mode === 'readonly')
+                return;
+			var h = this.cur_mode === 'handword' ? this.text_history : this.doodle_history;
+            h.redo();
 		},
 		_textinput_handler : function(e) {
 			//$.log("ti")
@@ -307,9 +309,9 @@
 			$.stopEvent(e);
 		},
 		_copy_handler : function(e) {
-			if(Daisy.Global.cur_mode === 'handword' && this.cur_page.select_mode) {
+			if((this.cur_mode === 'handword' || this.cur_mode === 'readonly') && this.cur_page.select_mode) {
 				this.clipboard.setData("item", this.cur_page.copyElement(), e);
-			} else if(Daisy.Global.cur_mode === "doodle_edit") {
+			} else if(this.cur_mode === "doodle-edit") {
 				/**
 				 * todo... 
 				 */
@@ -432,7 +434,7 @@
 			$.stopEvent(e);
 		},
 		_dblclick_handler : function(e){
-			if(Daisy.Global.cur_mode!=='handword')
+			if(this.cur_mode!=='handword' && this.cur_mode !== 'readonly')
 				return;
 			var p =  this._getEventPoint(e),
 				ei = this.cur_page._getElementIndex_xy(p.x, p.y);
@@ -441,17 +443,19 @@
 			}
 			 
 			var T = Daisy._Element.Type, e_arr = this.cur_page.ele_array,
-				li = ei - 1, ri = ei;
+				li = ei - 1, ri = ei+1 , etype = e_arr[ei].type;
 	
-			if(e_arr[ei].type === T.CHAR){
-				var lc = e_arr[li], rc = e_arr[++ri];
+			if(etype === T.CHAR){
+				var lc = e_arr[li], rc = e_arr[ri];
 				while(lc && lc.type === T.CHAR && /[a-zA-Z_]/.test(lc.value)){
 					lc = e_arr[--li];
 				}
 				while(rc && rc.type === T.CHAR && /[a-zA-Z_]/.test(rc.value)){
 					rc = e_arr[++ri];
 				}
-			}
+			}else if(etype !== T.HANDWORD){
+                return;
+            }
 			this._setCaret(this.cur_page.selectByIndex(li,ri-1));
 			this.render.paint();
 		},

@@ -1,12 +1,3 @@
-@font-face { 
-    font-family: 'DroidSansWeb'; 
-    src: url('font/DroidSansFallback.ttf') format('truetype'); 
-    font-weight: normal; 
-    font-style: normal; 
- 
-} 
-
-
 *{
 	margin: 0px;
 	padding: 0px;
@@ -88,10 +79,8 @@ a:hover{
 	font-weight: bold;
 	border-bottom: 1px solid #ebebeb;
 }
-#col-3 .edit-ctrl{
-	height: 65px;
-}
-#col-3 .edit-ctrl a{
+
+#col-3 .edit-ctrl a, #col-3 .edit-left a{
 	margin: 0px 8px 0px 1px;
 	font-size : 12px;
 	font-weight:bold;
@@ -170,6 +159,7 @@ a:hover{
 	float: right;
 }
 
+
 #edit-container{
 	position:relative;
 }
@@ -189,16 +179,45 @@ a:hover{
 	background: url('../images/select2.png') center;
 }
 
-.color-block {
+#ctrl-panel-handword  .color-block, #ctrl-panel-doodle .color-block {
 	width: 20px;
 	height: 20px;
-	position: relative;
-	top: 5px;
-	border: 1px solid white;
+	border: 2px solid white;
+    position: relative;
+    top: -3px;
 }
-
-#col-3 .edit-ctrl .ctrl-switch{
+#ctrl-panel-handword  .color-current , #ctrl-panel-doodle .color-current{
+	border: 2px dashed #F4A100;
+}
+#ctrl-panel-handword  .color-block:hover, #ctrl-panel-doodle .color-block:hover {
+	border: 2px dashed #F4A100;
+}
+#col-3 .edit-left .ctrl-switch{
+    position:relative;
+    top: -3px;
 	font-size: 23px;
 	border : 1px solid white;
-	
+    padding: 1px 5px 1px;
+	-webkit-border-radius : 5px;
+}
+
+#col-3 .edit-left .switch-current{
+    background: #F4A100;
+}
+#col-3 #edit-1 .edit-left .switch-current:hover{
+    color:#1C94C4;
+}
+
+#ctrl-panel-handword a, #ctrl-panel-doodle a{
+    position:relative;
+    top: -10px;
+}
+
+#ctrl-panel-doodle select{
+    position: relative;
+    left: -10px;
+    top : -10px;
+}
+.hidden{
+    display : none;
 }

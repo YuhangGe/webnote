@@ -73,7 +73,7 @@
 
 		this.background = config.background == null ? '#ffffcc' : config.background;
 		this.color = config.foreground == null ? 'black' : config.foreground;
-		this.read_only = config.read_only == null ? false : config.read_only;
+		this.cur_mode = config.read_only === true ? 'readonly' : 'handword';
 
 		this.def_width = config.line_width;
 		this.def_height = this.line_height * this.line_count + this.padding_top;
@@ -93,6 +93,7 @@
 
 		this.caret.style.font = this.font;
 		this.caret.style.color = this.color;
+       
 		//当前是否在正在手写
 		this.hand_mode = false;
 		this.hand_bihua = [];
@@ -133,44 +134,44 @@
 	}
 	Daisy.WebNote.prototype = {
 		setMode : function(mode) {
+            this.select_doodle = null;
 			if(mode === 'doodle') {
 				this.canvas.style.cursor = "crosshair";
-				this.select_doodle = null;
-				this.read_only = true;
 				this.caret.style.opacity = "0";
-			} else if(mode === 'doodle_edit') {
+			} else if(mode === 'doodle-edit') {
 				this.canvas.style.cursor = "default";
 				if(this.cur_page.doodle_list.length > 0) {
 					this.select_doodle = this.cur_page.doodle_list[0];
 					this.edit_doodle.attachDoodle(this.select_doodle);
 				}
 				this.caret.style.opacity = "0";
-				this.read_only = true;
-			} else {
-				this.select_doodle = null;
-				this.canvas.style.cursor = "text";
+			} else if(mode === 'handword' || mode === 'readonly'){
 				this.caret.style.opacity = "1";
-				this.read_only = false;
-			}
+                this.canvas.style.cursor = "text";
+			} else {
+                throw 'unknown mode';
+            }
+            this.cur_mode = mode;
 			this.focus();
 			this.render.paint();
 		},
 		setColor : function(color) {
 			this.color = color;
 
-			if(!this.read_only && this.cur_page.select_mode) {
+			if(this.cur_mode!=='readonly' && this.cur_page.select_mode) {
 				this.cur_page.setSelectColor(color);
 				this.render.paint();
 			}
 
 		},
 		setReadOnly : function(read_only) {
-			this.read_only = read_only;
+			if(read_only === true || read_only === 'readonly')
+                this.cur_mode = 'readonly';
 		},
 		setBold : function(is_bold) {
 			this.font_bold = is_bold;
 			this.font = (this.font_bold ? 'bold ' : '') + this.font_size + "px " + this.font_name;
-			if(!this.read_only && this.cur_page.select_mode) {
+			if(this.cur_mode!=='readonly' && this.cur_page.select_mode) {
 				this.cur_page.setSelectBold(is_bold);
 				this.render.paint();
 			}
