@@ -27,7 +27,7 @@
 		},
 		_leftmousedown_handler : function(e, is_chrome) {
 			this.__left_mouse_down__ = true;
-			var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+			var p = this._getEventPoint(e, is_chrome);
 			if(this.cur_mode === 'doodle-edit') {
 				p.y += Math.round(this.padding_top / this.render.scale);
 				//$.log("d : %d,%d", p.x, p.y)
@@ -45,7 +45,10 @@
 				$.stopEvent(e)
 		},
 		_mousedown_handler : function(e, is_chrome) {
+			//if(e.target===this.caret)
+			//$.log(e)
 			//$.log(e.button);
+
 			if(e.button === 0) {
 				this._leftmousedown_handler(e, is_chrome);
 			} else if(e.button === 2) {
@@ -58,11 +61,11 @@
 		_leftmouseup_handler : function(e, is_chrome) {
 			var p = null, m = this.cur_mode;
 			if(m === 'doodle-edit') {
-                p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+				p = this._getEventPoint(e, is_chrome);
 				p.y += Math.round(this.padding_top / this.render.scale);
 				this._doodle_edit_up(p);
 			} else if(m === 'doodle') {
-                p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e);
+				p = this._getEventPoint(e, is_chrome);
 				p.y += Math.round(this.padding_top / this.render.scale);
 				this._doodle_rightmouse_up(p);
 			}
@@ -105,12 +108,12 @@
 		},
 		_mousemove_handler : function(e, is_chrome) {
 			if(this.__left_mouse_down__) {
-				var p = is_chrome ? this._getEventPoint_chrome(e) : this._getEventPoint(e), m = this.cur_mode;
+				var p = this._getEventPoint(e, is_chrome), m = this.cur_mode;
 				if(m === 'doodle-edit') {
 					p.y += Math.round(this.padding_top / this.render.scale);
 					this._doodle_edit_move(p);
 				} else if(m === 'doodle') {
-                    p.y += Math.round(this.padding_top / this.render.scale);
+					p.y += Math.round(this.padding_top / this.render.scale);
 					this._doodle_rightmouse_move(p);
 				} else {
 					this._deal_leftmouse_move(this.cur_page._getCaret_xy(p.x, p.y));
@@ -123,7 +126,7 @@
 		},
 		_chrome_mousemove_handler : function(e) {
 			this._mousemove_handler(e, true);
-			
+
 		},
 		_chrome_mouseup_handler : function(e) {
 
@@ -236,16 +239,16 @@
 			}
 		},
 		_undo_handler : function() {
-            if(this.cur_mode === 'readonly')
-                return;
+			if(this.cur_mode === 'readonly')
+				return;
 			var h = this.cur_mode === 'handword' ? this.text_history : this.doodle_history;
 			h.undo();
 		},
 		_redo_handler : function() {
 			if(this.cur_mode === 'readonly')
-                return;
+				return;
 			var h = this.cur_mode === 'handword' ? this.text_history : this.doodle_history;
-            h.redo();
+			h.redo();
 		},
 		_textinput_handler : function(e) {
 			//$.log("ti")
@@ -313,7 +316,7 @@
 				this.clipboard.setData("item", this.cur_page.copyElement(), e);
 			} else if(this.cur_mode === "doodle-edit") {
 				/**
-				 * todo... 
+				 * todo...
 				 */
 			}
 			if(e != null)
@@ -387,20 +390,6 @@
 			}
 
 		},
-		_caret_dblclick_handler : function(e) {
-			this.__mouse_down__ = false;
-			var p = this._getEventPoint(e);
-			//$.log(e)
-			this._setCaret(this.cur_doc.selectWord(this.offsetLeft + p.x, this.offsetTop + p.y));
-			this.render.paint();
-		},
-		_canvas_dblclick_handler : function(e) {
-			this.__mouse_down__ = false;
-			var p = this._getEventPoint(e);
-			this._setCaret(this.cur_doc.selectWord(p.x, p.y));
-			this.render.paint();
-			//e.preventDefault();
-		},
 		_drop_handler : function(e) {
 			$.stopEvent(e);
 
@@ -433,30 +422,27 @@
 		_stop_handler : function(e) {
 			$.stopEvent(e);
 		},
-		_dblclick_handler : function(e){
-			if(this.cur_mode!=='handword' && this.cur_mode !== 'readonly')
+		_dblclick_handler : function(e) {
+			if(this.cur_mode !== 'handword' && this.cur_mode !== 'readonly')
 				return;
-			var p =  this._getEventPoint(e),
-				ei = this.cur_page._getElementIndex_xy(p.x, p.y);
-			if(ei<0){
+			var p = this._getEventPoint(e, false),ei = this.cur_page._getElementIndex_xy(p.x, p.y),
+				T = Daisy._Element.Type, e_arr = this.cur_page.ele_array, li = ei - 1, ri = ei + 1;
+			if(ei < 0 || ei >= e_arr.length) {
+				return;
+			}else if(e_arr[ei].type === T.CHAR) {
+				if(/[\w\d]/.test(e_arr[ei].value)) {
+					var lc = e_arr[li], rc = e_arr[ri];
+					while(lc && lc.type === T.CHAR && /[\w\d]/.test(lc.value)) {
+						lc = e_arr[--li];
+					}
+					while(rc && rc.type === T.CHAR && /[\w\d]/.test(rc.value)) {
+						rc = e_arr[++ri];
+					}
+				}
+			} else if(e_arr[ei].type !== T.HANDWORD) {
 				return;
 			}
-			 
-			var T = Daisy._Element.Type, e_arr = this.cur_page.ele_array,
-				li = ei - 1, ri = ei+1 , etype = e_arr[ei].type;
-	
-			if(etype === T.CHAR){
-				var lc = e_arr[li], rc = e_arr[ri];
-				while(lc && lc.type === T.CHAR && /[a-zA-Z_]/.test(lc.value)){
-					lc = e_arr[--li];
-				}
-				while(rc && rc.type === T.CHAR && /[a-zA-Z_]/.test(rc.value)){
-					rc = e_arr[++ri];
-				}
-			}else if(etype !== T.HANDWORD){
-                return;
-            }
-			this._setCaret(this.cur_page.selectByIndex(li,ri-1));
+			this._setCaret(this.cur_page.selectByIndex(li, ri-1));
 			this.render.paint();
 		},
 		initEvent : function() {
@@ -468,32 +454,35 @@
 			this.__ime_check__ = null;
 			this.__ime_preval__ = "";
 
-			if( typeof this.canvas.setCapture === 'function') {
-
-				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._mousedown_handler));
-				$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._mouseup_handler));
-				$.addEvent(this.canvas, 'mousemove', $.createDelegate(this, this._mousemove_handler));
+			if( typeof this.canvas.setCapture === 'function' || $.opera) {
+				/**
+				 * opera 是个神奇的浏览器。老子不管这逼了。 
+				 * 在opera下面如果鼠标拖动到了编辑区外可能有bug。不解决这个bug是因为太多地方要改。opera把firefox和chrome的性质揉合了，老子不想吐槽了。
+				 */
+				$.addEvent(this.container, 'mousedown', $.createDelegate(this, this._mousedown_handler));
+				$.addEvent(this.container, 'mouseup', $.createDelegate(this, this._mouseup_handler));
+				$.addEvent(this.container, 'mousemove', $.createDelegate(this, this._mousemove_handler));
 			} else {
 				this.__cmv_handler = $.createDelegate(this, this._chrome_mousemove_handler);
 				//$.log(this.__cmv_handler)
 				this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
-				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
+				$.addEvent(this.container, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
 			}
-			
-			$.addEvent(this.canvas,'dblclick' ,$.createDelegate(this,this._dblclick_handler));
-			
+
+			$.addEvent(this.canvas, 'dblclick', $.createDelegate(this, this._dblclick_handler));
+			/**
+			 * 它妈的firefox也是个奇靶。下面的代码可以在其它主流浏览器 上生效，唯独在firefox下面双击事件无法触发。
+			 * 初步怀疑是mousedown事件中对caret的位置进行了修改操作，导致firefox把doubleclick事件忽略了，但又不能只让doubleclick事件触发而不触发mousedown。
+			 * 但尼玛其它浏览器没这个问题啊！！！
+			 */
+			$.addEvent(this.caret, 'dblclick', $.createDelegate(this, this._dblclick_handler));
+
 			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
 			$.addEvent(this.caret, 'mouseup', $.createDelegate(this, this._mouseup_handler));
 
 			$.addEvent(this.caret, 'blur', $.createDelegate(this, this._blur_handler));
 			$.addEvent(this.caret, "keydown", $.createDelegate(this, this._keydown_handler));
 
-			/**
-			 * chrome 和 safari下面貌似有bug.当输入空格时在textInput事件中 stopEvent会引发神奇bug。
-			 * 但如果不stopEvent会紧接着触发 input事件导致输入框宽度设置错误。
-			 * __bug_tag__，进行特处理。
-			 */
-			this.__bug_tag__ = false;
 			/**
 			 * chrome safari下面为textInput
 			 * ie 为 textinput

@@ -228,10 +228,13 @@
 				y : not_scale ? y : Math.round((y - this.padding_top) / this.render.scale)
 			}
 		},
-		_getEventPoint : function(e, not_scale) {
+		_getEventPoint : function(e, is_chrome, not_scale) {
 			var x = 0, y = 0;
-			//$.log(e);
-			if( typeof e.offsetX !== 'undefined') {
+			if(is_chrome){
+				var off = $.getOffset(this.container);
+				x = e.x - off.left + this.container.scrollLeft + document.body.scrollLeft;
+				y = e.y - off.top + this.container.scrollTop + document.body.scrollTop;
+			}else if( typeof e.offsetX !== 'undefined') {
 				x = e.offsetX;
 				y = e.offsetY;
 			} else if( typeof e.x !== 'undefined') {
@@ -242,8 +245,10 @@
 			} else {
 				throw "no x in event(_getEventPoint)";
 			}
-			if(y < 0)
-				y = 0;
+			if(e.target === this.caret && !is_chrome){
+				x += this.caret.offsetLeft;
+				y += this.caret.offsetTop;
+			}
 			return {
 				x : not_scale ? x : Math.round(x / this.render.scale),
 				y : not_scale ? y : Math.round((y - this.padding_top) / this.render.scale)

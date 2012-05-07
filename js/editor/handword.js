@@ -6,8 +6,8 @@
 		_createHandWord : function(bihuas) {
 			var hw = new Daisy._HandElement([], {
 				color : this.color,
-				weight : Daisy.Global.hand_weight,
-			}, 0, 0);
+				weight : Daisy.Global.hand_weight
+			},0,0);
 
 			var p0 = bihuas[0][0], x1 = p0.x, y1 = p0.y, x2 = p0.x, y2 = p0.y;
 			for(var i = 0; i < bihuas.length; i++) {
@@ -143,7 +143,7 @@
 
 		},
 		_handword_rightmouse_move : function(e, is_chrome) {
-			var p = is_chrome ? this._getEventPoint_chrome(e, true) : this._getEventPoint(e, true);
+			var p = this._getEventPoint(e, is_chrome, true);
 			this.__tmp_new_length++;
 			this.__tmp_new_bihua.push(p);
 			this.render.paint();

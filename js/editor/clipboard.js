@@ -130,7 +130,7 @@
 					window.clipboardData.setData("text", this.inner_text);
 				}
 			} else if(type === 'image') {
-
+				return;
 			}
 
 		}

@@ -80,7 +80,12 @@
 			}
 		},
 		isPointIn : function(p) {
-			return p.x >= this.points[0].x && p.x <= this.points[1].x && p.y >= this.points[0].y && p.y <= this.points[2].y;
+			var ps = this.points;
+			return p.x >= Math.min(ps[0].x,ps[1].x,ps[2].x,ps[3].x)
+					&& p.x <= Math.max(ps[0].x,ps[1].x,ps[2].x,ps[3].x)
+					&& p.y >= Math.min(ps[0].y,ps[1].y,ps[2].y,ps[3].y)
+					&& p.y <= Math.max(ps[0].y,ps[1].y,ps[2].y,ps[3].y);
+			//return p.x >= this.points[0].x && p.x <= this.points[1].x && p.y >= this.points[0].y && p.y <= this.points[2].y;
 		},
 		isPointInClose : function(p) {
 			return p.x >= this.points[1].x - this.CANCEL_BTN.width / 2 && p.x <= this.points[1].x + this.CANCEL_BTN.width / 2 && p.y >= this.points[1].y - this.CANCEL_BTN.height / 2 && p.y <= this.points[1].y + this.CANCEL_BTN.height / 2;
@@ -144,11 +149,9 @@
 			if(this.select_doodle === null) {
 				return;
 			}
-
 			if(this.edit_doodle.isPointInClose(point)) {
 				this.__doodle_close__ = true;
 			} else if(this.edit_doodle.isPointInRotate(point)) {
-				//$.log('i r')
 				this.__doodle_rotate__ = true;
 				this.select_doodle.editStart(point);
 				this.edit_doodle.editStart(point);

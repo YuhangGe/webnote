@@ -11,15 +11,21 @@
 				if( typeof console !== 'undefined')
 					console.log(msg);
 			}
-
+			function dbl_test(e){
+				$.log(e)
+			}
 		</script>
 	</head>
-	<body onmousedown="return false;">
+	<body>
 		<div contenteditable="true">
 			<p>Hello World</p>
 		</div>
-		<div>
-			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
+		<div ondblclick="dbl_test(event);">
+			<input type="text" value="更重要强大" ondblclick="dbl_test(event);" /><br/>
+			<input type="button" value="test" id="btn-test" onclick="do_test();"/><br/>
+			<div>
+				hello world
+			</div>
 		</div>
 		<div>
 			<canvas style="border:1px solid blue;width:300px;height:400px;"></canvas>

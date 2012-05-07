@@ -2,6 +2,7 @@
 adb/
 build/
 data/
+tools/
 
 build.bat
 .hgignore

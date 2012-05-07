@@ -130,7 +130,7 @@
 				height = this.read(),
 				style = {
 					weight : this.read_float(),
-					color :  this._getColorStr(this.read(), this.read(), this.read()),
+					color :  this._getColorStr(this.read(), this.read(), this.read())
 				},
 				value = [];
 			var hw = new Daisy._HandElement(value, style, width, height);

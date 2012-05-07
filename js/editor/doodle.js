@@ -20,7 +20,7 @@
 			top : 0,
 			height : 0,
 			width : 0
-		}
+		};
 		if(this.points.length !== 0)
 			this._calc();
 	}
@@ -82,6 +82,7 @@
 	Daisy._Doodle.prototype = {
 		_calc : function() {
 			this.boundary = $.getPointsBound(this.points, Math.round(this.pen_width));
+			//$.log(this.boundary);
 		},
 		drawEraser : function(ctx) {
 			ctx.save();
@@ -107,25 +108,25 @@
 		 */
 		addEraserIfIn : function(eraser) {
 			var n_e = null;
-			if(this._isEraserIn(eraser.points) && this.eraser_list.indexOf(eraser)<0) {
+			if(this._isEraserIn(eraser.points) && this.eraser_list.indexOf(eraser) < 0) {
 				n_e = new Daisy._Doodle.create(Daisy._Doodle.Type.ERASER, eraser.pen_width, "", [], eraser._copyPoints());
 				this.eraser_list.push(n_e);
 			}
 			return n_e;
 		},
-		addEraser : function(eraser){
+		addEraser : function(eraser) {
 			this.eraser_list.push(eraser);
 		},
-		removeEraser : function(eraser){
-			this.eraser_list.splice(this.eraser_list.indexOf(eraser),1);
+		removeEraser : function(eraser) {
+			this.eraser_list.splice(this.eraser_list.indexOf(eraser), 1);
 		},
-		addTmpEraser : function(eraser){
-			if(this._isEraserIn(eraser.points) && this.eraser_list.indexOf(eraser)<0) {
+		addTmpEraser : function(eraser) {
+			if(this._isEraserIn(eraser.points) && this.eraser_list.indexOf(eraser) < 0) {
 				this.eraser_list.push(eraser);
 			}
 		},
-		removeTmpEraser : function(eraser){
-			this.eraser_list.splice(this.eraser_list.indexOf(eraser),1);
+		removeTmpEraser : function(eraser) {
+			this.eraser_list.splice(this.eraser_list.indexOf(eraser), 1);
 		},
 		getBoundary : function() {
 			return this.boundary;
@@ -178,7 +179,7 @@
 			if(not_calc !== true)
 				this._calc();
 		},
-		rotateScale : function(relay_point, rotate, scale){
+		rotateScale : function(relay_point, rotate, scale) {
 			this.pre_points = this.points;
 			this.pre_pw = this.pen_width;
 			for(var i = 0; i < this.eraser_list.length; i++) {
@@ -186,7 +187,7 @@
 				e.pre_points = e.points;
 				e.pre_pw = e.pen_width;
 			}
-		 
+
 			this.editRotateScale(relay_point, rotate, scale);
 		},
 		_copyPoints : function() {
@@ -199,7 +200,7 @@
 			}
 			return c_ps;
 		},
-		move : function(dx, dy){
+		move : function(dx, dy) {
 			for(var i = 0; i < this.points.length; i++) {
 				this.points[i].x += dx;
 				this.points[i].y += dy;
@@ -232,7 +233,6 @@
 	}
 
 	Daisy._ImageDoodle = function(img_src, matrix, e_list) {
-		$.log('new img')
 		this.base(Daisy._Doodle.Type.IMAGE, [], "black", 5, e_list);
 		this.image = new Image();
 		if(matrix != null)
@@ -269,18 +269,22 @@
 		draw : function(ctx, d_ctx, m_ctx) {
 			if(!this.img_loaded)
 				return;
-			var b = this.boundary, l = b.left, t = b.top, w = b.width, h = b.height;
-			d_ctx.clearRect(0, 0, d_ctx.canvas.width, d_ctx.canvas.height);
-			this._doDraw(d_ctx, l, t, w, h);
-			this.drawEraser(d_ctx);
-			w += (l > 0 ? 0 : l);
-			h += (t > 0 ? 0 : t);
+			var b = this.boundary, l = b.left, t = b.top, w = b.width, h = b.height, mw = d_ctx.canvas.width, mh = d_ctx.canvas.height;
+			//$.log(b)
+			d_ctx.clearRect(0, 0, mw, mh);
+			this._doDraw(d_ctx);
+			this.drawEraser(d_ctx);	
+			w = l > 0 ? (l + w < mw ? w : mw - l) : w + l;	
+			h = t > 0 ? (t + h < mh ? h : mh - t) : h + t;
+			//下面的操作是防止drawImage参数不合法抛异常。
 			l = l > 0 ? l : 0;
 			t = t > 0 ? t : 0;
-			w = w > 0 ? w : 0;
-			h = h > 0 ? h : 0;
+			w = w > 0 ? w : 1;
+			h = h > 0 ? h : 1;
+			//$.log("%d,%d,%d,%d", l, t, w,h);
+
 			ctx.drawImage(d_ctx.canvas, l, t, w, h, l, t, w, h);
-			
+
 		},
 		_doDraw : function(ctx) {
 			ctx.save();
@@ -310,7 +314,7 @@
 			}
 			this._calc();
 		},
-		move : function(dx,dy){
+		move : function(dx, dy) {
 			this.matrix[2] += dx;
 			this.matrix[5] += dy;
 			for(var i = 0; i < this.eraser_list.length; i++) {
@@ -318,8 +322,8 @@
 			}
 			this._calc();
 		},
-		rotateScale : function(relay_point, rotate, scale){
-			 
+		rotateScale : function(relay_point, rotate, scale) {
+
 			this.pre_matrix = $.copyArray(this.matrix);
 			for(var i = 0; i < this.eraser_list.length; i++) {
 				var e = this.eraser_list[i];
@@ -351,7 +355,7 @@
 			for(var i = 0; i < this.eraser_list.length; i++) {
 				this.eraser_list[i].editRotateScale(relay_point, rotate, scale, true);
 			}
-			if(not_calc!==true){
+			if(not_calc !== true) {
 				this._calc();
 			}
 		},
@@ -373,7 +377,7 @@
 			// ctx.restore();
 			return;
 		},
-		_calc : function(){
+		_calc : function() {
 			return;
 		}
 	}
@@ -661,7 +665,7 @@
 			 */
 			if(this.eraser_list.length > 0) {
 				var b = this.boundary, l = b.left, t = b.top, w = b.width, h = b.height;
-				m_ctx.clearRect(0,0,m_ctx.canvas.width,m_ctx.canvas.height);
+				m_ctx.clearRect(0, 0, m_ctx.canvas.width, m_ctx.canvas.height);
 				for(var i = 0; i < this.list.length; i++) {
 					this.list[i].draw(m_ctx, d_ctx, m_ctx);
 				}

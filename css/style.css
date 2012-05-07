@@ -198,7 +198,7 @@ a:hover{
 	font-size: 23px;
 	border : 1px solid white;
     padding: 1px 5px 1px;
-	-webkit-border-radius : 5px;
+	border-radius : 5px;
 }
 
 #col-3 .edit-left .switch-current{

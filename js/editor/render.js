@@ -128,8 +128,8 @@
 					}
 					e++;
 				}
-
-				//$.log("s:%d,e:%d",idx,e-1);
+				//if(debug)
+				//$.log("s:%d,e:%d,left:%d",idx,e-1,left);
 				var ele = null, do_again = (idx!==para.index + 1), visible = true;
 				for(var i = idx; i < e; i++) {
 					ele = e_arr[i];
@@ -151,6 +151,7 @@
 								//换行后重新布局
 								do_again = false;
 								i = idx - 1;
+								continue;
 							}
 						}
 					}

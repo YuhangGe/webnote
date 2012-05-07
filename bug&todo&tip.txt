@@ -8,6 +8,7 @@ bug:
 
 2、含橡皮擦的嵌套群组会不能正确绘制。具体在代码中有注释说明。
 
+4. 在firefox下面双击时，如果正好双击在光标上会失效。（firefox下面不能触发doubleclick事件，当光标在mousedown时进行了位置改变操作。在chrome和ie9下面没有这个问题。怀疑是firefox的bug）。
 
 todo:
 

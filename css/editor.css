@@ -9,8 +9,8 @@
 .sn-caret {
 	position: absolute;
 	display: block;
-	width: 1px;
-	background: transparent;
+	width: 5px;
+	background: rgba(0,0,255,0.1);/* transparent; */
 	left: 0px;
 	top: 0px;
 	padding: 0px;
