@@ -127,7 +127,9 @@
 		}
 		this.createPage();
 		this.setCurPage(0);
+		this.wordSeg = new Daisy._WordSeg(this);
 		this.initEvent();
+		this.initShortKey();
 		this.render.paint();
 		this.focus();
 
@@ -496,7 +498,8 @@
 						new_cp = this.cur_page._getCaret_xy(cp.left, cp.top + this.line_height);
 					break;
 			}
-
+			this.cur_page.select(null);
+		 	this.render.paint();
 			this._setCaret(new_cp);
 		},
 		getThumb : function() {

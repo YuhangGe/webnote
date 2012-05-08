@@ -13,7 +13,9 @@
 		<script type = "text/javascript" src="js/editor/page.js"></script>
 		<script type ="text/javascript" src="js/editor/element.js"></script>
 		<script type="text/javascript" src="js/editor/event.js"></script>
+		<script type="text/javascript" src="js/editor/shortkey.js"></script>
 		<script type="text/javascript" src="js/editor/handword.js"></script>
+		<script type="text/javascript" src="js/editor/wordseg.js"></script>
 		<script type="text/javascript" src="js/editor/doodle.js"></script>
 		<script type="text/javascript" src="js/editor/doodle_edit.js"></script>
 		<script type="text/javascript" src="js/editor/clipboard.js"></script>

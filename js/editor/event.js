@@ -146,45 +146,30 @@
 
 			//$.log(e);
 			//$.log(this.read_only);
-			if(e.ctrlKey) {
-				switch(e.keyCode) {
-					case 90:
-						this._undo_handler();
-						$.stopEvent(e);
-						return;
-					case 89:
-						this._redo_handler();
-						$.stopEvent(e);
-						return;
-					case 65:
-						//this._setCaret(this.cur_doc.selectAll());
-						this.render.paint();
-						$.stopEvent(e);
-						return;
-					/**
-					 * firefox 和 ie 下面当caret(即textarea)为空时，快捷键ctrl+c不能触发 oncopy事件，
-					 * 需要手动处理
-					 */
-					case 67:
-						if($.ie || $.firefox) {
-							this._copy_handler(null);
-							$.stopEvent(e);
-						}
-						return;
-					case 88:
-						if($.ie || $.firefox) {
-
-							this._cut_handler(null);
-							$.stopEvent(e);
-						}
-						return
-				}
-			}
-
-			if(this.cur_mode === 'readonly' && (e.keyCode < 37 || e.keyCode > 40)) {
+			if(this._shortkey_handler(e)) {
 				$.stopEvent(e);
 				return;
 			}
+			/**
+			 * 对ctrl-c 和ctrl-v ctrl-x单独处理，因为不同 浏览器这三个快捷键处理不一样。
+			 *
+			 * firefox 和 ie 下面当caret(即textarea)为空时，快捷键ctrl+c不能触发 oncopy事件，
+			 * 需要手动处理
+			 *
+			 */
+			if(e.ctrlKey && e.keyCode === 67 && ($.ie || $.firefox)) {
+				this._copy_handler(null);
+				$.stopEvent(e);
+				return;
+			} else if(e.ctrlKey && e.keyCode === 67 && ($.ie || $.firefox)) {
+				this._cut_handler(null);
+				$.stopEvent(e);
+				return;
+			} else if(this.cur_mode === 'readonly') {
+				$.stopEvent(e);
+				return;
+			}
+
 			switch(e.keyCode) {
 				case 13:
 					//回车
@@ -207,24 +192,6 @@
 					//del键
 					this._delOrBack(true);
 					break;
-				case 37:
-					//向左按键
-					if(!this.__ime_on__)
-						this.moveCaret("left");
-					return;
-				case 39:
-					//向右s
-					if(!this.__ime_on__)
-						this.moveCaret("right");
-					return;
-				case 38:
-					//向上
-					this.moveCaret("up");
-					break;
-				case 40:
-					//向下
-					this.moveCaret("down");
-					break;
 				case $.IME_KEY:
 					if(!this.__ime_on__) {
 						this.__ime_on__ = true;
@@ -238,18 +205,7 @@
 
 			}
 		},
-		_undo_handler : function() {
-			if(this.cur_mode === 'readonly')
-				return;
-			var h = this.cur_mode === 'handword' ? this.text_history : this.doodle_history;
-			h.undo();
-		},
-		_redo_handler : function() {
-			if(this.cur_mode === 'readonly')
-				return;
-			var h = this.cur_mode === 'handword' ? this.text_history : this.doodle_history;
-			h.redo();
-		},
+
 		_textinput_handler : function(e) {
 			//$.log("ti")
 			if( typeof e.data === 'string') {
@@ -425,25 +381,15 @@
 		_dblclick_handler : function(e) {
 			if(this.cur_mode !== 'handword' && this.cur_mode !== 'readonly')
 				return;
-			var p = this._getEventPoint(e, false),ei = this.cur_page._getElementIndex_xy(p.x, p.y),
-				T = Daisy._Element.Type, e_arr = this.cur_page.ele_array, li = ei - 1, ri = ei + 1;
-			if(ei < 0 || ei >= e_arr.length) {
-				return;
-			}else if(e_arr[ei].type === T.CHAR) {
-				if(/[\w\d]/.test(e_arr[ei].value)) {
-					var lc = e_arr[li], rc = e_arr[ri];
-					while(lc && lc.type === T.CHAR && /[\w\d]/.test(lc.value)) {
-						lc = e_arr[--li];
-					}
-					while(rc && rc.type === T.CHAR && /[\w\d]/.test(rc.value)) {
-						rc = e_arr[++ri];
-					}
-				}
-			} else if(e_arr[ei].type !== T.HANDWORD) {
-				return;
+
+			var p = this._getEventPoint(e, false), ei = this.cur_page._getElementIndex_xy(p.x, p.y),e_arr = this.cur_page.ele_array;
+			if(ei>0 && e_arr[ei].type !== Daisy._Element.Type.NEWLINE) {
+				var range = this.wordSeg.getRange(e_arr, ei);
+			 
+				this._setCaret(this.cur_page.selectByIndex(range.from, range.to));
+				this.render.paint();
 			}
-			this._setCaret(this.cur_page.selectByIndex(li, ri-1));
-			this.render.paint();
+
 		},
 		initEvent : function() {
 			var me = this;
@@ -456,7 +402,7 @@
 
 			if( typeof this.canvas.setCapture === 'function' || $.opera) {
 				/**
-				 * opera 是个神奇的浏览器。老子不管这逼了。 
+				 * opera 是个神奇的浏览器。老子不管这逼了。
 				 * 在opera下面如果鼠标拖动到了编辑区外可能有bug。不解决这个bug是因为太多地方要改。opera把firefox和chrome的性质揉合了，老子不想吐槽了。
 				 */
 				$.addEvent(this.container, 'mousedown', $.createDelegate(this, this._mousedown_handler));

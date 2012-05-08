@@ -30,6 +30,9 @@
 		reset : function() {
 			this._init();
 		},
+		selectAll : function(){
+			return this.selectByIndex(-1,this.ele_array.length-1); 
+		},
 		select : function(from, to) {
 			if(from == null || to == null) {
 				this.select_mode = false;
@@ -90,7 +93,7 @@
 			this.select_range.from = fc;
 			this.select_range.to = tc;
 			//this.render.paint();
-			return fc;
+			return tc;
 		},
 		/**
 		 * 得到index所指字符的右边位置的游标caret位置。
