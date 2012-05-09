@@ -18,10 +18,15 @@
 				//this.caret.style.display = "none";
 			}
 		},
-		_deal_leftmouse_down : function(point) {
-			this.cur_page.select(null);
-			this.render.paint();
-			this._moveCaret_xy(point.x, point.y);
+		_deal_leftmouse_down : function(e, point) {
+			var nc = this.cur_page._getCaret_xy(point.x,point.y);
+			if(e.shiftKey) {
+				this._shift_select(nc.index);
+			} else {
+				this._setCaret(nc);
+				this.cur_page.select(null);
+				this.render.paint();
+			}
 			this.__pre_pos__ = this.caret_pos;
 			this.__down_pos__ = this.caret_pos;
 		},
@@ -37,7 +42,7 @@
 				//$.log("%d,%d", p.x, p.y);
 				this._doodle_rightmouse_down(p);
 			} else {
-				this._deal_leftmouse_down(p);
+				this._deal_leftmouse_down(e, p);
 			}
 			if( typeof this.canvas.setCapture === 'function')
 				this.canvas.setCapture(true);
@@ -280,9 +285,7 @@
 		},
 		_cut_handler : function(e) {
 			this._copy_handler(e);
-			/**
-			 * to do ...
-			 */
+			this._delOrBack();
 		},
 		_paste_handler : function(e) {
 			this.clipboard.getData(e, $.createDelegate(this, this._deal_paste));
@@ -382,10 +385,10 @@
 			if(this.cur_mode !== 'handword' && this.cur_mode !== 'readonly')
 				return;
 
-			var p = this._getEventPoint(e, false), ei = this.cur_page._getElementIndex_xy(p.x, p.y),e_arr = this.cur_page.ele_array;
-			if(ei>0 && e_arr[ei].type !== Daisy._Element.Type.NEWLINE) {
+			var p = this._getEventPoint(e, false), ei = this.cur_page._getElementIndex_xy(p.x, p.y), e_arr = this.cur_page.ele_array;
+			if(ei > 0 && e_arr[ei].type !== Daisy._Element.Type.NEWLINE) {
 				var range = this.wordSeg.getRange(e_arr, ei);
-			 
+
 				this._setCaret(this.cur_page.selectByIndex(range.from, range.to));
 				this.render.paint();
 			}

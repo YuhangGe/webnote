@@ -219,9 +219,9 @@
 		},
 		_paintSelect : function(from, to) {
 			this.ctx.fillStyle = "rgba(0,255,0,0.2)";
-			var e_arr = this.page.ele_array, s_e = e_arr[from.index + 1], e_e = e_arr[to.index], s_l = from.line, e_l = to.line;
-			var c_h = this.font_height, c_w = this.width;
-
+			var e_arr = this.page.ele_array, s_e = e_arr[from.index + 1], e_e = e_arr[to.index],
+				s_l = s_e.line_at, e_l = to.line,
+				c_h = this.font_height, c_w = this.width;
 			if(s_l === e_l) {
 				//$.log(s_e);$.log(e_e);
 				this.ctx.fillRect(s_e.left, s_e.bottom - c_h + this.baseline_offset, e_e.left - s_e.left + e_e.width, c_h);

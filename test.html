@@ -12,7 +12,7 @@
 					console.log(msg);
 			}
 			function dbl_test(e){
-				//$.log(e)
+				$.log(e)
 			}
 			function kmp_next(str){
 				var len = str.length,
@@ -38,6 +38,9 @@
 				
 				
 			}
+			function deal_keydown(e){
+				$.log(e.keyCode);
+			}
 			$(function(){
 				$.log(kmp_next("aaacaaad"))
 			})
@@ -48,7 +51,7 @@
 			<p>Hello World</p>
 		</div>
 		<div ondblclick="dbl_test(event);">
-			<input type="text" value="更重要强大" ondblclick="dbl_test(event);" /><br/>
+			<textarea type="text" value="更重要强大" onmousedown="dbl_test(event);" onkeydown="deal_keydown(event);" ></textarea><br/>
 			<input type="button" value="test" id="btn-test" onclick="do_test();"/><br/>
 			<div>
 				hello world.4323.3ad_a 葛羽航你好   da ^#@.  

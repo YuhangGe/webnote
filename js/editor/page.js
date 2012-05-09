@@ -201,8 +201,16 @@
 				p.index += index_step;
 				if(para.line_cross !== pre_lc) {
 					p.line_start += para.line_cross - pre_lc;
-					for(var j = p.index + 1; j <= p.index + p.length; j++) {
-						var ele = this.ele_array[j];
+					var j = p.index + 1, ele = null;
+					for(; j <= p.index + p.length; j++) {
+						ele = this.ele_array[j];
+						ele.bottom += (para.line_cross - pre_lc) * this.editor.render.line_height;
+						ele.line_at += para.line_cross - pre_lc;
+					}
+					/**
+					 * 如果当前段落最后有换行\n也要同时移动。 
+					 */
+					if((ele = this.ele_array[j])!=null){
 						ele.bottom += (para.line_cross - pre_lc) * this.editor.render.line_height;
 						ele.line_at += para.line_cross - pre_lc;
 					}
@@ -212,26 +220,7 @@
 		},
 		insertLine : function(caret) {
 			var n_e = new Daisy._NewLineElement(), p_e = null, a_e = null;
-			//$.log(caret.index)
-			// if(caret.index >= 0 ) {
-				// var p = this.para_info[caret.para],p_e = this.ele_array[caret.index];
-				// $.log(p)
-				// $.log("%d,%d",p.index + p.length , caret.index)
-// 				
-				// n_e.left = p_e.left + p_e.width;
-				// n_e.line_at = p_e.line_at;
-				// n_e.bottom = p_e.bottom;
-				// //$.log(n_e)
-				// if(p.index + p.length === caret.index && this.ele_array.length > caret.index){
-					// p_e.left = 0;
-					// //p_e.line_at++;
-					// //p_e.bottom+=this.editor.line_height;
-					// n_e.left = 0;
-					// n_e.bottom+=this.editor.line_height;
-					// n_e.line_at++;
-				// }
-// 				
-			// }
+			
 			this.ele_array.splice(caret.index + 1, 0, n_e);
 			var para = this.para_info[caret.para], l_len = caret.para_at + 1, r_len = para.length - l_len;
 			para.length = l_len;

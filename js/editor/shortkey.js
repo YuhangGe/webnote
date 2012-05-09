@@ -4,30 +4,81 @@
 		initShortKey : function() {
 			this.SHORTKEY_TABLE = {
 				'ctrl-a' : this._ctrl_a_handler,
-				'ctrl-top' : this._ctrl_top_handler,
-				'ctrl-bottom' : this._ctrl_bottom_handler,
+				'ctrl-up' : this._ctrl_up_handler,
+				'ctrl-down' : this._ctrl_down_handler,
 				'ctrl-left' : this._ctrl_left_handler,
 				'ctrl-right' : this._ctrl_right_handler,
 				'ctrl-z' : this._undo_handler,
 				'ctrl-y' : this._redo_handler,
-				'ctrl-x' : this._ctrl_x_handler,
 				'left' : this._left_handler,
 				'right' : this._right_handler,
-				'top' : this._top_handler,
-				'bottom' : this._bottom_handler,
+				'up' : this._up_handler,
+				'down' : this._down_handler,
 				'shift-left' : this._shift_left_handler,
 				'shift-right' : this._shift_right_handler,
-				'shift-top' : this._shift_top_handler,
-				'shift-bottom' : this._shift_bottom_handler,
+				'shift-up' : this._shift_up_handler,
+				'shift-down' : this._shift_down_handler,
 				'ctrl-shift-left' : this._ctrl_shift_left_handler,
-				'ctrl-shift-right' : this._ctrl_shift_right_handler
+				'ctrl-shift-right' : this._ctrl_shift_right_handler,
+				'ctrl-home' : this._ctrl_home_handler,
+				'ctrl-end' : this._ctrl_end_handler,
+				'shift-home' : this._shift_home_handler,
+				'shift-end' : this._shift_end_handler,
+				'ctrl-shift-home' : this._ctrl_shift_home_handler,
+				'ctrl-shift-end' : this._ctrl_shift_end_handler,
+				'home' : this._home_handler,
+				'end' : this._end_handler
 			};
 			this.KEY_TABLE = {
+				36 : 'home',
+				35 : 'end',
 				37 : 'left',
 				39 : 'right',
-				38 : 'top',
-				40 : 'bottom'
+				38 : 'up',
+				40 : 'down'
 			}
+		},
+		_shift_home_handler : function(){
+			if(this.caret_pos.para_at<0)
+				return;
+			this._shift_select(this.cur_page.para_info[this.caret_pos.para].index);
+		},
+		_shift_end_handler : function(){
+			var p = this.cur_page.para_info[this.caret_pos.para];
+			if(this.caret_pos.para_at === p.length - 1)
+				return;
+			this._shift_select(p.index + p.length);
+		},
+		_ctrl_shift_home_handler : function(){
+			if(this.caret_pos.index<0)
+				return;
+			this._shift_select(-1);
+		},
+		_ctrl_shift_end_handler : function(){
+			if(this.caret_pos.index === this.cur_page.ele_array.length - 1)
+				return;
+			this._shift_select(this.cur_page.ele_array.length - 1);
+		},
+		_home_handler : function(){
+			this._setCaret(this.cur_page.getCaretByIndex(this.cur_page.para_info[this.caret_pos.para].index));
+			this.cur_page.select(null);
+			this.render.paint();
+		},
+		_end_handler : function(){
+			var p = this.cur_page.para_info[this.caret_pos.para];
+			this._setCaret(this.cur_page.getCaretByIndex(p.index + p.length));
+			this.cur_page.select(null);
+			this.render.paint();
+		},
+		_ctrl_home_handler : function(){
+			this._setCaret(this.cur_page.getCaretByIndex(-1));
+			this.cur_page.select(null);
+			this.render.paint();
+		},
+		_ctrl_end_handler : function(){
+			this._setCaret(this.cur_page.getCaretByIndex(this.cur_page.ele_array.length-1));
+			this.cur_page.select(null);
+			this.render.paint();
 		},
 		_undo_handler : function() {
 			if(this.cur_mode === 'readonly')
@@ -68,6 +119,9 @@
 			this._setCaret(nc);
 			this.render.paint();
 		},
+		_shift_up_handler : function(){
+			
+		},
 		_shift_right_handler : function() {
 			if(this.caret_pos.index >= this.cur_page.ele_array.length - 1)
 				return;
@@ -99,10 +153,10 @@
 				this.cur_page.select(null);
 		 	this.render.paint();
 		},
-		_ctrl_top_handler : function() {
+		_ctrl_up_handler : function() {
 			this.container.scrollTop -= this.line_height * this.render.scale;
 		},
-		_ctrl_bottom_handler : function() {
+		_ctrl_down_handler : function() {
 			this.container.scrollTop += this.line_height * this.render.scale;
 		},
 		_left_handler : function() {
@@ -115,18 +169,18 @@
 			if(!this.__ime_on__)
 				this.moveCaret("right");
 		},
-		_top_handler : function() {
+		_up_handler : function() {
 			//向上
 			this.moveCaret("up");
 		},
-		_bottom_handler : function() {
+		_down_handler : function() {
 			//向下
 			this.moveCaret("down");
 		},
 		_shortkey_handler : function(e) {
 			var c_key = (e.ctrlKey ? "ctrl-" : "") + (e.shiftKey ? "shift-" : "") + (this.KEY_TABLE[e.keyCode] == null ? String.fromCharCode(e.keyCode).toLowerCase() : this.KEY_TABLE[e.keyCode]), k_func = this.SHORTKEY_TABLE[c_key];
 			if( typeof k_func === 'function') {
-				$.log(c_key);
+				//$.log(c_key);
 				k_func.apply(this, []);
 				return true;
 			}
