@@ -81,8 +81,8 @@
 				//$.log("bold s:%d,e:%d",s,e);
 				for(var j = this.read(); j < this.read(); j++) {
 					var ele = this.editor.cur_page.ele_array[j];
+					ele.style.bold = true;
 					if(ele.type === Daisy._Element.Type.CHAR) {
-						ele.style.bold = true;
 						ele.style.font = "bold " + ele.style.font;
 					}
 				}
@@ -92,11 +92,7 @@
 				var s = this.read(), e = this.read(), c = this._getColorStr(this.read(), this.read(), this.read());
 				//$.log("color s:%d,e:%d c:%s",s,e,c);
 				for(var j = s; j < e; j++) {
-
-					var ele = this.editor.cur_page.ele_array[j];
-					if(ele.type === Daisy._Element.Type.CHAR) {
-						ele.style.color = c;
-					}
+					this.editor.cur_page.ele_array[j].style.color = c;
 				}
 			}
 		},
@@ -130,7 +126,8 @@
 				height = this.read(),
 				style = {
 					weight : this.read_float(),
-					color :  this._getColorStr(this.read(), this.read(), this.read())
+					color :  this._getColorStr(this.read(), this.read(), this.read()),
+					bold : false
 				},
 				value = [];
 			var hw = new Daisy._HandElement(value, style, width, height);

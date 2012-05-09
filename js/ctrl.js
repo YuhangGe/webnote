@@ -128,3 +128,16 @@ function ctrlDelNote() {
 	//$('#page_'+ Daisy.Global.cur_page.pageid).remove();
 }
 
+function ctrlFindText(e){
+	if(e.keyCode===13){
+		ctrlFind(true);
+	}
+}
+function ctrlFind(not_focus){
+	var str = $('#ctrl-find-txt').val();
+	if(str==="")
+		return;
+	SNEditor.findText(str);
+	if(!not_focus)
+		SNEditor.focus();
+}

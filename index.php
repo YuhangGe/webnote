@@ -56,7 +56,7 @@
 						(For Phone) 2页
 						</p>
 						</li>
-						
+
 						-->
 					</ul>
 				</div>
@@ -83,7 +83,7 @@
 						2012年3月26日
 						</p>
 						</li>
-						
+
 						-->
 					</ul>
 				</div>
@@ -98,38 +98,34 @@
 							<a id="ctrl-switch-doodle-edit" class="ctrl-switch"  id="ctrl-doodle-edit" href="javascript:ctrlSwitch('doodle-edit');" >选择</a>
 						</div>
 						<div class="edit-right">
-                            <span id='ctrl-edit-new'>
-                                 <a href="javascript:ctrlNewNote();" id="ctrl-newnote">新建記事</a>
-                            </span>
-                            <span id='ctrl-edit-save' class="hidden">
-                                <a href="javascript:ctrlSaveNote();" id="ctrl-savenote">儲存</a>
-                                <a href="javascript:ctrlCancelNote();" id="ctrl-cancelnote">取消</a>
-                            </span>
-                           
+							<span id='ctrl-edit-new'> <a href="javascript:ctrlNewNote();" id="ctrl-newnote">新建記事</a> </span>
+							<span id='ctrl-edit-save' class="hidden"> <a href="javascript:ctrlSaveNote();" id="ctrl-savenote">儲存</a> <a href="javascript:ctrlCancelNote();" id="ctrl-cancelnote">取消</a> </span>
+
 							<!--
-                            <a href="javascript:ctrlEditNote();" id="ctrl-editnote">編輯</a>
+							<a href="javascript:ctrlEditNote();" id="ctrl-editnote">編輯</a>
 							<a href="javascript:ctrlDelNote();" id="ctrl-delnote">刪除</a>
-                            -->
-                        </div>
+							-->
+						</div>
 					</div>
-			
+
 				</div>
 				<div class="editor-panel">
 					<div class="edit-ctrl">
 						<div style="padding-left:10px;">
 							<div id="ctrl-panel-readonly" class="hidden" style="font-size:10px;color:gray;">
-								<p>當前處於唯讀模式</p>
+								<p>
+									當前處於唯讀模式
+								</p>
 							</div>
 							<div id='ctrl-panel-handword'>
 								<a href="javascript:alert('由於流覽器安全限制，請使用Ctrl+C复制!');" title="複製選中文本">複製</a>
 								<a href="javascript:alert('由於流覽器安全限制，請使用Ctrl+V粘貼!');" title="粘貼選中文本">粘貼</a>
 								<a title="設置文本是否加粗" id="ctrl-setbold" href="javascript:ctrlSetBold();">加粗(已關)</a>
-								<span id='color-picker'>
-									<a id='ctrl-color-black' href="javascript:ctrlSetColor('black')" class="color-block color-current" style="background: black;"></a>
-									<a id='ctrl-color-blue' href="javascript:ctrlSetColor('blue')" class="color-block" style="background: blue;"></a>
-									<a id='ctrl-color-red' href="javascript:ctrlSetColor('red')" class="color-block" style="background: red;"></a>
-									<a id='ctrl-color-green' href="javascript:ctrlSetColor('green')" class="color-block" style="background: green;"></a>
-								</span>
+								<span class="ctrl-seperator"></span>
+								<a id="ctrl-find" href="javascript:ctrlFind();">查找</a>
+								<input type="text" style="width:60px;position: relative; top: -10px;" id="ctrl-find-txt" value="筆記" onkeydown="ctrlFindText(event);"/>
+								<span class="ctrl-seperator"></span>
+								<span id='color-picker'> <a id='ctrl-color-black' href="javascript:ctrlSetColor('black')" class="color-block color-current" style="background: black;"></a> <a id='ctrl-color-blue' href="javascript:ctrlSetColor('blue')" class="color-block" style="background: blue;"></a> <a id='ctrl-color-red' href="javascript:ctrlSetColor('red')" class="color-block" style="background: red;"></a> <a id='ctrl-color-green' href="javascript:ctrlSetColor('green')" class="color-block" style="background: green;"></a> </span>
 							</div>
 							<div  id="ctrl-panel-doodle" class="hidden">
 								<a href="javascript:;" title="選擇畫筆類型">畫筆：</a>
@@ -152,14 +148,17 @@
 									<option>13</option>
 									<option>18</option>
 								</select>
-								
+								<span class="ctrl-seperator"></span>
 							</div>
 							<div  id="ctrl-panel-doodle-edit">
-                                <!--    
-                                <a href="javascript:;" title="複製選中文本">複製</a>
+								<!--
+								<a href="javascript:;" title="複製選中文本">複製</a>
 								<a href="javascript:;" title="粘貼選中文本">粘貼</a>
-                                -->
-                            </div>
+								-->
+								<p style="color:gray;">
+									選擇模式下請使用鼠標選擇和編輯塗鴉
+								</p>
+							</div>
 						</div>
 
 					</div>

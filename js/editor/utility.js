@@ -312,9 +312,9 @@ Daisy.$ = function(id) {
 			}).fail(function(table) {
 			});
 		},
-		copyArray : function(arr){
+		copyArray : function(arr) {
 			var n_a = [];
-			for(var i=0;i<arr.length;i++){
+			for(var i = 0; i < arr.length; i++) {
 				n_a.push(arr[i]);
 			}
 			return arr;
@@ -398,6 +398,26 @@ Daisy.$ = function(id) {
 				right : x2 + offset,
 				bottom : y2 + offset
 			}
+		},
+		/**
+		 * 得到kmp算法的next数组
+		 * @param {Object} str
+		 */
+		getKmpNext : function(str) {
+			var len = str.length, n_arr = window.Int32Array ? new Int32Array(len) : new Array(len);
+			if(len === 0)
+				return n_arr;
+			n_arr[0] = -1;
+			for(var i = 1; i < len; i++) {
+				var j = i - 1;
+				while(n_arr[j] >= 0 && str[i] !== str[n_arr[j]]) {
+					j = n_arr[j] - 1;
+				}
+				n_arr[i] = n_arr[j] + 1;
+			}
+			$.log('calc kmp');
+			$.log(n_arr);
+			return n_arr;
 		}
 	});
 })(Daisy.$);

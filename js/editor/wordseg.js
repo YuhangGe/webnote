@@ -31,8 +31,8 @@
 			var len = arr.length, ce = arr[idx], ct = this._getCharType(ce.value);
 			if(ct === this.TYPE.OTHER){
 				return {
-					from : index - 1,
-					to : index
+					from : idx - 1,
+					to : idx
 				}
 			}else if(ct === this.TYPE.UNICODE){
 				return this._getChineseRange(arr,idx);
@@ -82,12 +82,6 @@
 				}
 			}
 			return i;
-		},
-		getLeft : function(ele_arr, index) {
-			
-		},
-		getRight : function(ele_arr, index) {
-
 		}
 	}
 })(Daisy, Daisy.$);

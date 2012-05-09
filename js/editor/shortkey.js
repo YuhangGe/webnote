@@ -27,9 +27,14 @@
 				'ctrl-shift-home' : this._ctrl_shift_home_handler,
 				'ctrl-shift-end' : this._ctrl_shift_end_handler,
 				'home' : this._home_handler,
-				'end' : this._end_handler
+				'end' : this._end_handler,
+				'ctrl-b' : this._ctrl_b_handler,
+				'pageup' : this._pageup_handler,
+				'pagedown' : this._pagedown_handler
 			};
 			this.KEY_TABLE = {
+				33 : 'pageup',
+				34 : 'pagedown',
 				36 : 'home',
 				35 : 'end',
 				37 : 'left',
@@ -37,6 +42,15 @@
 				38 : 'up',
 				40 : 'down'
 			}
+		},
+		_pageup_handler : function(){
+			this.container.scrollTop -= 15 * this.line_height * this.render.scale;
+		},
+		_pagedown_handler : function(){
+			this.container.scrollTop += 15 * this.line_height * this.render.scale;
+		},
+		_ctrl_b_handler : function(){
+			ctrlSetBold();
 		},
 		_shift_home_handler : function(){
 			if(this.caret_pos.para_at<0)

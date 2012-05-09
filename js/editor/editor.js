@@ -93,7 +93,7 @@
 
 		this.caret.style.font = this.font;
 		this.caret.style.color = this.color;
-       
+
 		//当前是否在正在手写
 		this.hand_mode = false;
 		this.hand_bihua = [];
@@ -136,7 +136,7 @@
 	}
 	Daisy.WebNote.prototype = {
 		setMode : function(mode) {
-            this.select_doodle = null;
+			this.select_doodle = null;
 			if(mode === 'doodle') {
 				this.canvas.style.cursor = "crosshair";
 				this.caret.style.opacity = "0";
@@ -147,20 +147,20 @@
 					this.edit_doodle.attachDoodle(this.select_doodle);
 				}
 				this.caret.style.opacity = "0";
-			} else if(mode === 'handword' || mode === 'readonly'){
+			} else if(mode === 'handword' || mode === 'readonly') {
 				this.caret.style.opacity = "1";
-                this.canvas.style.cursor = "text";
+				this.canvas.style.cursor = "text";
 			} else {
-                throw 'unknown mode';
-            }
-            this.cur_mode = mode;
+				throw 'unknown mode';
+			}
+			this.cur_mode = mode;
 			this.focus();
 			this.render.paint();
 		},
 		setColor : function(color) {
 			this.color = color;
 
-			if(this.cur_mode!=='readonly' && this.cur_page.select_mode) {
+			if(this.cur_mode !== 'readonly' && this.cur_page.select_mode) {
 				this.cur_page.setSelectColor(color);
 				this.render.paint();
 			}
@@ -168,12 +168,12 @@
 		},
 		setReadOnly : function(read_only) {
 			if(read_only === true || read_only === 'readonly')
-                this.cur_mode = 'readonly';
+				this.cur_mode = 'readonly';
 		},
 		setBold : function(is_bold) {
 			this.font_bold = is_bold;
 			this.font = (this.font_bold ? 'bold ' : '') + this.font_size + "px " + this.font_name;
-			if(this.cur_mode!=='readonly' && this.cur_page.select_mode) {
+			if(this.cur_mode !== 'readonly' && this.cur_page.select_mode) {
 				this.cur_page.setSelectBold(is_bold);
 				this.render.paint();
 			}
@@ -232,11 +232,11 @@
 		},
 		_getEventPoint : function(e, is_chrome, not_scale) {
 			var x = 0, y = 0;
-			if(is_chrome){
+			if(is_chrome) {
 				var off = $.getOffset(this.container);
 				x = e.x - off.left + this.container.scrollLeft + document.body.scrollLeft;
 				y = e.y - off.top + this.container.scrollTop + document.body.scrollTop;
-			}else if( typeof e.offsetX !== 'undefined') {
+			} else if( typeof e.offsetX !== 'undefined') {
 				x = e.offsetX;
 				y = e.offsetY;
 			} else if( typeof e.x !== 'undefined') {
@@ -247,7 +247,7 @@
 			} else {
 				throw "no x in event(_getEventPoint)";
 			}
-			if(e.target === this.caret && !is_chrome){
+			if(e.target === this.caret && !is_chrome) {
 				x += this.caret.offsetLeft;
 				y += this.caret.offsetTop;
 			}
@@ -499,7 +499,7 @@
 					break;
 			}
 			this.cur_page.select(null);
-		 	this.render.paint();
+			this.render.paint();
 			this._setCaret(new_cp);
 		},
 		getThumb : function() {
@@ -522,6 +522,17 @@
 		clearUndoRedo : function() {
 			this.text_history.clear();
 			this.doodle_history.clear();
+		},
+		findText : function(txt) {
+			var idx = this.cur_page.findText(txt, this.caret_pos.index + 1);
+			if(idx<0)
+				return;
+			else{
+				var fc = this.cur_page.getCaretByIndex(idx-1), tc = this.cur_page.getCaretByIndex(idx-1+txt.length);
+				this.cur_page.select(fc,tc);
+				this._setCaret(tc);
+				this.render.paint();
+			}
 		}
 	}
 

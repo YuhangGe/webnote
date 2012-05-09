@@ -11,50 +11,71 @@
 				if( typeof console !== 'undefined')
 					console.log(msg);
 			}
-			function dbl_test(e){
+			function dbl_test(e) {
 				$.log(e)
 			}
-			function kmp_next(str){
-				var len = str.length,
-					n_arr = new Array(len);
+
+			function kmp_next(str) {
+				var len = str.length, n_arr = new Array(len);
 				if(len === 0)
 					return n_arr;
 				n_arr[0] = -1;
-				for(var i=1;i<len;i++){
+				for(var i = 1; i < len; i++) {
 					var j = i - 1;
-					while(n_arr[j] >=0 && str[i]!==str[n_arr[j]]){
+					while(n_arr[j] >= 0 && str[i] !== str[n_arr[j]]) {
 						j = n_arr[j] - 1;
 					}
 					n_arr[i] = n_arr[j] + 1;
 				}
 				return n_arr;
 			}
-			function kmp_search(src,dst){
-				if(src === "")
+
+			function kmp_search(src, dst) {
+				var s_l = src.length, d_l = dst.length;
+				if(s_l === 0)
 					return -1;
-				if(dst === "")
+				if(d_l === 0)
 					return 0;
-				var dst_next = kmp_next(dst);
-				
-				
+				var d_next = kmp_next(dst), idx = 0;
+				for(var i = 0; i < s_l; i++) {
+					while(true) {
+						if(src[i] === dst[idx]) {
+							idx++;
+							if(idx === d_l) {
+								return i - idx + 1;
+							}
+							break;
+						} else if(idx === 0) {
+							break;
+						} else {
+							idx = d_next[idx];
+						}
+					}
+				}
+				return -1;
 			}
-			function deal_keydown(e){
+
+			function deal_keydown(e) {
 				$.log(e.keyCode);
 			}
-			$(function(){
-				$.log(kmp_next("aaacaaad"))
+
+			$(function() {
+				$.log(kmp_search("我爱北京天安门", "北京"))
 			})
 		</script>
 	</head>
 	<body>
 		<div contenteditable="true">
-			<p>Hello World</p>
+			<p>
+				Hello World
+			</p>
 		</div>
 		<div ondblclick="dbl_test(event);">
-			<textarea type="text" value="更重要强大" onmousedown="dbl_test(event);" onkeydown="deal_keydown(event);" ></textarea><br/>
-			<input type="button" value="test" id="btn-test" onclick="do_test();"/><br/>
+			<textarea type="text" value="更重要强大" onmousedown="dbl_test(event);" onkeydown="deal_keydown(event);" ></textarea>
+<br/>			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
+			<br/>
 			<div>
-				hello world.4323.3ad_a 葛羽航你好   da ^#@.  
+				hello world.4323.3ad_a 葛羽航你好   da ^#@.
 			</div>
 		</div>
 		<div>

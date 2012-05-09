@@ -131,7 +131,7 @@
 			return new Daisy._HandElement(this._copyBihua(),$.copyJson(this.style),this.width,this.height);
 		},
 		draw : function(ctx){
-			ctx.lineWidth = this.style.weight;
+			ctx.lineWidth = this.style.bold?this.style.weight * 1.5 : this.style.weight;
 			ctx.strokeStyle = this.style.color;
 			ctx.save();
 			ctx.translate(this.left, this.bottom - this.height);

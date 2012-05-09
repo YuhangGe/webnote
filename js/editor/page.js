@@ -23,15 +23,21 @@
 				from : null,
 				to : null
 			}
-
+			/**
+			 * 保存上一次查找的字符串
+			 */
+			this.last_find = {
+				text : "",
+				next : null
+			}
 			this.doodle_list.length = 0;
 			this.ele_array.length = 0;
 		},
 		reset : function() {
 			this._init();
 		},
-		selectAll : function(){
-			return this.selectByIndex(-1,this.ele_array.length-1); 
+		selectAll : function() {
+			return this.selectByIndex(-1, this.ele_array.length - 1);
 		},
 		select : function(from, to) {
 			if(from == null || to == null) {
@@ -208,9 +214,9 @@
 						ele.line_at += para.line_cross - pre_lc;
 					}
 					/**
-					 * 如果当前段落最后有换行\n也要同时移动。 
+					 * 如果当前段落最后有换行\n也要同时移动。
 					 */
-					if((ele = this.ele_array[j])!=null){
+					if(( ele = this.ele_array[j]) != null) {
 						ele.bottom += (para.line_cross - pre_lc) * this.editor.render.line_height;
 						ele.line_at += para.line_cross - pre_lc;
 					}
@@ -220,7 +226,7 @@
 		},
 		insertLine : function(caret) {
 			var n_e = new Daisy._NewLineElement(), p_e = null, a_e = null;
-			
+
 			this.ele_array.splice(caret.index + 1, 0, n_e);
 			var para = this.para_info[caret.para], l_len = caret.para_at + 1, r_len = para.length - l_len;
 			para.length = l_len;
@@ -371,8 +377,8 @@
 				var f = this.select_range.from.index + 1, t = this.select_range.to.index;
 				for(var i = f; i <= t; i++) {
 					var ele = this.ele_array[i];
+					ele.style.bold = is_bold;
 					if(ele.type === Daisy._Element.Type.CHAR) {
-						ele.style.bold = is_bold;
 						ele.style.font = this.editor.font;
 					}
 				}
@@ -387,6 +393,37 @@
 		},
 		removeDoodle : function(doodle) {
 			this.doodle_list.splice(this.doodle_list.indexOf(doodle), 1);
+		},
+		findText : function(txt, start) {
+			var arr = this.ele_array, lf = this.last_find, t_next = lf.text === txt ? lf.next : (lf.next = $.getKmpNext(lf.text = txt));
+			var i = (start < 0 || start >= arr.length) ? 0 : start, idx = 0;
+			/**
+			 * 在整个文本中从start位置循环查找字符串。
+			 * 两个while循环的实际复杂度是线性的，这个是KMP字符串匹配算法的特色。
+			 */
+			while(true) {
+				while(true) {
+					if(arr[i].value === txt[idx]) {
+						idx++;
+						if(idx === txt.length) {
+							return i - idx + 1;
+						}
+						break;
+					} else if(idx === 0) {
+						break;
+					} else {
+						idx = t_next[idx];
+					}
+				}
+				i++;
+				if(i === start) {
+					break;
+				} else if(i === arr.length) {
+					i = 0;
+				}
+			}
+
+			return -1;
 		}
 	}
 

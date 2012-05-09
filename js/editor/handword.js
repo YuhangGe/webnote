@@ -6,7 +6,8 @@
 		_createHandWord : function(bihuas) {
 			var hw = new Daisy._HandElement([], {
 				color : this.color,
-				weight : Daisy.Global.hand_weight
+				weight : Daisy.Global.hand_weight,
+				bold : this.font_bold
 			},0,0);
 
 			var p0 = bihuas[0][0], x1 = p0.x, y1 = p0.y, x2 = p0.x, y2 = p0.y;
