@@ -1,8 +1,8 @@
 .hg/
 adb/
 build/
-data/
 tools/
+__backup/
 
 build.bat
 .hgignore
