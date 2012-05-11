@@ -44,6 +44,22 @@
 			}
 			
 		},
+		getRight : function(arr,idx){
+			var len = arr.length, ce = arr[idx], ct = this._getCharType(ce.value),
+				r = idx;
+			if(ct !== this.TYPE.SPACE){
+				r = this._getRight(arr,idx,ct);
+			}
+			return this._getRight(arr,r,this.TYPE.SPACE);
+		},
+		getLeft : function(arr,idx){
+			var len = arr.length, ce = arr[idx], ct = this._getCharType(ce.value);
+			var l = this._getLeft(arr,idx,ct);
+			if(ct===this.TYPE.SPACE && arr[l]!=null){
+				return this._getLeft(arr, l, this._getCharType(arr[l].value));
+			}else
+				return l;
+		},
 		/**
 		 * 得到中文分词的单词范围。
 		 * 当前没有具体实现。直接返回单个字符的范围。 
@@ -60,22 +76,25 @@
 		 * @param {Object} arr
 		 * @param {Object} idx
 		 * @param {Object} type
-		 * 根据chrome的规则，向右选择会选择一致类型的单词，并将右边的空格一起包含
+		 * 根据chrome的规则，向右选择会选择一致类型的单词
 		 */
 		_getRight : function(arr, idx, type) {
-			var r = idx;
+			if(type === this.TYPE.UNICODE || type === this.TYPE.OTHER)
+				return idx;
 			for(var i = idx + 1; i < arr.length; i++) {
 				if(this._getCharType(arr[i].value) !== type) {
-					r = i - 1;
-					break;
+					return i - 1;
 				}
 			}
-			if(type !== this.TYPE.SPACE)
-				r = this._getRight(arr, r, this.TYPE.SPACE);
-			return r;
+			if(i === arr.length)
+				return i-1;
+			else
+				return idx;
 		},
 		_getLeft : function(arr,idx,type){
 			var i = idx - 1;
+			if(type === this.TYPE.UNICODE || type === this.TYPE.OTHER)
+				return i;
 			for(;i>=0;i--){
 				if(this._getCharType(arr[i].value)!==type){
 					break;

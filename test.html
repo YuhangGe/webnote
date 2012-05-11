@@ -60,8 +60,17 @@
 			}
 
 			$(function() {
-				$.log(kmp_search("我爱北京天安门", "北京"))
+				$("#txtbox").bind("compositionstart",function(e){
+					$.log(e)
+				}).bind("compositionupdate",function(e){
+					$.log(e)
+				}).bind("compositionend",function(e){
+					$.log(e)
+				});
 			})
+			function e_com(e){
+				$.log(e)
+			}
 		</script>
 	</head>
 	<body>
@@ -71,7 +80,7 @@
 			</p>
 		</div>
 		<div ondblclick="dbl_test(event);">
-			<textarea type="text" value="更重要强大" onmousedown="dbl_test(event);" onkeydown="deal_keydown(event);" ></textarea>
+			<textarea id="txtbox" type="text" value="更重要强大"></textarea>
 <br/>			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
 			<br/>
 			<div>
@@ -79,7 +88,7 @@
 			</div>
 		</div>
 		<div>
-			<canvas style="border:1px solid blue;width:300px;height:400px;"></canvas>
+			<canvas style="border:1px solid blue;" id="c_test"></canvas>
 		</div>
 	</body>
 </html>

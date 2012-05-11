@@ -144,17 +144,17 @@
 		_ctrl_shift_left_handler : function() {
 			if(this.caret_pos.index < 0)
 				return;
-			this._shift_select(this.wordSeg.getRange(this.cur_page.ele_array, this.caret_pos.index).from);
+			this._shift_select(this.wordSeg.getLeft(this.cur_page.ele_array, this.caret_pos.index));
 		},
 		_ctrl_shift_right_handler : function() {
 			if(this.caret_pos.index >= this.cur_page.ele_array.length - 1)
 				return;
-			this._shift_select(this.wordSeg.getRange(this.cur_page.ele_array, this.caret_pos.index+1).to);
+			this._shift_select(this.wordSeg.getRight(this.cur_page.ele_array, this.caret_pos.index+1));
 		},
 		_ctrl_left_handler : function() {
 			var idx = this.caret_pos.index;
 			if(idx >= 0) {
-				this._setCaret(this.cur_page.getCaretByIndex(this.wordSeg.getRange(this.cur_page.ele_array, idx).from));
+				this._setCaret(this.cur_page.getCaretByIndex(this.wordSeg.getLeft(this.cur_page.ele_array, idx)));
 			}
 		 	this.cur_page.select(null);
 		 	this.render.paint();
@@ -162,7 +162,7 @@
 		_ctrl_right_handler : function() {
 			var idx = this.caret_pos.index + 1, err = this.cur_page.ele_array;
 			if(idx < err.length) {
-				this._setCaret(this.cur_page.getCaretByIndex(this.wordSeg.getRange(err, idx).to));
+				this._setCaret(this.cur_page.getCaretByIndex(this.wordSeg.getRight(err, idx)));
 			}
 				this.cur_page.select(null);
 		 	this.render.paint();
