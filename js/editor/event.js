@@ -177,7 +177,7 @@
 			if(w > this.c_width) {
 				this.caret.style.height = (this.font_height + this.caret_offset_1) * this.render.scale * Math.ceil(w / this.c_width) + "px";
 			} else {
-				this.caret.style.width = (w + 5 * this.render.scale) + "px";
+				this.caret.style.width = (w + 4 * this.render.scale) + "px";
 				if(w > dw)
 					this.caret.style.left = (this.c_width - w) + "px";
 			}
@@ -187,8 +187,13 @@
 			this.caret.style.background = "#FFFFCC";
 		},
 		_copy_handler : function(e) {
+			 
+			var rtn = false;
 			if((this.cur_mode === 'handword' || this.cur_mode === 'readonly') && this.cur_page.select_mode) {
-				this.clipboard.setData("item", this.cur_page.copyElement(), e);
+				if(this.cur_page.select_mode) {
+					this.clipboard.setData("item", this.cur_page.copyElement(), e);
+					rtn = true;
+				}
 			} else if(this.cur_mode === "doodle-edit") {
 				/**
 				 * todo...
@@ -196,13 +201,27 @@
 			}
 			if(e != null)
 				$.stopEvent(e);
+			return rtn;
 		},
 		_cut_handler : function(e) {
-			this._copy_handler(e);
-			this._delOrBack();
+			if(this._copy_handler(e)) {
+				this._delOrBack();
+			}
 		},
 		_paste_handler : function(e) {
 			this.clipboard.getData(e, $.createDelegate(this, this._deal_paste));
+		},
+		_firefox_paste_handler : function(e) {
+			if(this.clipboard.getData(e, $.createDelegate(this, this._deal_paste)) === false) {
+				window.setTimeout($.createDelegate(this,this._firefox_paste_timeout),5);
+			}
+		},
+		_firefox_paste_timeout : function() {
+			this._deal_paste({
+				type : 'text',
+				value : this.caret.value
+			});
+			this.caret.value = "";
 		},
 		_paste_html : function(html) {
 
@@ -239,7 +258,6 @@
 		_deal_paste : function(data) {
 			if(data == null)
 				return;
-
 			if(data.type === "image") {
 				var doo = Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], data.value, [1, 0, this.caret_pos.left, 0, 1, this.caret_pos.top + this.line_height]);
 				this.insertDoodle(doo);
@@ -297,20 +315,20 @@
 		},
 		_compositionupdate_handler : function(e) {
 			if(this.__ime_on__) {
-				this._adjust_caret(e.data?e.data:this.caret.value);
+				this._adjust_caret(e.data ? e.data : this.caret.value);
 			}
 		},
-		// _compositionupdate_timeout_handler : function(){
-			// this._adjust_caret(this.caret.value);
-		// },
-		_compositionend_timeout_handler : function(){
+		_compositionupdate_timeout_handler : function() {
+			this._adjust_caret(this.caret.value);
+		},
+		_compositionend_timeout_handler : function() {
 			this.caret.value = "";
 			this._adjust_caret("");
 		},
 		_compositionend_handler : function(e) {
 			this.__ime_on__ = false;
 			if(e.data !== "") {
-				this.insert(e.data?e.data:this.caret.value);
+				this.insert(e.data ? e.data : this.caret.value);
 			}
 			/**
 			 * 在chrome下面直接设置caret.value=""会出现bug
@@ -331,20 +349,25 @@
 			 * 需要手动处理
 			 *
 			 */
-			if(e.ctrlKey && e.keyCode === 67 && ($.ie || $.firefox)) {
+			if(e.ctrlKey && e.keyCode === 67 && ($.ie || $.firefox || $.opera)) {
+				$.log('cp')
 				this._copy_handler(null);
 				$.stopEvent(e);
 				return;
-			} else if(e.ctrlKey && e.keyCode === 67 && ($.ie || $.firefox)) {
+			} else if(e.ctrlKey && e.keyCode === 88 && ($.ie || $.firefox || $.opera)) {
 				this._cut_handler(null);
+				$.stopEvent(e);
+				return;
+			} else if(e.ctrlKey && e.keyCode === 86 && ($.opera || $.ie)) {
+				this._paste_handler(null);
 				$.stopEvent(e);
 				return;
 			} else if(this.cur_mode === 'readonly') {
 				$.stopEvent(e);
 				return;
 			}
-			switch(e.keyCode) {
 
+			switch(e.keyCode) {
 				case 13:
 					//回车
 					this.insert("\n");
@@ -377,11 +400,11 @@
 			}
 		},
 		_keypress_handler : function(e) {
-			var ec = e.charCode;
-			if(ec >= 32) {
+			var ec = e.charCode, ev = String.fromCharCode(ec);
+			if(ec >= 32 && !(e.ctrlKey && /[cxvzy]/i.test(ev))) {
 				this.insert(String.fromCharCode(ec));
+				$.stopEvent(e);
 			}
-			$.stopEvent(e);
 		},
 		_stop_handler : function(e) {
 			$.stopEvent(e);
@@ -391,7 +414,7 @@
 				return;
 
 			var p = this._getEventPoint(e, false), ei = this.cur_page._getElementIndex_xy(p.x, p.y), e_arr = this.cur_page.ele_array;
-			if(ei > 0 && e_arr[ei].type !== Daisy._Element.Type.NEWLINE) {
+			if(e_arr[ei] && e_arr[ei].type !== Daisy._Element.Type.NEWLINE) {
 				var range = this.wordSeg.getRange(e_arr, ei);
 
 				this._setCaret(this.cur_page.selectByIndex(range.from, range.to));
@@ -437,29 +460,58 @@
 			$.addEvent(this.caret, 'blur', $.createDelegate(this, this._blur_handler));
 			$.addEvent(this.caret, "keydown", $.createDelegate(this, this._keydown_handler));
 
+			/**
+			 * 下面的代码处理IME事件。IME事件的标准事件是三个： compositionstart, compositionupdate, compositionend
+			 * 分别对应开始输入，输入过程的修改，输入确定。但是现在只有firefox支持完善，其它浏览器都在处理上有问题。详情见下面代码注释。
+			 * 与此同时，在chrome, safri和ie9下面有input事件对应compositionupdate和textInput（ie9下是textinput）事件对应
+			 * compositionend事件，并且处理完善。
+			 *
+			 * 下面的代码有冗余的地方，可以先判断需要加载的事件的名称再加载事件（节省代码大小）。但为了逻辑上的可读性，没有精简代码。
+			 */
 			if($.opera) {
 				/**
-				 * opera不支持IME的相关事件
+				 * opera不支持IME的相关事件, 使用window.setInterval来检测文字输入过程中的变化
 				 */
 				$.addEvent(this.caret, 'input', $.createDelegate(this, this._textinput_handler));
 			} else {
-				//this._compositionupdate_timeout = $.createDelegate(this,this._compositionupdate_timeout_handler);
-				this._compositionend_timeout = $.createDelegate(this,this._compositionend_timeout_handler);
+				this._compositionend_timeout = $.createDelegate(this, this._compositionend_timeout_handler);
 				$.addEvent(this.caret, 'compositionstart', $.createDelegate(this, this._compositionstart_handler));
-				if($.chrome||$.safri){
+				if($.chrome || $.safri) {
+					/**
+					 * chrome和safri下面中文符号如句号逗号的输入不能触发compositionend事件，所以使用textInput事件代替
+					 * 同时esc键不能触发compositionupdate事件，使用input事件代替.
+					 */
 					$.addEvent(this.caret, 'textInput', $.createDelegate(this, this._compositionend_handler))
 					$.addEvent(this.caret, 'input', $.createDelegate(this, this._compositionupdate_handler));
-				}else{
+				} else if($.ie) {
+					/**
+					 * ie9下面如果使用compositionupdate事件会有奇怪的bug，输入过程中会闪烁。使用input事件。
+					 * ie9下面compositionend和textinput表现完全等价，可以任意使用。
+					 */
+					$.addEvent(this.caret, 'compositionend', $.createDelegate(this, this._compositionend_handler))
+					$.addEvent(this.caret, 'input', $.createDelegate(this, this._compositionupdate_handler));
+				} else {
+					/**
+					 * firefox下面使用 ime事件
+					 */
+					$.addEvent(this.caret, 'compositionend', $.createDelegate(this, this._compositionend_handler))
 					$.addEvent(this.caret, 'compositionupdate', $.createDelegate(this, this._compositionupdate_handler));
-					$.addEvent(this.caret, 'compositionend', $.createDelegate(this, this._compositionend_handler));
 					$.addEvent(this.caret, 'keypress', $.createDelegate(this, this._keypress_handler));
 				}
-				
-			}
-			$.addEvent(this.caret, 'copy', $.createDelegate(this, this._copy_handler));
-			$.addEvent(this.caret, 'cut', $.createDelegate(this, this._cut_handler));
 
-			$.addEvent(this.caret, 'paste', $.createDelegate(this, this._paste_handler));
+			}
+			/**
+			 * chrome 和 safri可以使用copy, cut, paste事件操作剪贴板。
+			 * firefox和ie当input为空时ctrl-c不能触发copy事件，只通过检测按键来实现。但firefox粘贴空数据也能触发ctrl-v，所以使用paste事件
+			 * opera 没有copy, cut, paste事件，也 只通过检测按键来实现。
+			 */
+			if($.chrome || $.safri) {
+				$.addEvent(this.caret, 'copy', $.createDelegate(this, this._copy_handler));
+				$.addEvent(this.caret, 'cut', $.createDelegate(this, this._cut_handler));
+				$.addEvent(this.caret, 'paste', $.createDelegate(this, this._paste_handler));
+			} else if($.firefox) {
+				$.addEvent(this.caret, 'paste', $.createDelegate(this, this._firefox_paste_handler));
+			}
 
 			$.addEvent(this.canvas, 'contextmenu', function(e) {
 				$.stopEvent(e);

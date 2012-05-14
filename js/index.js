@@ -95,7 +95,8 @@ $(function() {
 	//SNEditor.insert("a    12345678909873623231212baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabcdefghizkdjksljdlc");
 	//debug = true;
 	//SNEditor.insert("d")
-	SNEditor.insert("歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
+	ctrlNewNote();
+	SNEditor.insert("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
 	loadAllBook();
 
 	//$('#ctrl-handword').qtip("show")

@@ -60,17 +60,15 @@
 			}
 
 			$(function() {
-				$("#txtbox").bind("compositionstart",function(e){
+				$("#txtbox").bind("copy paste",function(e){
 					$.log(e)
-				}).bind("compositionupdate",function(e){
-					$.log(e)
-				}).bind("compositionend",function(e){
-					$.log(e)
+					$.log($("#txtbox").val())
 				});
 			})
 			function e_com(e){
 				$.log(e)
 			}
+		 
 		</script>
 	</head>
 	<body>
@@ -80,7 +78,7 @@
 			</p>
 		</div>
 		<div ondblclick="dbl_test(event);">
-			<textarea id="txtbox" type="text" value="更重要强大"></textarea>
+			<textarea id="txtbox" type="text" value="更重要强大" ></textarea>
 <br/>			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
 			<br/>
 			<div>

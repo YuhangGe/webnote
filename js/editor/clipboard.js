@@ -15,9 +15,6 @@
 	var C = Daisy.Clipboard;
 	C.prototype = {
 		getData : function(e, callback) {
-			if(e == null || typeof callback !== 'function') {
-				return null;
-			}
 			this.saved_event = e;
 			this.saved_callback = callback;
 			if(e && e.clipboardData && e.clipboardData.types) {
@@ -61,6 +58,7 @@
 					type : 'text',
 					value : window.clipboardData.getData('text')
 				};
+			
 				this._checkData();
 			} else {
 				/*
@@ -74,13 +72,14 @@
 					this._checkData();
 				}else{
 					//直接返回，不要stopEvent，使得文本可以复制到caret中，然后会触发 input事件，从而将文本插入。
-					return;
+					return false;
 				}
 			}
 			/*
 			 * stopEvent阻止文本复制到caret中。
 			 */
 			$.stopEvent(e);
+			return true;
 		},
 		_textLoad : function() {
 			this.data = {
@@ -90,7 +89,6 @@
 			this._checkData();
 		},
 		_imageLoad : function(evt) {
-
 			this.data = {
 				type : 'image',
 				value : evt.target.result
@@ -104,9 +102,7 @@
 					this.data.value = this.inner_data;
 				}
 			}
-
 			this.saved_callback(this.data);
-
 		},
 		_item2Text : function(items) {
 			var txt = "";

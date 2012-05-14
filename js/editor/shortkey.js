@@ -10,6 +10,7 @@
 				'ctrl-right' : this._ctrl_right_handler,
 				'ctrl-z' : this._undo_handler,
 				'ctrl-y' : this._redo_handler,
+				'ctrl-s' : this._save_handler,
 				'left' : this._left_handler,
 				'right' : this._right_handler,
 				'up' : this._up_handler,
@@ -43,54 +44,81 @@
 				40 : 'down'
 			}
 		},
-		_pageup_handler : function(){
+		_ctrl_v_handler: function(){
+			if($.opera||$.ie){
+				this._stop_keypress = true;
+				this._paste_handler(null);
+				return true;
+			}
+		},
+		_ctrl_c_handler : function(){
+			if($.ie||$.firefox||$.opera){
+				/**
+				 * _stop_keypress是为了阻止firefox下面keypress事件
+				 */
+				this._stop_keypress = true;
+				this._copy_handler(null);
+				return true;
+			}
+		},
+		_ctrl_x_handler : function(){
+			if($.ie||$.firefox||$.opera){
+				this._stop_keypress = true;
+				this._cut_handler(null);
+				return true;
+			}
+		},
+		_save_handler : function() {
+			ctrlSaveNote();
+		},
+		_pageup_handler : function() {
 			this.container.scrollTop -= 15 * this.line_height * this.render.scale;
 		},
-		_pagedown_handler : function(){
+		_pagedown_handler : function() {
 			this.container.scrollTop += 15 * this.line_height * this.render.scale;
 		},
-		_ctrl_b_handler : function(){
+		_ctrl_b_handler : function() {
 			ctrlSetBold();
 		},
-		_shift_home_handler : function(){
-			if(this.caret_pos.para_at<0)
+		_shift_home_handler : function() {
+			if(this.caret_pos.para_at < 0)
 				return;
 			this._shift_select(this.cur_page.para_info[this.caret_pos.para].index);
 		},
-		_shift_end_handler : function(){
+		_shift_end_handler : function() {
 			var p = this.cur_page.para_info[this.caret_pos.para];
 			if(this.caret_pos.para_at === p.length - 1)
 				return;
 			this._shift_select(p.index + p.length);
 		},
-		_ctrl_shift_home_handler : function(){
-			if(this.caret_pos.index<0)
+		_ctrl_shift_home_handler : function() {
+			if(this.caret_pos.index < 0)
 				return;
 			this._shift_select(-1);
 		},
-		_ctrl_shift_end_handler : function(){
+		_ctrl_shift_end_handler : function() {
 			if(this.caret_pos.index === this.cur_page.ele_array.length - 1)
 				return;
 			this._shift_select(this.cur_page.ele_array.length - 1);
 		},
-		_home_handler : function(){
+		_home_handler : function() {
 			this._setCaret(this.cur_page.getCaretByIndex(this.cur_page.para_info[this.caret_pos.para].index));
 			this.cur_page.select(null);
 			this.render.paint();
 		},
-		_end_handler : function(){
+		_end_handler : function() {
 			var p = this.cur_page.para_info[this.caret_pos.para];
 			this._setCaret(this.cur_page.getCaretByIndex(p.index + p.length));
 			this.cur_page.select(null);
 			this.render.paint();
 		},
-		_ctrl_home_handler : function(){
+		_ctrl_home_handler : function() {
 			this._setCaret(this.cur_page.getCaretByIndex(-1));
 			this.cur_page.select(null);
 			this.render.paint();
 		},
-		_ctrl_end_handler : function(){
-			this._setCaret(this.cur_page.getCaretByIndex(this.cur_page.ele_array.length-1));
+		_ctrl_end_handler : function() {
+			this._setCaret(this.cur_page.getCaretByIndex(this.cur_page.ele_array.length - 1));
 			this.cur_page.select(null);
 			this.render.paint();
 		},
@@ -133,8 +161,17 @@
 			this._setCaret(nc);
 			this.render.paint();
 		},
-		_shift_up_handler : function(){
-			
+		_shift_up_handler : function() {
+			if(this.caret_pos.top - this.line_height > 0) {
+				this._shift_select(this.cur_page._getCaret_xy(this.caret_pos.left, this.caret_pos.top - this.line_height).index);
+			}
+		},
+		_shift_down_handler : function() {
+			var pi = this.cur_page.para_info, lp = pi[pi.length - 1];
+			if(this.caret_pos.top + this.line_height < (lp.line_start + lp.line_cross) * this.line_height) {
+				this._shift_select(this.cur_page._getCaret_xy(this.caret_pos.left, this.caret_pos.top + this.line_height).index);
+			}
+
 		},
 		_shift_right_handler : function() {
 			if(this.caret_pos.index >= this.cur_page.ele_array.length - 1)
@@ -149,23 +186,23 @@
 		_ctrl_shift_right_handler : function() {
 			if(this.caret_pos.index >= this.cur_page.ele_array.length - 1)
 				return;
-			this._shift_select(this.wordSeg.getRight(this.cur_page.ele_array, this.caret_pos.index+1));
+			this._shift_select(this.wordSeg.getRight(this.cur_page.ele_array, this.caret_pos.index + 1));
 		},
 		_ctrl_left_handler : function() {
 			var idx = this.caret_pos.index;
 			if(idx >= 0) {
 				this._setCaret(this.cur_page.getCaretByIndex(this.wordSeg.getLeft(this.cur_page.ele_array, idx)));
 			}
-		 	this.cur_page.select(null);
-		 	this.render.paint();
+			this.cur_page.select(null);
+			this.render.paint();
 		},
 		_ctrl_right_handler : function() {
 			var idx = this.caret_pos.index + 1, err = this.cur_page.ele_array;
 			if(idx < err.length) {
 				this._setCaret(this.cur_page.getCaretByIndex(this.wordSeg.getRight(err, idx)));
 			}
-				this.cur_page.select(null);
-		 	this.render.paint();
+			this.cur_page.select(null);
+			this.render.paint();
 		},
 		_ctrl_up_handler : function() {
 			this.container.scrollTop -= this.line_height * this.render.scale;

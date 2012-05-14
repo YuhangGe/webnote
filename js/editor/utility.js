@@ -49,6 +49,8 @@ Daisy.$ = function(id) {
 			}
 		},
 		stopEvent : function(e) {
+			if(e==null)
+				return;
 			if(e.preventDefault) {
 				e.preventDefault();
 			} else {

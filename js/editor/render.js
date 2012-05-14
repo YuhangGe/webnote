@@ -229,10 +229,15 @@
 				//$.log("%d,%d",s_l,e_l);
 				//$.log("%s,%s,%s,%s",s_e.left, s_e.bottom - c_h + this.baseline_offset, c_w - s_e.left, c_h)
 				this.ctx.fillRect(s_e.left, s_e.bottom - c_h + this.baseline_offset, c_w - s_e.left, c_h);
+				
 				for(var i = s_l + 1; i < e_l; i++) {
 					this.ctx.fillRect(0, this.padding_top + (i + 1) * this.line_height - c_h + this.baseline_offset, c_w, c_h);
 				}
-				if(to.para_at >= 0) {
+				//$.log(e_e)
+				if(to.para_at >= 0 && (to.index+1===e_arr.length||e_arr[to.index+1].left>0)) {
+					/**
+					 * 如果选择结束位置不在一行的行首。
+					 */
 					this.ctx.fillRect(0, e_e.bottom - c_h + this.baseline_offset, e_e.left + e_e.width, c_h);
 				}
 			}
