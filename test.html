@@ -11,8 +11,9 @@
 				if( typeof console !== 'undefined')
 					console.log(msg);
 			}
-			function dbl_test(e) {
-				$.log(e)
+			function do_test(e) {
+				search("一览");
+				search("一览无遗");
 			}
 
 			function kmp_next(str) {
@@ -59,16 +60,73 @@
 				$.log(e.keyCode);
 			}
 
+			var w_trie = {};
+
+			function search(d) {
+				var t = w_trie;
+				for(var i = 0; i < d.length; i++) {
+					if(t[d[i]] == null && t[''] == null) {
+						console.log("not found");
+						return;
+					} else {
+						t = t[d[i]];
+					}
+				}
+				if(t[''] == null) {
+					console.log("not found.");
+				} else {
+					console.log("found.");
+				}
+
+			}
+
 			$(function() {
-				$("#txtbox").bind("copy paste",function(e){
-					$.log(e)
-					$.log($("#txtbox").val())
+				$.get("chinese/dict.txt", function(data) {
+					(function() {
+
+						var txt = data, idx = 0;
+						function _insert(t, word) {
+							for(var i = 0; i < word.length; i++) {
+								var c = word[i];
+								t[c] = t[c] == null ? {} : t[c];
+								t = t[c];
+							}
+							t[''] = 1;
+						}
+
+						function read_num() {
+							return txt.charCodeAt(idx++);
+						}
+
+						function read_word(length) {
+							if(length == null)
+								length = 1;
+							var w = txt.substr(idx, length);
+							idx += length;
+							return w;
+						}
+
+						var c_num = read_num();
+						//console.log("char number: "+c_num);
+						for(var i = 0; i < 8; i++) {
+							var w_chr = read_word(1), count = read_num(), t = w_trie[w_chr] = {};
+
+							for(var j = 1; j <= count; j++) {
+								var w_num = read_num();
+								//console.log("w_num:"+w_num);
+								for(var x = 0; x < w_num; x++) {
+									_insert(t, read_word(j));
+								}
+							}
+						}
+
+					})();
 				});
 			})
-			function e_com(e){
+			function e_com(e) {
 				$.log(e)
 			}
-		 
+
 		</script>
 	</head>
 	<body>
@@ -79,7 +137,8 @@
 		</div>
 		<div ondblclick="dbl_test(event);">
 			<textarea id="txtbox" type="text" value="更重要强大" ></textarea>
-<br/>			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
+			<br/>
+			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
 			<br/>
 			<div>
 				hello world.4323.3ad_a 葛羽航你好   da ^#@.

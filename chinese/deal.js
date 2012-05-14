@@ -1,5 +1,7 @@
 var w_hash = {}, w_number = 0;
 
+var n_arr = [];
+
 function _push(arr, val) {
 	/**
 	 * 按字符串长度从小到大插入
@@ -32,6 +34,7 @@ function output() {
 	for(var w_key in w_hash) {
 		//console.log(w_key);
 		out += w_key + _outline(w_hash[w_key]);
+		n_arr.push(w_key.charCodeAt(0));
 	}
 	return out;
 }
@@ -39,7 +42,7 @@ function output() {
 function _outline(arr) {
 	var rtn = [];
 	var f = 0, t = 1, count = 0, pre_len = arr[f].length;
-	for(var i=1;i<pre_len;i++){
+	for(var i = 1; i < pre_len; i++) {
 		rtn.push("\x00");
 		count++;
 	}
@@ -48,12 +51,12 @@ function _outline(arr) {
 		if(c_len !== pre_len) {
 			//console.log("c_len:"+c_len+",p_len:"+pre_len)
 			rtn.push(String.fromCharCode(t - f), arr.slice(f, t).join(""));
-			for(var i=pre_len + 1;i<c_len;i++){
+			for(var i = pre_len + 1; i < c_len; i++) {
 				//console.log("000")
 				rtn.push("\x00")
 				count++;
 			}
-			
+
 			pre_len = c_len;
 			f = t;
 			count++;
@@ -62,7 +65,7 @@ function _outline(arr) {
 	}
 	count++;
 	//console.log("count:"+count);
-	rtn.push(String.fromCharCode(t-f), arr.slice(f, t).join(""));
+	rtn.push(String.fromCharCode(t - f), arr.slice(f, t).join(""));
 	return String.fromCharCode(count) + rtn.join("");
 }
 
@@ -77,6 +80,12 @@ function _outline(arr) {
 			addWord(w2);
 		}
 	}
-	console.log("total char number:"+ w_number);
-	fs.writeFileSync("dict.txt", output(), "utf8");
+	console.log("total char number:" + w_number);
+	fs.writeFileSync("dict.txt", output(), "utf8"); 
+	var stdin = process.openStdin();
+	stdin.on('data', function(chunk) {
+		console.log("bye!");
+		process.exit();
+	});
+
 })();
