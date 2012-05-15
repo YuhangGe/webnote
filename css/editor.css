@@ -6,7 +6,7 @@
 	left: 0px;
 	top: 0px;
 }
-.sn-caret-new {
+.sn-caret {
 	position: absolute;
 	display: block;
 	width: 100px;
@@ -23,7 +23,7 @@
 	 */
 	overflow: hidden;
 }
-.sn-caret {
+.sn-caret-new {
 	position: absolute;
 	display: block;
 	width: 1px;

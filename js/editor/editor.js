@@ -405,6 +405,7 @@
 
 			this.text_history.add(cmd);
 			this._setCaret(re.caret);
+			this.wordSeg.reset();
 			this.render.paint();
 		},
 		/**

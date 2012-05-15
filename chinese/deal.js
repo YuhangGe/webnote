@@ -16,8 +16,6 @@ function _push(arr, val) {
 }
 
 function addWord(w) {
-	if(w.length <= 1)
-		return;
 	//console.log("add word: "+w);
 	var k = w[0], v = w.substring(1, w.length), t = w_hash[k];
 	//console.log(v)
@@ -73,19 +71,23 @@ function _outline(arr) {
 	var fs = require("fs");
 
 	var lines = fs.readFileSync("cedict_ts.txt", "utf8").split("\n");
+
 	for(var i = 0; i < lines.length; i++) {
 		var l = lines[i], idx = l.indexOf(" "), w1 = l.substring(0, idx), w2 = l.substring(idx + 1, l.indexOf(" ", idx + 1));
+		if(w1.length <= 1)
+			continue;
 		addWord(w1);
 		if(w2 !== w1) {
 			addWord(w2);
 		}
 	}
-	console.log("total char number:" + w_number);
+	console.log("total char number:"+ w_number);
 	fs.writeFileSync("dict.txt", output(), "utf8"); 
-	var stdin = process.openStdin();
-	stdin.on('data', function(chunk) {
-		console.log("bye!");
-		process.exit();
-	});
+	console.log("finish");
+	// var stdin = process.openStdin();
+	// stdin.on('data', function(chunk) {
+		// console.log("bye!");
+		// process.exit();
+	// });
 
 })();

@@ -1,12 +1,18 @@
 var w_trie = {};
 
-function _insert(t,word){
+var c_table = {};
+var c_num = 0;
+
+function _insert(word){
 	for(var i=0;i<word.length;i++){
 		var c = word[i];
-		t[c] = t[c]==null?{}:t[c];
-		t = t[c];
+		if(c_table[c]==null){
+			c_table[c] = c_num++;
+		}
+		//t[c] = t[c]==null?{}:t[c];
+		//t = t[c];
 	}
-	t[''] = 1;
+	//t[''] = 1;
 }
 
 (function() {
@@ -24,19 +30,22 @@ function _insert(t,word){
 	}
 	txt = fs.readFileSync("dict.txt", "utf8");
 	var c_num = read_num();
-	//console.log("char number: "+c_num);
-	for(var i=0; i<8;i++){
-		var w_chr = read_word(1), count = read_num(), t = w_trie[w_chr] = {};
-		
+	console.log("char number: "+c_num);
+	for(var i=0; i<c_num;i++){
+		var w_chr = read_word(1), count = read_num(), t = c_table[w_chr];
+		if(t==null){
+			t = c_table[w_chr] = c_num++;
+		}
 		for(var j=1;j<=count;j++){
 			var w_num = read_num();
 			//console.log("w_num:"+w_num);
 			for(var x=0;x<w_num;x++){
-				_insert(t,read_word(j));
+				_insert(read_word(j));
 			}
 		}
 	}
-	var stdin = process.openStdin();
+	console.log("c_num:"+c_num);
+/*	var stdin = process.openStdin();
 	stdin.on('data', function(d) {
 		d = d.toString().trim();
 		if(d==="q"){
@@ -64,4 +73,5 @@ function _insert(t,word){
 		}
 		
 	});
+	*/
 })();

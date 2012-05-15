@@ -12,8 +12,7 @@
 					console.log(msg);
 			}
 			function do_test(e) {
-				search("一览");
-				search("一览无遗");
+				fenci("你好中国歡迎我爱小扬en");
 			}
 
 			function kmp_next(str) {
@@ -61,23 +60,60 @@
 			}
 
 			var w_trie = {};
+			function log_seg(txt, f, t) {
+				$.log(txt.substring(f, t + 1));
+			}
 
-			function search(d) {
-				var t = w_trie;
-				for(var i = 0; i < d.length; i++) {
-					if(t[d[i]] == null && t[''] == null) {
-						console.log("not found");
-						return;
-					} else {
-						t = t[d[i]];
+			function fenci(d) {
+				//$.log(w_trie);
+				var t = w_trie, f = 0, is_got = false, last_m = 0, i = 0;
+				while(true) {
+					var c = d[i];
+					if(c<"\xff" || t[c]==null){
+						if(is_got){
+							is_got = false;
+							t = w_trie;
+							if(last_m>f){
+								log_seg(d,f,last_m);
+							}
+							i = f++;
+		
+						}else{
+							
+						}
+					}else{
+						//if(t[c]!=null){
+							t = t[c];
+							if(is_got===false){
+								is_got = true;
+								f = i;
+								last_m = f;
+							}else if(t['']===1){
+								last_m = i;
+							}
+
+						//}else{
+							//if(is_got){
+								
+							//}
+						//}
 					}
+					
+					i++;
+					if(i===d.length){
+						if(is_got){
+							if(last_m>f){
+								log_seg(d,f,last_m);
+							}else if(f+1<d.length){
+								i = f+1;
+								continue;
+							}
+						}
+						break;
+					}
+					
 				}
-				if(t[''] == null) {
-					console.log("not found.");
-				} else {
-					console.log("found.");
-				}
-
+			
 			}
 
 			$(function() {
@@ -106,9 +142,10 @@
 							return w;
 						}
 
+						var f_t = new Date().getTime();
 						var c_num = read_num();
 						//console.log("char number: "+c_num);
-						for(var i = 0; i < 8; i++) {
+						for(var i = 0; i < c_num; i++) {
 							var w_chr = read_word(1), count = read_num(), t = w_trie[w_chr] = {};
 
 							for(var j = 1; j <= count; j++) {
@@ -119,7 +156,7 @@
 								}
 							}
 						}
-
+						console.log("time:" + (new Date().getTime() - f_t));
 					})();
 				});
 			})
@@ -131,8 +168,8 @@
 	</head>
 	<body>
 		<div contenteditable="true">
-			<p>
-				Hello World
+			<p id="content">
+				这是最好的时候,这是最坏的时候;这是智慧的年代,这是愚蠢的年代;这是信仰的时期,这是怀疑的时期;这是光明的季节,这是黑暗的季节;这是希望之春,这是绝望之冬;我们的前途拥有一切,我们的前途一无所有;我们正走向天堂,我们也正直下地狱; 总之,那时和现代是这样相像,以至那时声名最远的某些作家对于他的批评,说好说坏都固执的值用最高级的对比之词。我abcdef
 			</p>
 		</div>
 		<div ondblclick="dbl_test(event);">

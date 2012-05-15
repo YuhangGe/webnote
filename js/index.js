@@ -96,7 +96,7 @@ $(function() {
 	//debug = true;
 	//SNEditor.insert("d")
 	ctrlNewNote();
-	SNEditor.insert("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
+	SNEditor.insert("歡迎我爱小扬使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
 	loadAllBook();
 
 	//$('#ctrl-handword').qtip("show")
