@@ -174,13 +174,13 @@
 		_measureElement : function(ele) {
 			if(ele.type === Daisy._Element.Type.CHAR) {
 				//$.log($.HAS_DROID_FONT)
-				if($.HAS_DROID_FONT) {
+				//if($.HAS_DROID_FONT) {
 					this.ctx.font = ele.style.font;
 					ele.width = this.ctx.measureText(ele.value).width;
 					//$.log(ele.width)
-				} else {
-					ele.width = $.CHAR_WIDTH_TABLE[ele.value.charCodeAt(0)];
-				}
+				//} else {
+					//ele.width = $.CHAR_WIDTH_TABLE[ele.value.charCodeAt(0)];
+				//}
 				//$.log("w:%d",ele.width);
 			}
 			ele.need_measure = false;

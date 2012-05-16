@@ -174,7 +174,8 @@
 			this.font_bold = is_bold;
 			this.font = (this.font_bold ? 'bold ' : '') + this.font_size + "px " + this.font_name;
 			if(this.cur_mode !== 'readonly' && this.cur_page.select_mode) {
-				this.cur_page.setSelectBold(is_bold);
+				var n_c = this.cur_page.setSelectBold(is_bold);
+				this._setCaret(this.caret_pos.index===n_c.from.index?n_c.from:n_c.to);
 				this.render.paint();
 			}
 		},

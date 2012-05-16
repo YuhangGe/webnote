@@ -198,6 +198,10 @@
 				top : bottom - this.editor.font_height
 			}
 		},
+		/**
+		 * 重新设置当前段落的元素的位置。并设置当前段落改变后影响的段落。
+		 * index_step：当前段落之后的段落的index的增量。 
+		 */
 		_resetParagraph : function(p_idx, index_step) {
 			var para = this.para_info[p_idx], pre_lc = para.line_cross;
 			para.line_cross = this.editor.render._measureParagraph(para);
@@ -374,13 +378,24 @@
 		},
 		setSelectBold : function(is_bold) {
 			if(this.select_mode) {
-				var f = this.select_range.from.index + 1, t = this.select_range.to.index;
-				for(var i = f; i <= t; i++) {
+				var f = this.select_range.from, fi = f.index + 1, t = this.select_range.to, ti = t.index, f_p = f.para, t_p = t.para;
+				for(var i = fi; i <= ti; i++) {
 					var ele = this.ele_array[i];
 					ele.style.bold = is_bold;
+					ele.need_measure = true;
 					if(ele.type === Daisy._Element.Type.CHAR) {
 						ele.style.font = this.editor.font;
 					}
+				}
+				for(var i=f_p;i<=t_p;i++){
+					this._resetParagraph(i);
+				}
+				f = this._getCaret_p(f_p,f.para_at);
+				t = this._getCaret_p(t_p,t.para_at);
+				this.select(f,t);
+				return {
+					from : f,
+					to : t
 				}
 			}
 		},
