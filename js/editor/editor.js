@@ -56,8 +56,8 @@
 		this.baseline_offset = 2;
 
 		if($.chrome || $.safari) {
-			this.caret_offset_1 = 8;
-			this.caret_offset_2 = 8;
+			this.caret_offset_1 = 0;
+			this.caret_offset_2 = 0;
 		} else if($.ie) {
 			this.caret_offset_1 = 5;
 			this.caret_offset_2 = 0;

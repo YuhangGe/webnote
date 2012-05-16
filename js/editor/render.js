@@ -268,8 +268,6 @@
 			//$.log("paint");
 
 			this.ctx.textAlign = "start";
-			this.ctx.textBaseline = 'ideographic';
-
 			this._paintBackground();
 
 			var e_arr = this.page.ele_array, T = Daisy._Element.Type;

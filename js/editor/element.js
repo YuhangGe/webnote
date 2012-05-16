@@ -8,6 +8,15 @@
 		this.bottom = 0;
 		this.width = 0;
 		this.height = 0;
+		/**
+		 * style {
+		 * 	   bold : true/false,
+		 *     underline : true/false,
+		 *     strikethrough : true/false,
+		 *     color : #fff,
+		 * 	   background : #fff/null
+		 * } 
+		 */
 		this.style = style;
 		//元素所在行
 		this.line_at = -1;

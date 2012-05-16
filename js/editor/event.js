@@ -314,6 +314,7 @@
 			this.__ime_on__ = true;
 		},
 		_compositionupdate_handler : function(e) {
+			 
 			if(this.__ime_on__) {
 				this._adjust_caret(e.data ? e.data : this.caret.value);
 			}
@@ -327,6 +328,7 @@
 		},
 		_compositionend_handler : function(e) {
 			this.__ime_on__ = false;
+			 
 			if(e.data !== "") {
 				this.insert(e.data ? e.data : this.caret.value);
 			}
@@ -486,9 +488,9 @@
 				} else if($.ie) {
 					/**
 					 * ie9下面如果使用compositionupdate事件会有奇怪的bug，输入过程中会闪烁。使用input事件。
-					 * ie9下面compositionend和textinput表现完全等价，可以任意使用。
+					 * 
 					 */
-					$.addEvent(this.caret, 'compositionend', $.createDelegate(this, this._compositionend_handler))
+					$.addEvent(this.caret, 'textinput', $.createDelegate(this, this._compositionend_handler))
 					$.addEvent(this.caret, 'input', $.createDelegate(this, this._compositionupdate_handler));
 				} else {
 					/**
