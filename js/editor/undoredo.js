@@ -22,9 +22,6 @@
 	}
 	Daisy._InsertCommand.prototype = {
 		undo : function(editor) {
-			// $.log("undo insert");
-			// $.log(this.c_b);
-			// $.log(this.c_a);
 			editor._delete(this.c_b, this.c_a);
 		},
 		redo : function(editor) {

@@ -324,6 +324,7 @@
 		 */
 		_insert : function(e_arr, caret) {
 			this._setCaret(this._insertElements(e_arr, caret).caret);
+			this.wordSeg.reset();
 			this.render.paint();
 		},
 		/**
@@ -334,6 +335,7 @@
 		_delete : function(from, to) {
 			this.cur_page.delRange(from, to);
 			this._setCaret(this.cur_page._getCaret_p(from.para, from.para_at));
+			this.wordSeg.reset();
 			this.render.paint();
 		},
 		_insertDoodle : function(doo) {
@@ -454,6 +456,7 @@
 			var re = this.cur_page.delRange(from, to);
 			this.text_history.add(new Daisy._DeleteCommand(to, from, re.value));
 			this._setCaret(this.cur_page._getCaret_p(from.para, from.para_at));
+			this.wordSeg.reset();
 			this.render.paint();
 		},
 		_delOrBack : function(is_del) {
