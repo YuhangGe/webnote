@@ -198,6 +198,21 @@
 				top : bottom - this.editor.font_height
 			}
 		},
+		getParaIndex_xy : function(x,y){
+			y = y < 0 ? 0 : y;
+			x = x < 0 ? 0 : x;
+			var rd = this.editor.render, line_height = rd.line_height, row = Math.floor(y / line_height);
+			return this._getParaByRow(row);
+		},
+		selectParaByIndex : function(p_id){
+			var p = this.para_info[p_id], fc = null, tc = this._getCaret_p(p_id, p.length-1);
+			if(p.length>0){
+				fc = this._getCaret_p(p_id,-1);
+				this.select_mode = true;
+				this.select(fc,tc);
+			}
+			return tc;
+		},
 		/**
 		 * 重新设置当前段落的元素的位置。并设置当前段落改变后影响的段落。
 		 * index_step：当前段落之后的段落的index的增量。 

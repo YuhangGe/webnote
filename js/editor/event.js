@@ -32,6 +32,25 @@
 		},
 		_leftmousedown_handler : function(e, is_chrome) {
 			this.__left_mouse_down__ = true;
+			if(this.__mouse_down_time__ === 0){
+				this.__mouse_down_time__++;
+				this.__mdt_timeout__ = window.setTimeout(this.__mdt_delegate__,450);
+			}else if(this.__mouse_down_time__ === 1){
+				this.__mouse_down_time__++;
+				if(this.__mdt_timeout__!==null){
+					window.clearTimeout(this.__mdt_timeout__);
+				}
+				this.__mdt_timeout__ = window.setTimeout(this.__mdt_delegate__,450);
+				this._dblclick_handler(e);
+				return;
+			}else{
+				this.__mouse_down_time__ = 0;
+				if(this.__mdt_timeout__!==null){
+					window.clearTimeout(this.__mdt_timeout__);
+				}
+				this._tplclick_handler(e);
+				return;
+			}
 			var p = this._getEventPoint(e, is_chrome);
 			if(this.cur_mode === 'doodle-edit') {
 				p.y += Math.round(this.padding_top / this.render.scale);
@@ -424,6 +443,13 @@
 			}
 
 		},
+		_tplclick_handler : function(e){
+			if(this.cur_mode !== 'handword' && this.cur_mode !== 'readonly')
+				return;
+			var p = this._getEventPoint(e, false), para = this.cur_page.getParaIndex_xy(p.x,p.y);
+			this._setCaret(this.cur_page.selectParaByIndex(para));
+			this.render.paint();
+		},
 		initEvent : function() {
 			var me = this;
 			this.__left_mouse_down__ = false;
@@ -448,7 +474,13 @@
 				$.addEvent(this.container, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
 			}
 
-			$.addEvent(this.canvas, 'dblclick', $.createDelegate(this, this._dblclick_handler));
+			//$.addEvent(this.canvas, 'dblclick', $.createDelegate(this, this._dblclick_handler));
+			this.__mouse_down_time__ = 0;
+			this.__mdt_timeout__ = null;
+			this.__mdt_delegate__ = $.createDelegate(this,function(){
+				this.__mouse_down_time__ = 0;
+				this.__mdt_timeout__ = null;
+			});
 			/**
 			 * 它妈的firefox也是个奇靶。下面的代码可以在其它主流浏览器 上生效，唯独在firefox下面双击事件无法触发。
 			 * 初步怀疑是mousedown事件中对caret的位置进行了修改操作，导致firefox把doubleclick事件忽略了，但又不能只让doubleclick事件触发而不触发mousedown。

@@ -12,7 +12,7 @@
 					console.log(msg);
 			}
 			function do_test(e) {
-				fenci("你好中国歡迎我爱小扬en");
+				$.log($('#content')[0].offsetHeight);
 			}
 
 			function kmp_next(str) {
@@ -117,60 +117,28 @@
 			}
 
 			$(function() {
-				$.get("chinese/dict.txt", function(data) {
-					(function() {
-
-						var txt = data, idx = 0;
-						function _insert(t, word) {
-							for(var i = 0; i < word.length; i++) {
-								var c = word[i];
-								t[c] = t[c] == null ? {} : t[c];
-								t = t[c];
-							}
-							t[''] = 1;
-						}
-
-						function read_num() {
-							return txt.charCodeAt(idx++);
-						}
-
-						function read_word(length) {
-							if(length == null)
-								length = 1;
-							var w = txt.substr(idx, length);
-							idx += length;
-							return w;
-						}
-
-						var f_t = new Date().getTime();
-						var c_num = read_num();
-						//console.log("char number: "+c_num);
-						for(var i = 0; i < c_num; i++) {
-							var w_chr = read_word(1), count = read_num(), t = w_trie[w_chr] = {};
-
-							for(var j = 1; j <= count; j++) {
-								var w_num = read_num();
-								//console.log("w_num:"+w_num);
-								for(var x = 0; x < w_num; x++) {
-									_insert(t, read_word(j));
-								}
-							}
-						}
-						console.log("time:" + (new Date().getTime() - f_t));
-					})();
-				});
+				var c = document.getElementById("c_test");
+				c.width = 700;
+				c.height = 300;
+				var ctx = c.getContext('2d');
+				ctx.fillStyle = "black";
+				ctx.font = "italic 50px Microsoft Yahei,微软雅黑";
+				ctx.fillText("abc good 我爱小扬", 100,100);
 			})
 			function e_com(e) {
 				$.log(e)
 			}
 
 		</script>
+		<style type="text/css">
+			#content{
+				font : italic 50px Times, Microsoft Yahei;
+			}
+		</style>
 	</head>
 	<body>
 		<div contenteditable="true">
-			<p id="content">
-				这是最好的时候,这是最坏的时候;这是智慧的年代,这是愚蠢的年代;这是信仰的时期,这是怀疑的时期;这是光明的季节,这是黑暗的季节;这是希望之春,这是绝望之冬;我们的前途拥有一切,我们的前途一无所有;我们正走向天堂,我们也正直下地狱; 总之,那时和现代是这样相像,以至那时声名最远的某些作家对于他的批评,说好说坏都固执的值用最高级的对比之词。我abcdef
-			</p>
+			<span id="content">abc good 我爱小扬</span>
 		</div>
 		<div ondblclick="dbl_test(event);">
 			<textarea id="txtbox" type="text" value="更重要强大" ></textarea>
