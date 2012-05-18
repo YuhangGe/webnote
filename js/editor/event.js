@@ -69,10 +69,6 @@
 				$.stopEvent(e)
 		},
 		_mousedown_handler : function(e, is_chrome) {
-			//if(e.target===this.caret)
-			//$.log(e)
-			//$.log(e.button);
-
 			if(e.button === 0) {
 				this._leftmousedown_handler(e, is_chrome);
 			} else if(e.button === 2) {
@@ -371,7 +367,7 @@
 			 *
 			 */
 			if(e.ctrlKey && e.keyCode === 67 && ($.ie || $.firefox || $.opera)) {
-				$.log('cp')
+				//$.log('cp')
 				this._copy_handler(null);
 				$.stopEvent(e);
 				return;
