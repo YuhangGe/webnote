@@ -15,6 +15,7 @@
 	var C = Daisy.Clipboard;
 	C.prototype = {
 		getData : function(e, callback) {
+			//$.log(e)
 			this.saved_event = e;
 			this.saved_callback = callback;
 			if(e && e.clipboardData && e.clipboardData.types) {
@@ -22,12 +23,13 @@
 				 * chrome safari
 				 */
 				var d_type = e.clipboardData.types[0];
-				//$.log(e.clipboardData.types);
-				//$.log(e.clipboardData.items);
+				$.log(e.clipboardData.types);
+				$.log(e.clipboardData.items);
+				$.log(e.clipboardData.getData("text/plain"));
 				if(d_type === "text/html") {
 					this.data = {
 						type : 'html',
-						value : e.clipboardData.getData("text/html")
+						value : [e.clipboardData.getData("text/html"), e.clipboardData.getData("text/plain")]
 					}
 					this._checkData();
 				} else if(d_type === "text/uri-list") {
@@ -36,7 +38,7 @@
 						value : e.clipboardData.getData("text/uri-list")
 					}
 					this._checkData();
-				} else if(/image/.test(d_type)) {
+				} else if(d_type === 'Files' || /image/.test(d_type)) {
 					var reader = new FileReader();
 
 					reader.onload = this._image_delegate;
@@ -102,6 +104,8 @@
 					this.data.value = this.inner_data;
 				}
 			}
+			//$.log(this.data.type)
+			$.log(this.data)
 			this.saved_callback(this.data);
 		},
 		_item2Text : function(items) {

@@ -7,12 +7,12 @@ bug:
 
 1、含橡皮擦的嵌套群组会不能正确绘制。具体在代码中有注释说明。
 
-2. 在firefox下面双击时，如果正好双击在光标上会失效。（firefox下面不能触发doubleclick事件，当光标在mousedown时进行了位置改变操作。在chrome和ie9下面没有这个问题。怀疑是firefox的bug）。
+2. ie 下面光标不能设透明。 
 
 todo:
 
+doodle的拖动优化和单击选择，然后是点任意位置，然后是link和todo的逻辑，freenote 的折叠
 
-双击单词选中（现在有bug，如果超过一行的长文本自动换行后的第一个单词会有问题）
 
 1、doodle 的复制粘贴
 3. 非firefox下面doodle选择框用虚线。

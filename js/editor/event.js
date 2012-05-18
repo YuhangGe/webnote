@@ -2,10 +2,7 @@
 
 	$.extend(Daisy.WebNote.prototype, {
 		_focus_handler : function(e) {
-
-			this.focused = true;
-			this.caret.focus();
-			//$.log('focus');
+			this.focus();
 		},
 		_blur_handler : function(e) {
 			/**
@@ -19,38 +16,39 @@
 			}
 		},
 		_deal_leftmouse_down : function(e, point) {
-			var nc = this.cur_page._getCaret_xy(point.x, point.y);
-			if(e.shiftKey) {
-				this._shift_select(nc.index);
-			} else {
-				this._setCaret(nc);
-				this.cur_page.select(null);
-				this.render.paint();
+		    if(this.__mouse_down_time__ === 1 && $.getPTPRange(this.__pre_point__, point)<10) {
+				this.__mouse_down_time__++;
+				if(this.__mdt_timeout__ !== null) {
+					window.clearTimeout(this.__mdt_timeout__);
+				}
+				this.__mdt_timeout__ = window.setTimeout(this.__mdt_delegate__, 450);
+				this._dblclick_handler(point);
+			} else if(this.__mouse_down_time__ === 2 && $.getPTPRange(this.__pre_point__, point)<10) {
+				this.__mouse_down_time__ = 0;
+				if(this.__mdt_timeout__ !== null) {
+					window.clearTimeout(this.__mdt_timeout__);
+				}
+				this._tplclick_handler(point);
+			} else{
+				this.__mouse_down_time__++;
+				this.__mdt_timeout__ = window.setTimeout(this.__mdt_delegate__, 450);
+				var nc = this.cur_page._getCaret_xy(point.x, point.y);
+				if(e.shiftKey) {
+					this._shift_select(nc.index);
+				} else {
+					this._setCaret(nc);
+					this.cur_page.select(null);
+					this.render.paint();
+				}
 			}
 			this.__pre_pos__ = this.caret_pos;
+			this.__pre_point__ = point;
 			this.__down_pos__ = this.caret_pos;
 		},
+
 		_leftmousedown_handler : function(e, is_chrome) {
 			this.__left_mouse_down__ = true;
-			if(this.__mouse_down_time__ === 0){
-				this.__mouse_down_time__++;
-				this.__mdt_timeout__ = window.setTimeout(this.__mdt_delegate__,450);
-			}else if(this.__mouse_down_time__ === 1){
-				this.__mouse_down_time__++;
-				if(this.__mdt_timeout__!==null){
-					window.clearTimeout(this.__mdt_timeout__);
-				}
-				this.__mdt_timeout__ = window.setTimeout(this.__mdt_delegate__,450);
-				this._dblclick_handler(e);
-				return;
-			}else{
-				this.__mouse_down_time__ = 0;
-				if(this.__mdt_timeout__!==null){
-					window.clearTimeout(this.__mdt_timeout__);
-				}
-				this._tplclick_handler(e);
-				return;
-			}
+
 			var p = this._getEventPoint(e, is_chrome);
 			if(this.cur_mode === 'doodle-edit') {
 				p.y += Math.round(this.padding_top / this.render.scale);
@@ -60,11 +58,14 @@
 				p.y += Math.round(this.padding_top / this.render.scale);
 				//$.log("%d,%d", p.x, p.y);
 				this._doodle_rightmouse_down(p);
+				if( typeof this.canvas.setCapture === 'function') {
+					this.canvas.setCapture(true);
+					//$.log("set c")
+				}
 			} else {
 				this._deal_leftmouse_down(e, p);
 			}
-			if( typeof this.canvas.setCapture === 'function')
-				this.canvas.setCapture(true);
+
 			if(is_chrome)
 				$.stopEvent(e)
 		},
@@ -88,11 +89,14 @@
 				p = this._getEventPoint(e, is_chrome);
 				p.y += Math.round(this.padding_top / this.render.scale);
 				this._doodle_rightmouse_up(p);
+				if( typeof this.canvas.releaseCapture === 'function') {
+					this.canvas.releaseCapture();
+					//$.log('release')
+				}
 			}
 			this.render.paint();
 			this.__left_mouse_down__ = false;
-			if( typeof this.canvas.releaseCapture === 'function')
-				this.canvas.releaseCapture();
+
 		},
 		_mouseup_handler : function(e, is_chrome) {
 			//$.log('mup');
@@ -202,7 +206,7 @@
 			this.caret.style.background = "#FFFFCC";
 		},
 		_copy_handler : function(e) {
-			 
+
 			var rtn = false;
 			if((this.cur_mode === 'handword' || this.cur_mode === 'readonly') && this.cur_page.select_mode) {
 				if(this.cur_page.select_mode) {
@@ -228,7 +232,7 @@
 		},
 		_firefox_paste_handler : function(e) {
 			if(this.clipboard.getData(e, $.createDelegate(this, this._deal_paste)) === false) {
-				window.setTimeout($.createDelegate(this,this._firefox_paste_timeout),5);
+				window.setTimeout($.createDelegate(this, this._firefox_paste_timeout), 5);
 			}
 		},
 		_firefox_paste_timeout : function() {
@@ -241,34 +245,35 @@
 		_paste_html : function(html) {
 
 			var dom_p = document.createElement("div");
+
 			dom_p.innerHTML = html;
-			var text = dom_p.textContent;
-			//==null?dom_p.innerText:dom_p.textContent;
-			if($.chrome) {
-				/**
-				 * chrome 下面textContent会在前面和后面添加额外的换行，需要去除。 safari下面没有。
-				 */
-				text = text.substring(3, text.length - 3);
-			}
-			if(text.length !== 0)
-				this.insert(text);
 
 			var images = dom_p.getElementsByTagName("img");
+
 			if(images.length === 0)
 				return;
 
 			var left = this.caret_pos.left, top = this.caret_pos.top + this.line_height, doo_arr = [];
 			for(var i = 0; i < images.length; i++) {
-				doo_arr.push(Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], images[i].getAttribute("src"), [1, 0, left, 0, 1, top]));
+				var src = images[i].getAttribute("src");
+				if(/^file:/.test(src)) {
+					/* 去除本地文件  这个在word拷贝时会出现 */
+					continue;
+				}
+				doo_arr.push(Daisy._Doodle.create(Daisy._Doodle.Type.IMAGE, 2, 'black', [], src, [1, 0, left, 0, 1, top]));
 				left += 5;
 				top += 5;
 			}
-			this.insertDoodle(doo_arr);
+			if(doo_arr.length > 0) {
+				this.insertDoodle(doo_arr);
+			}
 			/*
 			 * 插入图片后将当前模式切换成涂鸦模式。
-			 * ctrlSetCurMode 函数不是editor的，是全局的函数。
+			 * ctrlSwitch 函数不是editor的，是全局的函数。
 			 */
-			ctrlSetCurMode("doodle");
+			window.setTimeout(function() {
+				ctrlSwitch("doodle-edit");
+			}, 60);
 		},
 		_deal_paste : function(data) {
 			if(data == null)
@@ -278,11 +283,15 @@
 				this.insertDoodle(doo);
 				/*
 				 * 插入图片后将当前模式切换成涂鸦模式。
-				 * ctrlSetCurMode 函数不是editor的，是全局的函数。
+				 * ctrlSwitch 函数不是editor的，是全局的函数。
 				 */
-				ctrlSetCurMode("doodle");
+				window.setTimeout(function() {
+					ctrlSwitch("doodle-edit");
+				}, 60);
+
 			} else if(data.type === 'html') {
-				this._paste_html(data.value);
+				this.insert(data.value[1]);
+				this._paste_html(data.value[0]);
 			} else if(data.type === 'text' || data.type === 'url') {
 				this.insert(data.value);
 			} else if(data.type === 'item') {
@@ -317,9 +326,11 @@
 						this.insertDoodle(doo);
 						/*
 						 * 插入图片后将当前模式切换成涂鸦模式。
-						 * ctrlSetCurMode 函数不是editor的，是全局的函数。
+						 * ctrlSwitch 函数不是editor的，是全局的函数。
 						 */
-						ctrlSetCurMode("doodle");
+						window.setTimeout(function() {
+							ctrlSwitch("doodle-edit");
+						}, 60);
 					});
 					fr.readAsDataURL(f);
 				}
@@ -329,7 +340,7 @@
 			this.__ime_on__ = true;
 		},
 		_compositionupdate_handler : function(e) {
-			 
+
 			if(this.__ime_on__) {
 				this._adjust_caret(e.data ? e.data : this.caret.value);
 			}
@@ -343,7 +354,7 @@
 		},
 		_compositionend_handler : function(e) {
 			this.__ime_on__ = false;
-			 
+
 			if(e.data !== "") {
 				this.insert(e.data ? e.data : this.caret.value);
 			}
@@ -426,11 +437,8 @@
 		_stop_handler : function(e) {
 			$.stopEvent(e);
 		},
-		_dblclick_handler : function(e) {
-			if(this.cur_mode !== 'handword' && this.cur_mode !== 'readonly')
-				return;
-
-			var p = this._getEventPoint(e, false), ei = this.cur_page._getElementIndex_xy(p.x, p.y), e_arr = this.cur_page.ele_array;
+		_dblclick_handler : function(p) {
+			var ei = this.cur_page._getElementIndex_xy(p.x, p.y), e_arr = this.cur_page.ele_array;
 			if(e_arr[ei] && e_arr[ei].type !== Daisy._Element.Type.NEWLINE) {
 				var range = this.wordSeg.getRange(e_arr, ei);
 
@@ -439,10 +447,8 @@
 			}
 
 		},
-		_tplclick_handler : function(e){
-			if(this.cur_mode !== 'handword' && this.cur_mode !== 'readonly')
-				return;
-			var p = this._getEventPoint(e, false), para = this.cur_page.getParaIndex_xy(p.x,p.y);
+		_tplclick_handler : function(p) {
+			var para = this.cur_page.getParaIndex_xy(p.x, p.y);
 			this._setCaret(this.cur_page.selectParaByIndex(para));
 			this.render.paint();
 		},
@@ -457,7 +463,7 @@
 
 			if( typeof this.canvas.setCapture === 'function' || $.opera) {
 				/**
-				 * opera 是个神奇的浏览器。老子不管这逼了。
+				 * 。
 				 * 在opera下面如果鼠标拖动到了编辑区外可能有bug。不解决这个bug是因为太多地方要改。opera把firefox和chrome的性质揉合了，老子不想吐槽了。
 				 */
 				$.addEvent(this.container, 'mousedown', $.createDelegate(this, this._mousedown_handler));
@@ -467,13 +473,13 @@
 				this.__cmv_handler = $.createDelegate(this, this._chrome_mousemove_handler);
 				//$.log(this.__cmv_handler)
 				this.__cmu_handler = $.createDelegate(this, this._chrome_mouseup_handler);
-				$.addEvent(this.container, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
+				$.addEvent(this.canvas, 'mousedown', $.createDelegate(this, this._chrome_mousedown_handler));
 			}
 
 			//$.addEvent(this.canvas, 'dblclick', $.createDelegate(this, this._dblclick_handler));
 			this.__mouse_down_time__ = 0;
 			this.__mdt_timeout__ = null;
-			this.__mdt_delegate__ = $.createDelegate(this,function(){
+			this.__mdt_delegate__ = $.createDelegate(this, function() {
 				this.__mouse_down_time__ = 0;
 				this.__mdt_timeout__ = null;
 			});
@@ -516,7 +522,7 @@
 				} else if($.ie) {
 					/**
 					 * ie9下面如果使用compositionupdate事件会有奇怪的bug，输入过程中会闪烁。使用input事件。
-					 * 
+					 *
 					 */
 					$.addEvent(this.caret, 'textinput', $.createDelegate(this, this._compositionend_handler))
 					$.addEvent(this.caret, 'input', $.createDelegate(this, this._compositionupdate_handler));

@@ -149,13 +149,13 @@
 			if(this.select_doodle === null) {
 				return;
 			}
-			if(this.edit_doodle.isPointInClose(point)) {
-				this.__doodle_close__ = true;
-			} else if(this.edit_doodle.isPointInRotate(point)) {
+			if(this.edit_doodle.isPointInRotate(point)) {
 				this.__doodle_rotate__ = true;
 				this.select_doodle.editStart(point);
 				this.edit_doodle.editStart(point);
 				this.canvas.style.cursor = "pointer";
+			} else if(this.edit_doodle.isPointInClose(point)) {
+				this.__doodle_close__ = true;
 			} else if(this.edit_doodle.isPointIn(point)) {
 				this.__doodle_move__ = true;
 				this.select_doodle.editStart(point);

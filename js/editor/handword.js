@@ -62,6 +62,8 @@
 				window.clearTimeout(this.__hand_timeout);
 				this.__hand_timeout = null;
 			}
+			if( typeof this.canvas.setCapture === 'function')
+				this.canvas.setCapture(true);
 		},
 		_doodle_rightmouse_down : function(point) {
 
@@ -86,8 +88,7 @@
 			else if(this.cur_mode === 'handword')
 				this._handword_rightmouse_down(e, is_chrome);
 			this.canvas.style.cursor = 'crosshair';
-			if( typeof this.canvas.setCapture === 'function')
-				this.canvas.setCapture(true);
+			
 			$.stopEvent(e);
 		},
 		_handword_rightmouse_up : function() {
@@ -97,16 +98,24 @@
 				this.hand_bihua.push(this.__tmp_new_bihua);
 			}
 			this.__hand_timeout = window.setTimeout($.createDelegate(this, this._timeout_handler), 600);
-
-		},
+			if( typeof this.canvas.releaseCapture === 'function')
+				this.canvas.releaseCapture();
+		 },
 		_doodle_rightmouse_up : function() {
 			if(this.__right_mouse_down__ === false)
 				return;
 			this.__right_mouse_down__ = false;
 			this.doodle_mode = false;
 			this.tmp_doodle.editFinish();
-			if(this.tmp_doodle.points.length <= 1)
-				return;
+			if(this.tmp_doodle.points.length === 1){
+				var p = this.tmp_doodle.points[0], p2 = {
+					x : p.x + 1,
+					y : p.y + 1
+				};
+				p.x--;
+				p.y--;
+				this.tmp_doodle.points.push(p2);
+			}
 			var dl = this.cur_page.doodle_list;
 			if(this.tmp_doodle.type !== Daisy._Doodle.Type.ERASER) {
 				this.insertDoodle(this.tmp_doodle);
@@ -137,8 +146,7 @@
 			// }
 			if(this.cur_mode === 'handword')
 				this._handword_rightmouse_up();
-			if( typeof this.canvas.releaseCapture === 'function')
-				this.canvas.releaseCapture();
+			
 			this.canvas.style.cursor = 'text';
 			$.stopEvent(e);
 
