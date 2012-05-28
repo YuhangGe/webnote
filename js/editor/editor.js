@@ -454,7 +454,6 @@
 			var to = this.caret_pos, from = null;
 			if(to.index < 0)
 				return;
-			if(this.cur_page.isCaretInLink())
 			from = {
 				para : to.para,
 				para_at : to.para_at - 1,

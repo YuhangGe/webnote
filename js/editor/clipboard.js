@@ -23,9 +23,9 @@
 				 * chrome safari
 				 */
 				var d_type = e.clipboardData.types[0];
-				$.log(e.clipboardData.types);
-				$.log(e.clipboardData.items);
-				$.log(e.clipboardData.getData("text/plain"));
+				//$.log(e.clipboardData.types);
+				//$.log(e.clipboardData.items);
+				//$.log(e.clipboardData.getData("text/plain"));
 				if(d_type === "text/html") {
 					this.data = {
 						type : 'html',
@@ -105,7 +105,7 @@
 				}
 			}
 			//$.log(this.data.type)
-			$.log(this.data)
+			//$.log(this.data)
 			this.saved_callback(this.data);
 		},
 		_item2Text : function(items) {

@@ -135,7 +135,7 @@
 			if(bottom > max_bot) {
 				bottom = max_bot;
 				row = lp.line_start + lp.line_cross - 1;
-				x = this.editor.width;
+				//x = this.editor.width;
 			}
 			//$.log("row:%d,p:%d",row,p_i)
 			if(para.length > 0) {

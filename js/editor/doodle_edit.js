@@ -64,12 +64,17 @@
 			this.pre_point = point;
 		},
 		editMove : function(point) {
-			var d = {
-				x : point.x - this.pre_point.x,
-				y : point.y - this.pre_point.y
+			
+			//$.log(d)
+			if($.getPTPRange(point,this.pre_point)>10){
+				var d = {
+					x : point.x - this.pre_point.x,
+					y : point.y - this.pre_point.y
+				}
+				this.callBase("editMove", d.x, d.y);
+				return d;
 			}
-			this.callBase("editMove", d.x, d.y);
-			return d;
+			return null;
 		},
 		editFinish : function(point) {
 			//重新计算中点。
@@ -81,10 +86,7 @@
 		},
 		isPointIn : function(p) {
 			var ps = this.points;
-			return p.x >= Math.min(ps[0].x,ps[1].x,ps[2].x,ps[3].x)
-					&& p.x <= Math.max(ps[0].x,ps[1].x,ps[2].x,ps[3].x)
-					&& p.y >= Math.min(ps[0].y,ps[1].y,ps[2].y,ps[3].y)
-					&& p.y <= Math.max(ps[0].y,ps[1].y,ps[2].y,ps[3].y);
+			return p.x >= Math.min(ps[0].x, ps[1].x, ps[2].x, ps[3].x) && p.x <= Math.max(ps[0].x, ps[1].x, ps[2].x, ps[3].x) && p.y >= Math.min(ps[0].y, ps[1].y, ps[2].y, ps[3].y) && p.y <= Math.max(ps[0].y, ps[1].y, ps[2].y, ps[3].y);
 			//return p.x >= this.points[0].x && p.x <= this.points[1].x && p.y >= this.points[0].y && p.y <= this.points[2].y;
 		},
 		isPointInClose : function(p) {
@@ -95,7 +97,7 @@
 		},
 		editRotateScale : function(point) {
 			var rs = this._calcRSValue(point);
-			this.callBase("editRotateScale", this.center, rs.rotate, rs.scale,true);
+			this.callBase("editRotateScale", this.center, rs.rotate, rs.scale, true);
 			return rs;
 		},
 		_calcRSValue : function(point) {
@@ -130,14 +132,14 @@
 			this.render.paint();
 		},
 		/**
-		 * 专门用于undo redo 的旋转和缩放doodle 
+		 * 专门用于undo redo 的旋转和缩放doodle
 		 */
-		_rotateScaleDoodle : function(doo, point,rotate,scale){
-			if(doo.type === Daisy._Doodle.Type.IMAGE){
+		_rotateScaleDoodle : function(doo, point, rotate, scale) {
+			if(doo.type === Daisy._Doodle.Type.IMAGE) {
 				doo.matrix = point;
 				doo._calc();
-			}else{
-				doo.rotateScale(point, rotate,scale);
+			} else {
+				doo.rotateScale(point, rotate, scale);
 			}
 			if(this.select_doodle === doo) {
 				this.edit_doodle.attachDoodle(doo);
@@ -146,41 +148,47 @@
 			this.render.paint();
 		},
 		_doodle_edit_down : function(point) {
-			if(this.select_doodle === null) {
-				return;
+			if(this.select_doodle !== null) {
+				if(this.edit_doodle.isPointInRotate(point)) {
+					this.__doodle_rotate__ = true;
+					this.select_doodle.editStart(point);
+					this.edit_doodle.editStart(point);
+					this.canvas.style.cursor = "pointer";
+					return;
+				} else if(this.edit_doodle.isPointInClose(point)) {
+					this.__doodle_close__ = true;
+					return;
+				}
 			}
-			if(this.edit_doodle.isPointInRotate(point)) {
-				this.__doodle_rotate__ = true;
-				this.select_doodle.editStart(point);
-				this.edit_doodle.editStart(point);
-				this.canvas.style.cursor = "pointer";
-			} else if(this.edit_doodle.isPointInClose(point)) {
-				this.__doodle_close__ = true;
-			} else if(this.edit_doodle.isPointIn(point)) {
+			var d_l = this.cur_page.doodle_list;
+			this.select_doodle = null;
+			for(var i = 0; i < d_l.length; i++) {
+				this.edit_doodle.attachDoodle(d_l[i]);
+				if(this.edit_doodle.isPointIn(point)) {
+					this.select_doodle = d_l[i];
+					break;
+				}
+			}
+			if(this.select_doodle!==null){
 				this.__doodle_move__ = true;
 				this.select_doodle.editStart(point);
 				this.edit_doodle.editStart(point);
 				this.canvas.style.cursor = "move";
-			} else {
-				return;
 			}
-
+			this.render.paint();
 		},
 		_doodle_edit_move : function(point) {
 			if(this.__doodle_move__) {
-			
 				var d = this.edit_doodle.editMove(point);
-				this.select_doodle.editMove(d.x, d.y);
-
+				if(d!==null){
+					this.select_doodle.editMove(d.x, d.y);
+				}
 			} else if(this.__doodle_rotate__) {
-			
 				var rs = this.edit_doodle.editRotateScale(point);
 				this.select_doodle.editRotateScale(this.edit_doodle.center, rs.rotate, rs.scale);
-
 			} else {
 				return;
 			}
-			this.__doodle_pre_point__ = point;
 			this.render.paint();
 		},
 		_doodle_edit_up : function(point) {
@@ -209,16 +217,6 @@
 				return;
 			}
 
-			var d_l = this.cur_page.doodle_list;
-			this.select_doodle = null;
-			for(var i = 0; i < d_l.length; i++) {
-				this.edit_doodle.attachDoodle(d_l[i]);
-				if(this.edit_doodle.isPointIn(point)) {
-
-					this.select_doodle = d_l[i];
-					break;
-				}
-			}
 		}
 	});
 })(Daisy, Daisy.$);

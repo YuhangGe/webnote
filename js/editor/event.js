@@ -483,13 +483,7 @@
 				this.__mouse_down_time__ = 0;
 				this.__mdt_timeout__ = null;
 			});
-			/**
-			 * 它妈的firefox也是个奇靶。下面的代码可以在其它主流浏览器 上生效，唯独在firefox下面双击事件无法触发。
-			 * 初步怀疑是mousedown事件中对caret的位置进行了修改操作，导致firefox把doubleclick事件忽略了，但又不能只让doubleclick事件触发而不触发mousedown。
-			 * 但尼玛其它浏览器没这个问题啊！！！
-			 */
-			$.addEvent(this.caret, 'dblclick', $.createDelegate(this, this._dblclick_handler));
-
+			
 			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
 			$.addEvent(this.caret, 'mouseup', $.createDelegate(this, this._mouseup_handler));
 

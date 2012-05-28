@@ -11,7 +11,7 @@ bug:
 
 todo:
 
-doodle的拖动优化和单击选择，然后是点任意位置，然后是link和todo的逻辑，freenote 的折叠
+1.点任意位置，然后是link和todo的逻辑，freenote 的折叠
 
 
 1、doodle 的复制粘贴
