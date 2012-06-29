@@ -159,14 +159,14 @@
 				p_at = idx - para.index - 1;
 			}
 			//
-			//$.log("%d",bottom);
+			//$.log("%d,%d",bottom, this.editor.font_height);
 			return {
 				para : p_i,
 				para_at : p_at,
 				line : row,
 				index : idx,
 				left : left,
-				top : bottom - this.editor.font_height
+				top : bottom - this.editor.line_height
 			};
 		},
 		/**
@@ -195,7 +195,7 @@
 				line : line,
 				index : e_idx,
 				left : left,
-				top : bottom - this.editor.font_height
+				top : bottom - this.editor.line_height
 			}
 		},
 		getParaIndex_xy : function(x,y){

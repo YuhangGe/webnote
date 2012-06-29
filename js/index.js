@@ -96,6 +96,7 @@ $(function() {
 	//debug = true;
 	//SNEditor.insert("d")
 	ctrlNewNote();
+	//SNEditor.insert("hello")
 	SNEditor.insert("歡迎使用SuperNote網頁版。\n目前還只是演示版本，請點擊左側筆記本列表加載示例筆記本。")
 	loadAllBook();
 

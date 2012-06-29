@@ -6,156 +6,22 @@
 		<script type="text/javascript" src="js/jquery-1.5.1.js"></script>
 		<script type="text/javascript" src="js/js-printf.js"></script>
 
-		<script type="text/javascript">
-			$.log = function(msg) {
-				if( typeof console !== 'undefined')
-					console.log(msg);
-			}
-			function do_test(e) {
-				$.log($('#content')[0].offsetHeight);
-			}
-
-			function kmp_next(str) {
-				var len = str.length, n_arr = new Array(len);
-				if(len === 0)
-					return n_arr;
-				n_arr[0] = -1;
-				for(var i = 1; i < len; i++) {
-					var j = i - 1;
-					while(n_arr[j] >= 0 && str[i] !== str[n_arr[j]]) {
-						j = n_arr[j] - 1;
-					}
-					n_arr[i] = n_arr[j] + 1;
-				}
-				return n_arr;
-			}
-
-			function kmp_search(src, dst) {
-				var s_l = src.length, d_l = dst.length;
-				if(s_l === 0)
-					return -1;
-				if(d_l === 0)
-					return 0;
-				var d_next = kmp_next(dst), idx = 0;
-				for(var i = 0; i < s_l; i++) {
-					while(true) {
-						if(src[i] === dst[idx]) {
-							idx++;
-							if(idx === d_l) {
-								return i - idx + 1;
-							}
-							break;
-						} else if(idx === 0) {
-							break;
-						} else {
-							idx = d_next[idx];
-						}
-					}
-				}
-				return -1;
-			}
-
-			function deal_keydown(e) {
-				$.log(e.keyCode);
-			}
-
-			var w_trie = {};
-			function log_seg(txt, f, t) {
-				$.log(txt.substring(f, t + 1));
-			}
-
-			function fenci(d) {
-				//$.log(w_trie);
-				var t = w_trie, f = 0, is_got = false, last_m = 0, i = 0;
-				while(true) {
-					var c = d[i];
-					if(c<"\xff" || t[c]==null){
-						if(is_got){
-							is_got = false;
-							t = w_trie;
-							if(last_m>f){
-								log_seg(d,f,last_m);
-							}
-							i = f++;
-		
-						}else{
-							
-						}
-					}else{
-						//if(t[c]!=null){
-							t = t[c];
-							if(is_got===false){
-								is_got = true;
-								f = i;
-								last_m = f;
-							}else if(t['']===1){
-								last_m = i;
-							}
-
-						//}else{
-							//if(is_got){
-								
-							//}
-						//}
-					}
-					
-					i++;
-					if(i===d.length){
-						if(is_got){
-							if(last_m>f){
-								log_seg(d,f,last_m);
-							}else if(f+1<d.length){
-								i = f+1;
-								continue;
-							}
-						}
-						break;
-					}
-					
-				}
-			
-			}
-
-			$(function() {
-				var c = document.getElementById("c_test");
-				c.width = 700;
-				c.height = 300;
-				var ctx = c.getContext('2d');
-				ctx.fillStyle = "black";
-				ctx.font = "italic 50px Microsoft Yahei,微软雅黑";
-				ctx.fillText("abc good 我爱小扬", 100,100);
-			})
-			function e_com(e) {
-				$.log(e)
-			}
-
 		</script>
 		<style type="text/css">
 			#content{
 				font : italic 50px Times, Microsoft Yahei;
 			}
 			#txtbox{
-				opacity : 0.1;
-				color : red;
-				
+			
+				direction: rtl;
+				resize: both;
 			}
 		</style>
 	</head>
 	<body>
-		<div contenteditable="true">
-			<span id="content">abc good 我爱小扬</span>
-		</div>
-		<div ondblclick="dbl_test(event);">
+	
+		
 			<textarea id="txtbox" type="text" value="更重要强大" ></textarea>
-			<br/>
-			<input type="button" value="test" id="btn-test" onclick="do_test();"/>
-			<br/>
-			<div>
-				hello world.4323.3ad_a 葛羽航你好   da ^#@.
-			</div>
-		</div>
-		<div>
-			<canvas style="border:1px solid blue;" id="c_test"></canvas>
-		</div>
+			
 	</body>
 </html>

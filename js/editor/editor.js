@@ -19,7 +19,7 @@
 			parent.innerHTML = "由于系统没有Droid字体，正在加载字符宽度集...";
 			$.loadCharWidthTable();
 		}
-		parent.innerHTML = '<!-- supernote web editor -->' + '<div id="sn-editor" class="sn-editor">' + '<canvas width="400" height="350" id="sn-canvas" class="sn-canvas"></canvas>' + '<textarea id="sn-caret" spellcheck="false" cols="0" rows="0" class="sn-caret-new" wrap="wrap"></textarea>' + '</div><!--<textarea style="position:absolute;left:500px;top:100px;font:35px Microsoft Yahei;width:400px;height:200px;overflow:hidden;"></textarea>--><!-- supernote web editor -->';
+		parent.innerHTML = '<!-- supernote web editor -->' + '<div id="sn-editor" class="sn-editor">' + '<canvas width="400" height="350" id="sn-canvas" class="sn-canvas"></canvas>' + '<textarea id="sn-caret" spellcheck="false" cols="0" rows="0" class="sn-caret" wrap="wrap"></textarea>' + '</div><!--<textarea style="position:absolute;left:500px;top:100px;font:35px Microsoft Yahei;width:400px;height:200px;overflow:hidden;"></textarea>--><!-- supernote web editor -->';
 		var config = {
 			line_width : 1164,
 			line_count : 32,
@@ -51,23 +51,8 @@
 		this.font_height = config.font_height == null ? 40 : config.font_height;
 
 		//为了让底线和caret与文字底端对齐而设置的两个offset像素
-		this.caret_offset_1 = 0;
-		this.caret_offset_2 = 0;
-		this.baseline_offset = 2;
-
-		if($.chrome || $.safari) {
-			this.caret_offset_1 = 0;
-			this.caret_offset_2 = 0;
-		} else if($.ie) {
-			this.caret_offset_1 = 5;
-			this.caret_offset_2 = 0;
-		} else if($.firefox) {
-			this.caret_offset_1 = 6;
-			this.caret_offset_2 = 1;
-		} else if($.opera) {
-			this.caret_offset_1 = 6;
-			this.caret_offset_2 = -2;
-		}
+		
+		this.baseline_offset = 8;
 
 		this.font = (this.font_bold ? 'bold ' : '') + this.font_size + "px " + this.font_name;
 
@@ -90,9 +75,9 @@
 		this.container.style.width = (this.width + (this.c_height > this.height ? 20 : 0)) + "px";
 		this.container.style.height = this.height + 'px';
 		this.container.style.background = this.background;
-
-		this.caret.style.font = this.font;
-		this.caret.style.color = this.color;
+	
+		//this.caret.style.font = this.font;
+		//this.caret.style.color = this.color;
 
 		//当前是否在正在手写
 		this.hand_mode = false;
@@ -112,47 +97,36 @@
 			para_at : -1,
 			left : 0,
 			line : 0,
-			top : this.line_height - this.font_height
+			top : this.padding_top + this.baseline_offset
 		}
 
 		this.render = new Daisy._Render(this);
 		this.loader = new Daisy._Load(this);
 
-		/**
-		 * ie 9 下面的一个hack. input必须有过非空值，它的style.height才能生效。
-		 */
-		if($.ie) {
-			this.caret.value = "a";
-			this.caret.value = "";
-		}
+		
+		this.caret_left = 0;
+		this.caret_top = 0;
+		this.caret_height = Math.round(this.font_height * this.render.scale);
+		
+		this.focused = false;
+		
 		this.createPage();
 		this.setCurPage(0);
 		this.wordSeg = new Daisy._WordSeg(this);
+		this.initCaret();
 		this.initEvent();
 		this.initShortKey();
 		this.render.paint();
-		this.focus();
 
 	}
 	Daisy.WebNote.prototype = {
-		_setCaretOpacity : function(v){
-			if($.ie){
-				this.caret.style.filter = "progid:DXImageTransform.Microsoft.Alpha(opacity="+(v*100)+");"; 
-			}else{
-				this.caret.style.opactiy = v.toString();
-				$.log(this.caret.style.opactiy)
-			}
-		
-			$.log(v)
-		},
 		setMode : function(mode) {
 			this.select_doodle = null;
+			this.focus();
 			if(mode === 'doodle') {
 				this.canvas.style.cursor = "crosshair";
-				//this.caret.style.opactiy = "0";
-				this.caret.style.color = "rgba(0,0,0,0)";
-				this.caret.style.opactiy = "0";
-				//$.log("ie rg")
+				this._caretHide();
+				this._caretStopFlash();
 			} else if(mode === 'doodle-edit') {
 				this.canvas.style.cursor = "default";
 				//$.log(this.cur_page.doodle_list)
@@ -160,16 +134,15 @@
 					this.select_doodle = this.cur_page.doodle_list[0];
 					this.edit_doodle.attachDoodle(this.select_doodle);
 				}
-				//this.caret.style.opactiy = 0;
-				this.caret.style.color = "rgba(0,0,0,0)";
+				this._caretHide();
+				this._caretStopFlash();
 			} else if(mode === 'handword' || mode === 'readonly') {
-				this.caret.style.color = "black";
+				//this.caret.style.color = "black";
 				this.canvas.style.cursor = "text";
 			} else {
 				throw 'unknown mode';
 			}
 			this.cur_mode = mode;
-			this.focus();
 			this.render.paint();
 		},
 		setColor : function(color) {
@@ -227,7 +200,8 @@
 				this.canvas.width = this.c_width;
 				this.canvas.height = this.c_height + 10;
 				this.render.setScale(this.c_height / this.def_height);
-				this.caret.style.height = ((this.font_height + this.caret_offset_1) * this.render.scale) + 'px';
+				this.caret_height = Math.floor(this.line_height * this.render.scale);
+				
 				this.caret.style.font = Math.floor(this.font_size * this.render.scale) + "px " + this.font_name;
 				//$.log("font:%d", Math.floor(this.font_size*this.render.scale) )
 				this._resetCaret();
@@ -278,41 +252,24 @@
 		},
 		setCurPage : function(index) {
 			this.cur_page = this.pages[index];
-			this._resetCaret();
 			this.render.resetPage();
 		},
 		_moveCaret_xy : function(x, y) {
 			var new_pos = this.cur_page._getCaret_xy(x, y);
 			this._setCaret(new_pos);
 		},
-		_moveCaret_lc : function(line, colum) {
-
-		},
-		_setCaret : function(caret) {
-			//$.log(caret)
-			this.caret_pos = caret;
-			this._resetCaret();
-		},
-		_resetCaret : function() {
-			//$.log(this.caret_pos.top);
-			var l = this.caret_pos.left * this.render.scale, t = (this.caret_pos.top + this.padding_top + this.baseline_offset - this.caret_offset_2) * this.render.scale, off_t = t - this.container.scrollTop, off_b = off_t - this.height + this.line_height + this.caret_offset_2;
-
-			//$.log("off %d,%d",off_t,off_b)
-			if(off_t < 0) {
-				this.container.scrollTop += off_t;
-			} else if(off_b > 0) {
-				this.container.scrollTop += off_b;
-			}
-			if($.chrome && this.cur_page.select_mode)
-				t += 3;
-			this.caret.style.left = l + 'px';
-			this.caret.style.top = t + "px";
-		},
+		
 		focus : function() {
 			//if(this.cur_mode==="handword" || this.cur_mode==="readonly"){
+			if(this.focused===false){
 				this.focused = true;
-				this.caret.focus();
+				this._caretFocus();
+			}
 			//}
+		},
+		blur : function(){
+			this.focused = false;
+			this._caretBlur();
 		},
 		_insertText : function(text, caret) {
 			var e_arr = [], re;
@@ -530,15 +487,15 @@
 		clear : function() {
 			this.cur_page.reset();
 			this.select_doodle = null;
-			this._setCaret({
+			this.render.paint();
+			this.caret_pos = {
 				index : -1,
 				para : 0,
 				para_at : -1,
 				left : 0,
-				top : this.line_height - this.font_height
-			});
-			this.render.paint();
-			this.focus();
+				top : this.padding_top + this.baseline_offset
+			};
+			this._resetCaret();
 			this.clearUndoRedo();
 		},
 		clearUndoRedo : function() {

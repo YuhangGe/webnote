@@ -10,6 +10,7 @@
 		<script type="text/javascript" src="js/editor/utility.js"></script>
 		<script type="text/javascript" src="js/editor/editor.js"></script>
 		<script type="text/javascript" src="js/editor/render.js"></script>
+		<script type="text/javascript" src="js/editor/caret.js"></script>
 		<script type = "text/javascript" src="js/editor/page.js"></script>
 		<script type ="text/javascript" src="js/editor/element.js"></script>
 		<script type="text/javascript" src="js/editor/event.js"></script>

@@ -6,13 +6,21 @@
 		},
 		_blur_handler : function(e) {
 			/**
-			 * hack. 下面条件满足则表明光标的焦点失去，并且不在canvas上，
-			 *       即整个editor失去焦点。
+			 * hack. 如果e.explicitOriginalTarget===this.canvas(firefox, chrome, safari)
+			 *       或者 document.activeElement === this.container(ie9)
+			 *       表明当前失去焦点后的目标是canvas或者container，即相当于整个编辑器没有失去焦点，则让caret重新得到焦点。
+			 *   否则处理失去焦点。
 			 */
-			//$.log('blur');
-			if(e.explicitOriginalTarget !== this.canvas) {
-				this.focused = false;
-				//this.caret.style.display = "none";
+			if(e.explicitOriginalTarget === this.canvas 
+				|| document.activeElement === this.container) {
+				/**
+				 * 设置timeout是因为直接caret.focus是没有作用的，当前代码本身就在caret的blur事件中运行。
+				 * $.stopEvent也不能阻止caret失去焦点。 
+				 */
+				window.setTimeout(this.caret_focus_delegate, 0);
+				
+			} else {
+				this.blur();
 			}
 		},
 		_deal_leftmouse_down : function(e, point) {
@@ -37,8 +45,11 @@
 					this._shift_select(nc.index);
 				} else {
 					this._setCaret(nc);
-					this.cur_page.select(null);
-					this.render.paint();
+					if(this.cur_page.select_mode){
+						this.cur_page.select(null);
+						this.render.paint();
+					}
+					
 				}
 			}
 			this.__pre_pos__ = this.caret_pos;
@@ -94,7 +105,6 @@
 					//$.log('release')
 				}
 			}
-			this.render.paint();
 			this.__left_mouse_down__ = false;
 
 		},
@@ -109,13 +119,14 @@
 			}
 
 		},
-		_deal_leftmouse_move : function(pos) { outif:
+		_deal_leftmouse_move : function(pos) { 
+			outif:
 			if(pos.para !== this.__pre_pos__.para || pos.para_at !== this.__pre_pos__.para_at) {
 				this._setCaret(pos);
-				this.focus();
 				var from = this.__down_pos__, to = pos;
 				if(from.para === to.para && from.para_at === to.para_at && this.cur_page.select_mode) {
 					this.cur_page.select(null);
+					this.render.paint();
 					break outif;
 				} else if(from.para > to.para || (from.para === to.para && from.para_at > to.para_at)) {
 					from = pos;
@@ -124,9 +135,9 @@
 				}
 				//$.log("select from %d,%d,line %d to %d,%d,line %d",from.para,from.para_at,from.line,to.para,to.para_at,to.line);
 				this.cur_page.select(from, to);
-
+				this.render.paint();
 			}
-			this.render.paint();
+			
 			this.__pre_pos__ = pos;
 
 		},
@@ -184,26 +195,16 @@
 			this._adjust_caret(s);
 		},
 		_adjust_caret : function(s) {
-			if(s === "") {
-				this.caret.style.height = ((this.font_height + this.caret_offset_1) * this.render.scale) + 'px';
-				this.caret.style.width = "1px";
-				this.caret.style.background = "transparent";
-				this.caret.style.border = "0px"
-				return;
-			}
+			
 			this.render.ctx.font = this.caret.style.font;
-			var w = this.render.ctx.measureText(s).width, dw = this.c_width - this.caret_pos.left * this.render.scale;
+			var w = this.render.ctx.measureText(s).width + 4 * this.render.scale, dw = this.c_width - this.caret_pos.left * this.render.scale;
 			if(w > this.c_width) {
-				this.caret.style.height = (this.font_height + this.caret_offset_1) * this.render.scale * Math.ceil(w / this.c_width) + "px";
+				this.caret.style.height = Math.round(this.line_height * this.render.scale * Math.ceil(w / this.c_width)) + "px";
 			} else {
-				this.caret.style.width = (w + 4 * this.render.scale) + "px";
+				this.caret.style.width = Math.round(w) + "px";
 				if(w > dw)
-					this.caret.style.left = (this.c_width - w) + "px";
+					this.caret.style.left = Math.round(this.c_width - w) + "px";
 			}
-
-			this.caret.style.border = "1px dashed green";
-			this.caret.style.borderColor = "rgba(28,148,164,0.3)";
-			this.caret.style.background = "#FFFFCC";
 		},
 		_copy_handler : function(e) {
 
@@ -338,6 +339,15 @@
 		},
 		_compositionstart_handler : function(e) {
 			this.__ime_on__ = true;
+			this.caret.style.left = (this.caret_left-Math.round(1*this.render.scale))+ "px";
+			this.caret.style.top = (this.caret_top + Math.round(2.5*this.render.scale)) + "px";
+			this.caret.style.height = this.caret_height + "px";
+			this.caret.style.opacity = 1;
+			this.caret.style.border = "1px dashed green";
+			this.caret.style.borderColor = "rgba(28,148,164,0.3)";
+			this.caret.style.background = "#FFFFCC";
+			this._caretHide();
+			this._caretStopFlash();
 		},
 		_compositionupdate_handler : function(e) {
 
@@ -350,7 +360,11 @@
 		},
 		_compositionend_timeout_handler : function() {
 			this.caret.value = "";
-			this._adjust_caret("");
+			this.caret.style.left = "0px";
+			this.caret.style.top = "0px";
+			this.caret.style.height = "0px";
+			this.caret.style.width = "0px";
+			this.caret.style.opacity = 0;
 		},
 		_compositionend_handler : function(e) {
 			this.__ime_on__ = false;
@@ -362,7 +376,6 @@
 			 * 在chrome下面直接设置caret.value=""会出现bug
 			 */
 			setTimeout(this._compositionend_timeout, 0);
-
 		},
 		_keydown_handler : function(e) {
 			//$.log(this.read_only);
@@ -485,6 +498,7 @@
 			});
 			
 			$.addEvent(this.canvas, 'mouseup', $.createDelegate(this, this._focus_handler));
+			$.addEvent(this.caret, 'focus', $.createDelegate(this, this._focus_handler));
 			$.addEvent(this.caret, 'mouseup', $.createDelegate(this, this._mouseup_handler));
 
 			$.addEvent(this.caret, 'blur', $.createDelegate(this, this._blur_handler));

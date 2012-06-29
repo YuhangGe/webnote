@@ -49,7 +49,7 @@ Daisy.$ = function(id) {
 			}
 		},
 		stopEvent : function(e) {
-			if(e==null)
+			if(e == null)
 				return;
 			if(e.preventDefault) {
 				e.preventDefault();
@@ -234,12 +234,18 @@ Daisy.$ = function(id) {
 			ctrl = points[0];
 			ctx.moveTo(ctrl.x, ctrl.y);
 			for(var i = 0; i < len - 1; i++) {
-				dest = $.getMiddlePoint(points[i], points[i + 1]);
-				ctx.quadraticCurveTo(ctrl.x, ctrl.y, dest.x, dest.y);
-				ctrl = points[i + 1];
+				var pb = points[i], pc = {
+					x : 0,
+					y : 0
+				};
+				if(i < len - 2) {
+					pc.x = (pb.x + points[i + 1].x) / 2;
+					pc.y = (pb.y + points[i + 1].y) / 2;
+				} else {
+					pc = points[i + 1];
+				}
+				ctx.quadraticCurveTo(pb.x, pb.y, pc.x, pc.y);
 			}
-			dest = points[len - 1];
-			ctx.quadraticCurveTo(ctrl.x, ctrl.y, dest.x, dest.y);
 			ctx.stroke();
 			ctx.closePath();
 		},

@@ -64,7 +64,7 @@
 			SPACE : 4
 		},
 		load_word : function() {
-			jQuery.get("chinese/dict.txt", $.createDelegate(this, this._deal_load));
+			//jQuery.get("chinese/dict.txt", $.createDelegate(this, this._deal_load));
 		},
 		_deal_load : function(data) {
 			this.w_trie = Daisy._Trie.parse(data);

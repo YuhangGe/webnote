@@ -99,6 +99,8 @@
 
 		this.ctx.font = this.editor.font;
 		this.space_width = this.ctx.measureText(" ").width;
+		
+		
 	}
 	Daisy._Render.prototype = {
 		setScale : function(scale) {
@@ -202,7 +204,7 @@
 			this.ctx.strokeStyle = "#C0C0C0";
 			this.ctx.lineWidth = 2;
 
-			var top = this.padding_top + this.baseline_offset;
+			var top = this.padding_top;
 			for(var i = 0; i < this.line_count; i++) {
 				top += this.line_height;
 				this._drawLine(this.ctx, 0, top, this.width, top);
@@ -221,7 +223,7 @@
 			this.ctx.fillStyle = "rgba(0,255,0,0.2)";
 			var e_arr = this.page.ele_array, s_e = e_arr[from.index + 1], e_e = e_arr[to.index],
 				s_l = s_e.line_at, e_l = to.line,
-				c_h = this.font_height, c_w = this.width;
+				c_h = this.line_height, c_w = this.width;
 			if(s_l === e_l) {
 				//$.log(s_e);$.log(e_e);
 				this.ctx.fillRect(s_e.left, s_e.bottom - c_h + this.baseline_offset, e_e.left - s_e.left + e_e.width, c_h);
@@ -265,7 +267,7 @@
 			this.ctx.restore();
 		},
 		paint : function() {
-			//$.log("paint");
+			$.log("paint");
 
 			this.ctx.textAlign = "start";
 			this._paintBackground();
@@ -357,7 +359,25 @@
 			this.scale = pre_scale;
 
 			return this.thumb_canvas.toDataURL("image/png");
-		}
+		},
+		paintCaret : function(left, top, width, height, color){
+			//this.ctx.save();
+			this.ctx.fillStyle = color;
+			//this.ctx.globalAlpha = 0.9;
+			//this.ctx.globalCompositeOperation = "xor";
+			this.ctx.fillRect(left,top,width,height);
+			//this.ctx.restore();
+			//$.log(width);
+		},
+		_showCaret : function(left, top, width, height, color){
+			this.ctx.fillStyle = color;
+			//this.ctx.globalAlpha = 0.9;
+			//this.ctx.globalCompositeOperation = "xor";
+			this.ctx.fillRect(left,top,width,height);
+		},
+		_hideCaret : function(left, top, img){
+			this.ctx.putImageData(img,left,top);
+		},
 	}
 
 })(Daisy, Daisy.$);

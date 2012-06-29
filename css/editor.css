@@ -9,14 +9,15 @@
 .sn-caret {
 	position: absolute;
 	display: block;
-	width: 100px;
-	background: rgba(0,0,255,0.1);/* transparent; */
+	width: 0px;
+	height : 0px;
+	background: green;
+	opacity :0;
 	left: 0px;
 	top: 0px;
 	padding: 0px;
 	margin: 0px;
 	outline: none;
-	border: 1px dashed green;
 	resize: none;
 	/*
 	 * important! overflow hidden in chrome
